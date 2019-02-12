@@ -1,0 +1,17 @@
+/* ==========================================================================
+   Custom styles
+   ========================================================================== */
+
+body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.content-padding {
+    padding-top: 50px;
+    padding-bottom: 40px;
+}

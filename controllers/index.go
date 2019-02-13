@@ -11,11 +11,9 @@ import (
 
 func (app *Application) IndexHandler(w http.ResponseWriter, r *http.Request) {
 
-	data := &struct {
-		CurrentUser models.User
-		LoggedInFlag bool
-	}{
+	data := models.TemplateData{
 		CurrentUser:models.User{},
+		CurrentPage:"index",
 		LoggedInFlag:false,
 	}
 
@@ -26,7 +24,7 @@ func (app *Application) IndexHandler(w http.ResponseWriter, r *http.Request) {
 		data.LoggedInFlag = true
 		renderTemplate(w, r, "index.html", data)
 	} else {
-		renderTemplate(w, r, "index.html", nil)
+		renderTemplate(w, r, "index.html", data)
 	}
 }
 

@@ -10,24 +10,29 @@ import (
 	"net/http"
 )
 
-var cuser models.User
-
 func (app *Application) LoginView(w http.ResponseWriter, r *http.Request) {
 	session := sessions.InitSession(r)
 
 	data := &struct {
 		CurrentUser models.User
+		CurrentPage string
 		LoggedInFlag bool
+		MessageWarning string
+		MessageSuccess string
 	}{
 		CurrentUser:models.User{},
-		LoggedInFlag:true,
+		CurrentPage:"login",
+		LoggedInFlag:false,
 	}
 
 	if sessions.IsLoggedIn(session) {
 		data.CurrentUser = sessions.GetUser(session)
+		data.LoggedInFlag = true
+		data.CurrentPage = "index"
+		data.MessageWarning = "You are already logged in!"
 		renderTemplate(w, r, "index.html", data)
 	} else {
-		renderTemplate(w, r, "login.html", nil)
+		renderTemplate(w, r, "login.html", data)
 	}
 }
 
@@ -43,11 +48,9 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.email_address, u.user_role  FROM users u WHERE username = ? AND password = ?", username, password)
 	err = result.Scan(&user.Id, &user.Username, &user.FullName, &user.EmailAddress, &user.UserRole)
 
-	data := &struct {
-		CurrentUser models.User
-		LoggedInFlag bool
-	}{
+	data := models.TemplateData{
 		CurrentUser:models.User{},
+		CurrentPage:"login",
 		LoggedInFlag:false,
 	}
 
@@ -55,6 +58,7 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			fmt.Printf("No row found \n")
 			data.CurrentUser.Username = username
+			data.MessageWarning = "Error! Incorrect username or password."
 			renderTemplate(w, r, "login.html", data)
 		} else {
 			panic(err)
@@ -65,7 +69,9 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		session.Values["LoggedInFlag"] = true
 		session.Save(r, w)
 		data.CurrentUser = user
+		data.CurrentPage = "index"
 		data.LoggedInFlag = true
+		data.MessageSuccess = "You have successfully logged in! Welcome, " + user.FullName
 		renderTemplate(w, r, "index.html", data)
 	}
 }
@@ -73,9 +79,17 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 // Logout
 func (app *Application) LogoutHandler(w http.ResponseWriter, r *http.Request)  {
 	session := sessions.InitSession(r)
+
+	data := models.TemplateData{
+		CurrentUser:models.User{},
+		CurrentPage:"login",
+		LoggedInFlag:false,
+	}
+
 	session.Values["User"] = models.User{}
 	session.Values["LoggedInFlag"] = false
 	session.Save(r, w)
 
-	renderTemplate(w, r, "login.html", nil)
+	data.MessageSuccess = "You have been successfully logged out."
+	renderTemplate(w, r, "login.html", data)
 }

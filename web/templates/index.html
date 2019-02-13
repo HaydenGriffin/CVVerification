@@ -10,8 +10,19 @@
     </div>
 
     <div class="container">
-        {{if .CurrentUser}}
+        {{if .MessageSuccess}}
+            <div class ="alert alert-success">
+                {{.MessageSuccess}}
+            </div>
+        {{end}}
+        {{if .MessageWarning}}
+            <div class ="alert alert-warning">
+                {{.MessageWarning}}
+            </div>
+        {{end}}
+
+        {{if .LoggedInFlag}}
             <p> Welcome, {{.CurrentUser.Username}}</p>
-            {{end}}
+        {{end}}
     </div>
 {{end}}

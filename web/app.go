@@ -13,7 +13,7 @@ func Serve(app *controllers.Application) {
 	http.HandleFunc("/index.html", app.IndexHandler)
 	http.HandleFunc("/login.html", app.LoginView)
 	http.HandleFunc("/loginProcess.html", app.LoginHandler)
-
+	http.HandleFunc("/addcv.html", app.AddCVView)
 	http.HandleFunc("/logout.html", app.LogoutHandler)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

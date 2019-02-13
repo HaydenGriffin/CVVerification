@@ -3,12 +3,22 @@
 {{define "body"}}
     <link rel="stylesheet" href="../assets/css/login.css">
     <div class="container-fluid content-padding">
+            {{if .MessageSuccess}}
+                <div class ="alert alert-success">
+                    {{.MessageSuccess}}
+                </div>
+            {{end}}
+            {{if .MessageWarning}}
+                <div class ="alert alert-warning">
+                    {{.MessageWarning}}
+                </div>
+            {{end}}
         <div class="col-lg-6 col-lg-offset-3 col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-3 col-xs-12">
             <form id="login-form" class="form-sign-in" action="/loginProcess.html" method="post">
                 <h2>Please login</h2>
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" class="form-control" name="username" placeholder="Email Address" required="" autofocus=""/>
+                    <input type="text" class="form-control" name="username" placeholder="Email Address" required="" autofocus="" {{if .CurrentUser.Username}}value="{{.CurrentUser.Username}}"{{end}}/>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/../cvtracker/.idea/cvtracker.iml" filepath="$PROJECT_DIR$/../cvtracker/.idea/cvtracker.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/cvtracker.iml" filepath="$PROJECT_DIR$/.idea/cvtracker.iml" />
-    </modules>
-  </component>
-</project>

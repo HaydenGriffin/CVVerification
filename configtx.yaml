@@ -9,17 +9,17 @@
 Organizations:
     - &CVTracker
         Name: CVTracker
-        ID: cvverification.com
+        ID: cvtracker.com
         AdminPrincipal: Role.ADMIN
-        MSPDir: crypto-config/ordererOrganizations/cvverification.com/msp
+        MSPDir: crypto-config/ordererOrganizations/cvtracker.com/msp
 
     - &Org1CVTracker
         Name: CVTrackerOrganization1
-        ID: org1.cvverification.com
+        ID: org1.cvtracker.com
         AdminPrincipal: Role.ADMIN
-        MSPDir: crypto-config/peerOrganizations/org1.cvverification.com/msp
+        MSPDir: crypto-config/peerOrganizations/org1.cvtracker.com/msp
         AnchorPeers:
-            - Host: peer0.org1.cvverification.com
+            - Host: peer0.org1.cvtracker.com
               Port: 7051
 
 ################################################################################
@@ -33,7 +33,7 @@ Organizations:
 Orderer: &OrdererDefaults
     OrdererType: solo
     Addresses:
-        - orderer.cvverification.com:7050
+        - orderer.cvtracker.com:7050
     BatchTimeout: 5s
     # Batch Size: Controls the number of messages batched into a block.
     BatchSize:

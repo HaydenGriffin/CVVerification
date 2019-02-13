@@ -91,6 +91,30 @@
   revision = "5ab67e519c93568ac3ee50fd6772a5bcf8aa460d"
 
 [[projects]]
+  digest = "1:dbbeb8ddb0be949954c8157ee8439c2adfd8dc1c9510eb44a6e58cb68c3dce28"
+  name = "github.com/gorilla/context"
+  packages = ["."]
+  pruneopts = ""
+  revision = "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+  version = "v1.1.1"
+
+[[projects]]
+  digest = "1:51a1d17ba9fe6648d9fdd5b822baa616d6ec7f28c8669c2091126d206796b5ae"
+  name = "github.com/gorilla/securecookie"
+  packages = ["."]
+  pruneopts = ""
+  revision = "e59506cc896acb7f7bf732d4fdf5e25f7ccd8983"
+  version = "v1.1.1"
+
+[[projects]]
+  digest = "1:4e1c7e6877107c08296ca6ee3d3c4c07d1ff5e46565a186aa8e9342e435301be"
+  name = "github.com/gorilla/sessions"
+  packages = ["."]
+  pruneopts = ""
+  revision = "f57b7e2d29c6211d16ffa52a0998272f75799030"
+  version = "v1.1.3"
+
+[[projects]]
   digest = "1:d14365c51dd1d34d5c79833ec91413bfbb166be978724f15701e17080dc06dec"
   name = "github.com/hashicorp/hcl"
   packages = [
@@ -463,6 +487,8 @@
   analyzer-version = 1
   input-imports = [
     "github.com/go-sql-driver/mysql",
+    "github.com/gorilla/securecookie",
+    "github.com/gorilla/sessions",
     "github.com/hyperledger/fabric-sdk-go/pkg/client/channel",
     "github.com/hyperledger/fabric-sdk-go/pkg/client/event",
     "github.com/hyperledger/fabric-sdk-go/pkg/client/msp",

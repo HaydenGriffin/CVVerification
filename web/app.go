@@ -2,7 +2,7 @@ package web
 
 import (
 	"fmt"
-	"github.com/cvverification/controllers"
+	"github.com/cvtracker/controllers"
 	"net/http"
 )
 
@@ -14,7 +14,7 @@ func Serve(app *controllers.Application) {
 	http.HandleFunc("/login.html", app.LoginView)
 	http.HandleFunc("/loginProcess.html", app.LoginHandler)
 
-	//http.HandleFunc("/logout.html", app.LogoutHandler)
+	http.HandleFunc("/logout.html", app.LogoutHandler)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/index.html", http.StatusTemporaryRedirect)

@@ -1,4 +1,4 @@
-name: "cvverification-network"
+name: "cvtracker-network"
 
 # Describe what the target network is/does.
 description: "CV Verification Network"
@@ -61,17 +61,17 @@ client:
 
   # Root of the MSP directories with keys and certs.
   cryptoconfig:
-    path: ${GOPATH}/src/github.com/cvverification/fixtures/crypto-config
+    path: ${GOPATH}/src/github.com/cvtracker/fixtures/crypto-config
 
   # Some SDKs support pluggable KV stores, the properties under "credentialStore"
   # are implementation specific
   credentialStore:
-    path: /tmp/cvverification-store
+    path: /tmp/cvtracker-store
 
     # [Optional]. Specific to the CryptoSuite implementation used by GO SDK. Software-based implementations
     # requiring a key store. PKCS#11 based implementations does not.
     cryptoStore:
-      path: /tmp/cvverification-msp
+      path: /tmp/cvtracker-msp
 
    # BCCSP config for the client. Used by GO SDK.
   BCCSP:
@@ -171,11 +171,11 @@ channels:
 #
 organizations:
   Org1:
-    mspid: org1.cvverification.com
-    cryptoPath: peerOrganizations/org1.cvverification.com/users/{userName}@org1.cvverification.com/msp
+    mspid: org1.cvtracker.com
+    cryptoPath: peerOrganizations/org1.cvtracker.com/users/{userName}@org1.cvtracker.com/msp
     peers:
-      - peer0.org1.cvverification.com
-      - peer1.org1.cvverification.com
+      - peer0.org1.cvtracker.com
+      - peer1.org1.cvtracker.com
 
     # [Optional]. Certificate Authorities issue certificates for identification purposes in a Fabric based
     # network. Typically certificates provisioning is done in a separate process outside of the
@@ -183,7 +183,7 @@ organizations:
     # dynamic certificate management (enroll, revoke, re-enroll). The following section is only for
     # Fabric-CA servers.
     certificateAuthorities:
-      - ca.org1.cvverification.com
+      - ca.org1.cvtracker.com
 
 #
 # List of orderers to send transaction and channel create/update requests to. For the time
@@ -197,7 +197,7 @@ orderers:
     # these are standard properties defined by the gRPC library
     # they will be passed in as-is to gRPC client constructor
     grpcOptions:
-      ssl-target-name-override: orderer.cvverification.com
+      ssl-target-name-override: orderer.cvtracker.com
       # These parameters should be set in coordination with the keepalive policy on the server,
       # as incompatible settings can result in closing of connection.
       # When duration of the 'keep-alive-time' is set to 0 or less the keep alive client parameters are disabled
@@ -210,7 +210,7 @@ orderers:
 
     tlsCACerts:
       # Certificate location absolute path
-      path: ${GOPATH}/src/github.com/cvverification/fixtures/crypto-config/ordererOrganizations/cvverification.com/tlsca/tlsca.cvverification.com-cert.pem
+      path: ${GOPATH}/src/github.com/cvtracker/fixtures/crypto-config/ordererOrganizations/cvtracker.com/tlsca/tlsca.cvtracker.com-cert.pem
 
 #
 # List of peers to send various requests to, including endorsement, query
@@ -224,7 +224,7 @@ peers:
     eventUrl: localhost:7053
 
     grpcOptions:
-      ssl-target-name-override: peer0.org1.cvverification.com
+      ssl-target-name-override: peer0.org1.cvtracker.com
       grpc.http2.keepalive_time: 15
       # These parameters should be set in coordination with the keepalive policy on the server,
       # as incompatible settings can result in closing of connection.
@@ -238,7 +238,7 @@ peers:
 
     tlsCACerts:
       # Certificate location absolute path
-      path: ${GOPATH}/src/github.com/cvverification/fixtures/crypto-config/peerOrganizations/org1.cvverification.com/tlsca/tlsca.org1.cvverification.com-cert.pem
+      path: ${GOPATH}/src/github.com/cvtracker/fixtures/crypto-config/peerOrganizations/org1.cvtracker.com/tlsca/tlsca.org1.cvtracker.com-cert.pem
 
   peer1.org1.cvtracker.com:
     # this URL is used to send endorsement and query requests
@@ -247,7 +247,7 @@ peers:
     eventUrl: localhost:8053
 
     grpcOptions:
-      ssl-target-name-override: peer1.org1.cvverification.com
+      ssl-target-name-override: peer1.org1.cvtracker.com
       # These parameters should be set in coordination with the keepalive policy on the server,
       # as incompatible settings can result in closing of connection.
       # When duration of the 'keep-alive-time' is set to 0 or less the keep alive client parameters are disabled
@@ -260,7 +260,7 @@ peers:
 
     tlsCACerts:
       # Certificate location absolute path
-      path: ${GOPATH}/src/github.com/cvverification/fixtures/crypto-config/peerOrganizations/org1.cvverification.com/tlsca/tlsca.org1.cvverification.com-cert.pem
+      path: ${GOPATH}/src/github.com/cvtracker/fixtures/crypto-config/peerOrganizations/org1.cvtracker.com/tlsca/tlsca.org1.cvtracker.com-cert.pem
 
 #
 # Fabric-CA is a special kind of Certificate Authority provided by Hyperledger Fabric which allows
@@ -272,7 +272,7 @@ certificateAuthorities:
     url: https://localhost:7054
     tlsCACerts:
       # Certificate location absolute path
-      path: ${GOPATH}/src/github.com/cvverification/fixtures/crypto-config/peerOrganizations/org1.cvverification.com/ca/ca.org1.cvverification.com-cert.pem
+      path: ${GOPATH}/src/github.com/cvtracker/fixtures/crypto-config/peerOrganizations/org1.cvtracker.com/ca/ca.org1.cvtracker.com-cert.pem
 
     # Fabric-CA supports dynamic user enrollment via REST APIs. A "root" user, a.k.a registrar, is
     # needed to enroll and invoke new users.
@@ -280,29 +280,29 @@ certificateAuthorities:
       enrollId: admin
       enrollSecret: adminpw
     # [Optional] The optional name of the CA.
-    caName: ca.org1.cvverification.com
+    caName: ca.org1.cvtracker.com
 
 entityMatchers:
   peer:
-    - pattern: (\w*)peer0.org1.cvverification.com(\w*)
+    - pattern: (\w*)peer0.org1.cvtracker.com(\w*)
       urlSubstitutionExp: localhost:7051
       eventUrlSubstitutionExp: localhost:7053
-      sslTargetOverrideUrlSubstitutionExp: peer0.org1.cvverification.com
-      mappedHost: peer0.org1.cvverification.com
+      sslTargetOverrideUrlSubstitutionExp: peer0.org1.cvtracker.com
+      mappedHost: peer0.org1.cvtracker.com
 
-    - pattern: (\w*)peer1.org1.cvverification.com(\w*)
+    - pattern: (\w*)peer1.org1.cvtracker.com(\w*)
       urlSubstitutionExp: localhost:8051
       eventUrlSubstitutionExp: localhost:8053
-      sslTargetOverrideUrlSubstitutionExp: peer1.org1.cvverification.com
-      mappedHost: peer1.org1.cvverification.com
+      sslTargetOverrideUrlSubstitutionExp: peer1.org1.cvtracker.com
+      mappedHost: peer1.org1.cvtracker.com
 
   orderer:
-    - pattern: (\w*)orderer.cvverification.com(\w*)
+    - pattern: (\w*)orderer.cvtracker.com(\w*)
       urlSubstitutionExp: localhost:7050
-      sslTargetOverrideUrlSubstitutionExp: orderer.cvverification.com
-      mappedHost: orderer.cvverification.com
+      sslTargetOverrideUrlSubstitutionExp: orderer.cvtracker.com
+      mappedHost: orderer.cvtracker.com
 
   certificateAuthorities:
-    - pattern: (\w*)ca.org1.cvverification.com(\w*)
+    - pattern: (\w*)ca.org1.cvtracker.com(\w*)
       urlSubstitutionExp: http://localhost:7054
-      mappedHost: ca.org1.cvverification.com
+      mappedHost: ca.org1.cvtracker.com

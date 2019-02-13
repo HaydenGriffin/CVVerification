@@ -6,9 +6,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/cvverification/blockchain"
-	"github.com/cvverification/web"
-	"github.com/cvverification/controllers"
+	"github.com/cvtracker/blockchain"
+	"github.com/cvtracker/web"
+	"github.com/cvtracker/controllers"
 	"os"
 )
 
@@ -16,16 +16,16 @@ func main() {
 	// Definition of the Fabric SDK properties
 	fSetup := blockchain.FabricSetup{
 		// Network parameters 
-		OrdererID: "orderer.cvverification.com",
+		OrdererID: "orderer.cvtracker.com",
 
 		// Channel parameters
-		ChannelID:     "cvverification",
-		ChannelConfig: os.Getenv("GOPATH") + "/src/github.com/cvverification/fixtures/artifacts/cvverification.channel.tx",
+		ChannelID:     "cvtracker",
+		ChannelConfig: os.Getenv("GOPATH") + "/src/github.com/cvtracker/fixtures/artifacts/cvtracker.channel.tx",
 
 		// Chaincode parameters
-		ChainCodeID:     "cvverification",
+		ChainCodeID:     "cvtracker",
 		ChaincodeGoPath: os.Getenv("GOPATH"),
-		ChaincodePath:   "github.com/cvverification/chaincode/",
+		ChaincodePath:   "github.com/cvtracker/chaincode/",
 		OrgAdmin:        "Admin",
 		OrgName:         "org1",
 		ConfigFile:      "config.yaml",

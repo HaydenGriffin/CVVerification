@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/cvverification/blockchain"
+	"github.com/cvtracker/blockchain"
 	"html/template"
 	"net/http"
 	"os"

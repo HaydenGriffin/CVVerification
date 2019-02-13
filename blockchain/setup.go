@@ -112,7 +112,7 @@ func (setup *FabricSetup) InstallAndInstantiateCC() error {
 	fmt.Println("Chaincode installed")
 
 	// Set up chaincode policy
-	ccPolicy := cauthdsl.SignedByAnyMember([]string{"org1.cvverification.com"})
+	ccPolicy := cauthdsl.SignedByAnyMember([]string{"org1.cvtracker.com"})
 
 	resp, err := setup.admin.InstantiateCC(setup.ChannelID, resmgmt.InstantiateCCRequest{Name: setup.ChainCodeID, Path: setup.ChaincodeGoPath, Version: "0", Args: [][]byte{[]byte("init")}, Policy: ccPolicy})
 	if err != nil || resp.TransactionID == "" {

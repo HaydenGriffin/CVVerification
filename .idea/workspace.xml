@@ -2,25 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="8ff6abb3-4ebe-48e7-9170-7889439075a8" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../cvtracker/.idea/cvverification.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../cvtracker/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/Gopkg.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/Gopkg.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../cvtracker/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/blockchain/setup.go" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/blockchain/setup.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/config.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/configtx.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/configtx.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/controllers/controller.go" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/controllers/controller.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/controllers/index.go" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/controllers/index.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/controllers/login.go" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/controllers/login.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/crypto-config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/crypto-config.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/cvtracker" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/cvtracker" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/fixtures/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/fixtures/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/models/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/models/userModel.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/web/app.go" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/web/app.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cvtracker/web/templates/layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/../cvtracker/web/templates/layout.html" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -42,11 +25,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../cvtracker/controllers/login.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="418">
-              <caret line="30" column="5" lean-forward="true" selection-start-line="30" selection-start-column="5" selection-end-line="30" selection-end-column="5" />
+            <state relative-caret-position="216">
+              <caret line="45" selection-start-line="45" selection-end-line="45" />
               <folding>
                 <element signature="e#21#139#0" expanded="true" />
               </folding>
@@ -66,8 +49,17 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../cvtracker/Makefile">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="330">
-              <caret line="22" column="8" selection-start-line="22" selection-start-column="8" selection-end-line="22" selection-end-column="8" />
+            <state relative-caret-position="360">
+              <caret line="24" column="9" selection-start-line="24" selection-start-column="9" selection-end-line="24" selection-end-column="9" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/../cvtracker/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="15">
+              <caret line="1" lean-forward="true" selection-start-line="1" selection-end-line="1" />
             </state>
           </provider>
         </entry>
@@ -77,15 +69,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="75">
               <caret line="5" column="36" selection-start-line="5" selection-start-column="36" selection-end-line="5" selection-end-column="36" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../gorilla/sessions/store.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="224">
-              <caret line="49" column="5" selection-start-line="49" selection-start-column="5" selection-end-line="49" selection-end-column="5" />
             </state>
           </provider>
         </entry>
@@ -164,7 +147,6 @@
       <find>milagr</find>
       <find>cvtracker</find>
       <find>verific</find>
-      <find>build</find>
       <find>sessions.</find>
       <find>LoggedIn</find>
       <find>domain</find>
@@ -173,6 +155,7 @@
       <find>/login</find>
       <find>index.htm</find>
       <find>loggedIn</find>
+      <find>build</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -216,6 +199,8 @@
         <option value="$PROJECT_DIR$/../cvtracker/web/app.go" />
         <option value="$PROJECT_DIR$/../cvtracker/web/templates/layout.html" />
         <option value="$PROJECT_DIR$/../cvtracker/controllers/login.go" />
+        <option value="$PROJECT_DIR$/../cvtracker/Makefile" />
+        <option value="$PROJECT_DIR$/../cvtracker/.gitignore" />
       </list>
     </option>
   </component>
@@ -241,38 +226,12 @@
             <path>
               <item name="cvverification" type="b2602c69:ProjectViewProjectNode" />
               <item name="cvtracker" type="462c0819:PsiDirectoryNode" />
-              <item name="controllers" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="cvverification" type="b2602c69:ProjectViewProjectNode" />
-              <item name="cvtracker" type="462c0819:PsiDirectoryNode" />
-              <item name="fixtures" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="cvverification" type="b2602c69:ProjectViewProjectNode" />
-              <item name="cvtracker" type="462c0819:PsiDirectoryNode" />
-              <item name="models" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="cvverification" type="b2602c69:ProjectViewProjectNode" />
-              <item name="cvtracker" type="462c0819:PsiDirectoryNode" />
-              <item name="service" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="cvverification" type="b2602c69:ProjectViewProjectNode" />
-              <item name="cvtracker" type="462c0819:PsiDirectoryNode" />
               <item name="sessions" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="cvverification" type="b2602c69:ProjectViewProjectNode" />
               <item name="cvtracker" type="462c0819:PsiDirectoryNode" />
-              <item name="web" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="cvverification" type="b2602c69:ProjectViewProjectNode" />
-              <item name="cvtracker" type="462c0819:PsiDirectoryNode" />
-              <item name="web" type="462c0819:PsiDirectoryNode" />
-              <item name="templates" type="462c0819:PsiDirectoryNode" />
+              <item name="vendor" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -490,13 +449,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../cvtracker/Makefile">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="22" column="8" selection-start-line="22" selection-start-column="8" selection-end-line="22" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../cvtracker/models/userModel.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="150">
@@ -550,11 +502,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../cvtracker/controllers/login.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="418">
-          <caret line="30" column="5" lean-forward="true" selection-start-line="30" selection-start-column="5" selection-end-line="30" selection-end-column="5" />
+        <state relative-caret-position="216">
+          <caret line="45" selection-start-line="45" selection-end-line="45" />
           <folding>
             <element signature="e#21#139#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../cvtracker/Makefile">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="24" column="9" selection-start-line="24" selection-start-column="9" selection-end-line="24" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../cvtracker/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="1" lean-forward="true" selection-start-line="1" selection-end-line="1" />
         </state>
       </provider>
     </entry>

@@ -22,7 +22,7 @@ env-down:
 	@cd fixtures && docker-compose down
 	@echo "Environment down"
 
-##### RUN`
+##### RUN
 run:
 	@echo "Start app ..."
 	@./cvtracker

@@ -31,10 +31,10 @@
                         </li>
                         {{if (.LoggedInFlag) and eq .CurrentUser.IsApplicant "T"}}
                             <li class="nav-item {{if eq .CurrentPage "addcv"}}active{{end}}">
-                                <a href="addcv.html">Add your CV</a>
+                                <a href="addCV.html">Add your CV</a>
                             </li>
-                            <li class="nav-item">
-                                <a href="query.html">Find CV</a>
+                            <li class="nav-item {{if eq .CurrentPage "result"}}active{{end}}">
+                                <a href="result.html">Result</a>
                             </li>
                         {{end}}
                         {{if (.LoggedInFlag) and eq .CurrentUser.IsAdmin "T"}}

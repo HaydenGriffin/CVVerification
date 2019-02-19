@@ -7,6 +7,7 @@ package main
 import (
 	"fmt"
 	"github.com/cvtracker/blockchain"
+	"github.com/cvtracker/service"
 	"github.com/cvtracker/web"
 	"github.com/cvtracker/controllers"
 	"os"
@@ -23,7 +24,7 @@ func main() {
 		ChannelConfig: os.Getenv("GOPATH") + "/src/github.com/cvtracker/fixtures/artifacts/cvtracker.channel.tx",
 
 		// Chaincode parameters
-		ChainCodeID:     "cvtracker",
+		ChaincodeID:     "cvtracker",
 		ChaincodeGoPath: os.Getenv("GOPATH"),
 		ChaincodePath:   "github.com/cvtracker/chaincode/",
 		OrgAdmin:        "Admin",
@@ -44,15 +45,20 @@ func main() {
 	defer fSetup.CloseSDK()	
 
 	// Install and instantiate the chaincode
-	err = fSetup.InstallAndInstantiateCC()
+	channelClient, err := fSetup.InstallAndInstantiateCC()
 	if err != nil {
 		fmt.Printf("Unable to install and instantiate the chaincode: %v\n", err)
 		return
 	}
 
+	serviceSetup := service.ServiceSetup{
+		ChaincodeID:"cvtracker",
+		Client:channelClient,
+	}
+
 	// Launch the web application listening
 	app := &controllers.Application{
-		Fabric: &fSetup,
+		Service: &serviceSetup,
 	}
 	web.Serve(app)
 }

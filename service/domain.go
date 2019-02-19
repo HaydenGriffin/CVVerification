@@ -4,10 +4,10 @@
 package service
 
 import (
-	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"fmt"
-	"time"
+	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/fab"
+	"time"
 )
 
 type CV struct {
@@ -25,8 +25,8 @@ type HistoryItem struct {
 }
 
 type ServiceSetup struct {
-	ChaincodeID	string
-	Client	*channel.Client
+	ChaincodeID     string
+	Client          *channel.Client
 }
 
 func registerEvent(client *channel.Client, chaincodeID, eventID string) (fab.Registration, <-chan *fab.CCEvent) {

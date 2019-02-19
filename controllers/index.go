@@ -11,10 +11,16 @@ import (
 
 func (app *Application) IndexHandler(w http.ResponseWriter, r *http.Request) {
 
+	helloValue, err := app.Service.QueryHello()
+	if err != nil {
+		http.Error(w, "Unable to query the blockchain", 500)
+	}
+
 	data := models.TemplateData{
 		CurrentUser:models.User{},
 		CurrentPage:"index",
 		LoggedInFlag:false,
+		MessageSuccess:helloValue,
 	}
 
 	session := sessions.InitSession(r)

@@ -25,7 +25,7 @@ type FabricSetup struct {
 	OrgID           string
 	OrdererID       string
 	ChannelID       string
-	ChainCodeID     string
+	ChaincodeID     string
 	initialized     bool
 	ChannelConfig   string
 	ChaincodeGoPath string
@@ -94,29 +94,29 @@ func (setup *FabricSetup) Initialize() error {
 	return nil
 }
 
-func (setup *FabricSetup) InstallAndInstantiateCC() error {
+func (setup *FabricSetup) InstallAndInstantiateCC() (*channel.Client, error) {
 
 	// Create the chaincode package that will be sent to the peers
 	ccPkg, err := packager.NewCCPackage(setup.ChaincodePath, setup.ChaincodeGoPath)
 	if err != nil {
-		return errors.WithMessage(err, "failed to create chaincode package")
+		return nil, errors.WithMessage(err, "failed to create chaincode package")
 	}
 	fmt.Println("ccPkg created")
 
 	// Install example cc to org peers
-	installCCReq := resmgmt.InstallCCRequest{Name: setup.ChainCodeID, Path: setup.ChaincodePath, Version: "0", Package: ccPkg}
+	installCCReq := resmgmt.InstallCCRequest{Name: setup.ChaincodeID, Path: setup.ChaincodePath, Version: "0", Package: ccPkg}
 	_, err = setup.admin.InstallCC(installCCReq, resmgmt.WithRetry(retry.DefaultResMgmtOpts))
 	if err != nil {
-		return errors.WithMessage(err, "failed to install chaincode")
+		return nil, errors.WithMessage(err, "failed to install chaincode")
 	}
 	fmt.Println("Chaincode installed")
 
 	// Set up chaincode policy
 	ccPolicy := cauthdsl.SignedByAnyMember([]string{"org1.cvtracker.com"})
 
-	resp, err := setup.admin.InstantiateCC(setup.ChannelID, resmgmt.InstantiateCCRequest{Name: setup.ChainCodeID, Path: setup.ChaincodeGoPath, Version: "0", Args: [][]byte{[]byte("init")}, Policy: ccPolicy})
+	resp, err := setup.admin.InstantiateCC(setup.ChannelID, resmgmt.InstantiateCCRequest{Name: setup.ChaincodeID, Path: setup.ChaincodeGoPath, Version: "0", Args: [][]byte{[]byte("init")}, Policy: ccPolicy})
 	if err != nil || resp.TransactionID == "" {
-		return errors.WithMessage(err, "failed to instantiate the chaincode")
+		return nil, errors.WithMessage(err, "failed to instantiate the chaincode")
 	}
 	fmt.Println("Chaincode instantiated")
 
@@ -124,19 +124,19 @@ func (setup *FabricSetup) InstallAndInstantiateCC() error {
 	clientContext := setup.sdk.ChannelContext(setup.ChannelID, fabsdk.WithUser(setup.UserName))
 	setup.client, err = channel.New(clientContext)
 	if err != nil {
-		return errors.WithMessage(err, "failed to create new channel client")
+		return nil, errors.WithMessage(err, "failed to create new channel client")
 	}
 	fmt.Println("Channel client created")
 
 	// Creation of the client which will enables access to our channel events
 	setup.event, err = event.New(clientContext)
 	if err != nil {
-		return errors.WithMessage(err, "failed to create new event client")
+		return nil, errors.WithMessage(err, "failed to create new event client")
 	}
 	fmt.Println("Event client created")
 
 	fmt.Println("Chaincode Installation & Instantiation Successful")
-	return nil
+	return setup.client, nil
 }
 
 func (setup *FabricSetup) CloseSDK() {

@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/cvtracker/blockchain"
+	"github.com/cvtracker/service"
 	"html/template"
 	"net/http"
 	"os"
@@ -10,7 +10,7 @@ import (
 )
 
 type Application struct {
-	Fabric *blockchain.FabricSetup
+	Service *service.ServiceSetup
 }
 
 func renderTemplate(w http.ResponseWriter, r *http.Request, templateName string, data interface{}) {

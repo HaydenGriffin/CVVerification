@@ -1,0 +1,25 @@
+{{define "title"}}Home{{end}}
+
+{{define "body"}}
+    <div class="container">
+        {{if .TxId}}
+            <div class ="alert alert-success">
+                {{.TxId}}
+            </div>
+        {{end}}
+        {{if .MessageSuccess}}
+            <div class ="alert alert-success">
+                {{.MessageSuccess}}
+            </div>
+        {{end}}
+        {{if .MessageWarning}}
+            <div class ="alert alert-warning">
+                {{.MessageWarning}}
+            </div>
+        {{end}}
+
+        {{if .LoggedInFlag}}
+            <p> Welcome, {{.CurrentUser.Username}}</p>
+        {{end}}
+    </div>
+{{end}}

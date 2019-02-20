@@ -361,6 +361,8 @@
   digest = "1:ee71b3559000aca2562869f53fe762743e84bf4f0993240d4c2e37f9122a032b"
   name = "golang.org/x/crypto"
   packages = [
+    "bcrypt",
+    "blowfish",
     "cryptobyte",
     "cryptobyte/asn1",
     "ocsp",
@@ -501,6 +503,7 @@
     "github.com/hyperledger/fabric-sdk-go/pkg/fabsdk",
     "github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/common/cauthdsl",
     "github.com/pkg/errors",
+    "golang.org/x/crypto/bcrypt",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

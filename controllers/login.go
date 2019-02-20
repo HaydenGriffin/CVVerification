@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/gob"
 	"fmt"
+	"github.com/cvtracker/crypto"
 	"github.com/cvtracker/models"
 	"github.com/cvtracker/sessions"
 	_ "github.com/go-sql-driver/mysql"
@@ -44,35 +45,47 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	session := sessions.InitSession(r)
 
 	var user models.User
+	var passwordCorrect = false
 
-	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.email_address, u.user_role  FROM users u WHERE username = ? AND password = ?", username, password)
-	err = result.Scan(&user.Id, &user.Username, &user.FullName, &user.EmailAddress, &user.UserRole)
+	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.password, u.email_address, u.user_role  FROM users u WHERE username = ?", username)
+	err = result.Scan(&user.Id, &user.Username, &user.FullName, &user.Password, &user.EmailAddress, &user.UserRole)
 
 	data := models.TemplateData{
-		CurrentUser:models.User{},
-		CurrentPage:"login",
-		LoggedInFlag:false,
+		CurrentUser:  models.User{},
+		CurrentPage:  "login",
+		LoggedInFlag: false,
 	}
 
 	if err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Printf("No row found \n")
-			data.CurrentUser.Username = username
-			data.MessageWarning = "Error! Incorrect username or password."
-			renderTemplate(w, r, "login.html", data)
+
 		} else {
 			panic(err)
 		}
 	} else {
+		passwordCorrect = crypto.Compare(user.Password, password)
+	}
+
+	fmt.Println(user.Password, password, passwordCorrect)
+
+	if passwordCorrect {
 		gob.Register(user)
 		session.Values["User"] = user
 		session.Values["LoggedInFlag"] = true
-		session.Save(r, w)
+		err := session.Save(r, w)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 		data.CurrentUser = user
 		data.CurrentPage = "index"
 		data.LoggedInFlag = true
 		data.MessageSuccess = "You have successfully logged in! Welcome, " + user.FullName
 		renderTemplate(w, r, "index.html", data)
+	} else {
+		data.CurrentUser.Username = username
+		data.MessageWarning = "Error! Incorrect username or password."
+		renderTemplate(w, r, "login.html", data)
 	}
 }
 

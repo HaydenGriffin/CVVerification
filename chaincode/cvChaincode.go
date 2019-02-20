@@ -1,67 +1,79 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
 
+const DOC_TYPE = "cvObj"
+
 // query
 // Every readonly functions in the ledger will be here
-func (t *CVTrackerChaincode) query(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVTrackerChaincode) queryCV(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("########### CVTrackerChaincode query ###########")
 
 	// Check whether the number of arguments is sufficient
-	if len(args) < 2 {
-		return shim.Error("The number of arguments is insufficient.")
+	if len(args) != 1 {
+		return shim.Error("The number of arguments is incorrect for the method.")
 	}
 
-	// Like the Invoke function, we manage multiple type of query requests with the second argument.
-	// We also have only one possible argument: hello
-	if args[1] == "hello" {
-
-		// Get the state of the value matching the key hello in the ledger
-		state, err := stub.GetState("hello")
-		if err != nil {
-			return shim.Error("Failed to get state of hello")
-		}
-
-		// Return this value in response
-		return shim.Success(state)
+	// Get the state of the value matching the key hello in the ledger
+	state, err := stub.GetState(args[0])
+	if err != nil {
+		return shim.Error("Failed to get state of cv")
 	}
 
-	// If the arguments given don’t match any function, we return an error
-	return shim.Error("Unknown query action, check the second argument.")
+	if state == nil {
+		return shim.Error("No CV exists for the specified key")
+	}
+
+	// Return this value in response
+	return shim.Success(state)
+
 }
 
-// invoke
-// Every functions that read and write in the ledger will be here
-func (t *CVTrackerChaincode) invoke(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	fmt.Println("########### CVTrackerChaincode invoke ###########")
+// Save cv
+// args: cv
+func PutCV(stub shim.ChaincodeStubInterface, cv CVObject) ([]byte, bool) {
 
-	if len(args) < 2 {
-		return shim.Error("The number of arguments is insufficient.")
+	cv.ObjectType = DOC_TYPE
+
+	b, err := json.Marshal(cv)
+	if err != nil {
+		return nil, false
 	}
 
-	// Check if the ledger key is "hello" and process if it is the case. Otherwise it returns an error.
-	if args[1] == "hello" && len(args) == 3 {
-
-		// Write the new value in the ledger
-		err := stub.PutState("hello", []byte(args[2]))
-		if err != nil {
-			return shim.Error("Failed to update state of hello")
-		}
-
-		// Notify listeners that an event "eventInvoke" have been executed (check line 19 in the file invoke.go)
-		err = stub.SetEvent("eventInvoke", []byte{})
-		if err != nil {
-			return shim.Error(err.Error())
-		}
-
-		// Return this value in response
-		return shim.Success(nil)
+	// Save resume status
+	err = stub.PutState("cv", b)
+	if err != nil {
+		return nil, false
 	}
 
-	// If the arguments given don’t match any function, we return an error
-	return shim.Error("Unknown invoke action, check the second argument.")
+	return b, true
+}
+
+// Add Resume Chaincode
+// args: resume object
+// Resume Hash is key, Resume is the value
+func (t *CVTrackerChaincode) addCV(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	var cv CVObject
+	err := json.Unmarshal([]byte(args[0]), &cv)
+	if err != nil {
+		return shim.Error("An error occurred whilst deserialising the object")
+	}
+
+	_, bl := PutCV(stub, cv)
+	if !bl {
+		return shim.Error("An error occurred whilst saving the resume")
+	}
+
+	err = stub.SetEvent(args[1], []byte{})
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	return shim.Success([]byte("Successfully saved the resume"))
 }

@@ -5,19 +5,20 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 )
 
 // QueryHello query the chaincode to get the state of hello
-func (t *ServiceSetup) QueryHello() (string, error) {
+func (t *ServiceSetup) QueryCVByHash() (string, error) {
 
 	// Prepare arguments
 	var args []string
-	args = append(args, "invoke")
-	args = append(args, "query")
-	args = append(args, "hello")
+	args = append(args, "queryCV")
+	args = append(args, "cv")
 
-	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: args[0], Args: [][]byte{[]byte(args[1]), []byte(args[2])}}
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: args[0], Args: [][]byte{[]byte(args[1])}}
 
 	response, err := t.Client.Query(req)
 	if err != nil {
@@ -27,28 +28,24 @@ func (t *ServiceSetup) QueryHello() (string, error) {
 	return string(response.Payload), nil
 }
 
-
 // InvokeHello
-func (t *ServiceSetup) InvokeHello(value string) (string, error) {
+func (t *ServiceSetup) SaveCV(cv CVObject) (string, error) {
 
 	// Prepare arguments
 	var args []string
-	args = append(args, "invoke")
-	args = append(args, "invoke")
-	args = append(args, "hello")
-	args = append(args, value)
+	args = append(args, "addCV")
 
-	eventID := "eventInvoke"
+	eventID := "eventAddCV"
 	reg, notifier := registerEvent(t.Client, t.ChaincodeID, eventID)
 	defer t.Client.UnregisterChaincodeEvent(reg)
 
-	// Add data that will be visible in the proposal, like a description of the invoke request
-	transientDataMap := make(map[string][]byte)
-	transientDataMap["result"] = []byte("Transient data in hello invoke")
-
+	b, err := json.Marshal(cv)
+	if err != nil {
+		return "", fmt.Errorf("an error occurred whilst serialising the cv object")
+	}
 
 	// Create a request (proposal) and send it
-	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: args[0], Args: [][]byte{[]byte(args[1]), []byte(args[2]), []byte(args[3])}}
+	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: args[0], Args: [][]byte{b, []byte(eventID)}}
 	response, err := t.Client.Execute(req)
 	if err != nil {
 		return "", err

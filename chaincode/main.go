@@ -16,20 +16,6 @@ type CVTrackerChaincode struct {
 func (t *CVTrackerChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	fmt.Println("########### CVTrackerChaincode Init ###########")
 
-	// Get the function and arguments from the request
-	function, _ := stub.GetFunctionAndParameters()
-
-	// Check if the request is the init function
-	if function != "init" {
-		return shim.Error("Unknown function call")
-	}
-
-	// Put in the ledger the key/value hello/world
-	err := stub.PutState("hello", []byte("world"))
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
 	// Return a successful message
 	return shim.Success(nil)
 }
@@ -41,26 +27,12 @@ func (t *CVTrackerChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Respons
 
 	// Get the function and arguments from the request
 	function, args := stub.GetFunctionAndParameters()
-
-	// Check whether it is an invoke request
-	if function != "invoke" {
-		return shim.Error("Unknown function call")
-	}
-
-	// Check whether the number of arguments is sufficient
-	if len(args) < 1 {
-		return shim.Error("The number of arguments is insufficient.")
-	}
 	
 	// In order to manage multiple type of request, we will check the first argument.
-	// Here we have one possible argument: query (every query request will read in the ledger without modification)
-	if args[0] == "query" {
-		return t.query(stub, args)
-	}
-
-	// The update argument will manage all update in the ledger
-	if args[0] == "invoke" {
-		return t.invoke(stub, args)
+	if function == "queryCV" {
+		return t.queryCV(stub, args)
+	} else if function == "addCV" {
+		return t.addCV(stub, args)
 	}
 
 	// If the arguments given don’t match any function, we return an error

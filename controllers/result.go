@@ -16,12 +16,12 @@ func (app *Application) ResultHandler(w http.ResponseWriter, r *http.Request) {
 		LoggedInFlag:false,
 	}
 
-	helloValue, err := app.Service.QueryHello()
+	helloValue, err := app.Service.QueryCVByHash()
 	if err != nil {
 		data.MessageWarning = "Unable to query the blockchain"
 	} else {
 		data.MessageSuccess = "helloValue: " + helloValue
 	}
-	renderTemplate(w, r, "result.html", data)
+	renderTemplate(w, r, "mycv.html", data)
 }
 

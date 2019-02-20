@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/cvtracker/models"
+	"github.com/cvtracker/service"
 	"github.com/cvtracker/sessions"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
@@ -36,14 +36,20 @@ func (app *Application) AddCVHandler(w http.ResponseWriter, r *http.Request) {
 		LoggedInFlag:true,
 	}
 
-	helloValue := r.FormValue("speciality")
-	fmt.Println(helloValue)
-	txid, err := app.Service.InvokeHello(helloValue)
+	cv := service.CVObject{
+		Name:r.FormValue("name"),
+		Speciality:r.FormValue("speciality"),
+		CVHash:r.FormValue("CV"),
+		CVDate:r.FormValue("CVDate"),
+	}
+
+	txid, err := app.Service.SaveCV(cv)
+
 	if err != nil {
 		data.MessageWarning = "Unable to invoke"
-		renderTemplate(w, r, "result.html", data)
+		renderTemplate(w, r, "mycv.html", data)
 	} else {
 		data.MessageSuccess = txid
-		renderTemplate(w, r, "result.html", data)
+		renderTemplate(w, r, "mycv.html", data)
 	}
 }

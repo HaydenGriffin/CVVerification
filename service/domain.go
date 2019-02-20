@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type CV struct {
+type CVObject struct {
 	ObjectType	string	`json:"docType"`
 	Name	string	`json:"Name"`
 	Speciality	string	`json:"Speciality"`
@@ -21,7 +21,7 @@ type CV struct {
 
 type HistoryItem struct {
 	TxId	string
-	CV	CV
+	CV	CVObject
 }
 
 type ServiceSetup struct {

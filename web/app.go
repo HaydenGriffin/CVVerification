@@ -15,7 +15,7 @@ func Serve(app *controllers.Application) {
 	http.HandleFunc("/loginProcess.html", app.LoginHandler)
 	http.HandleFunc("/addCV.html", app.AddCVView)
 	http.HandleFunc("/addCVProcess.html", app.AddCVHandler)
-	http.HandleFunc("/result.html", app.ResultHandler)
+	http.HandleFunc("/mycv.html", app.ResultHandler)
 	http.HandleFunc("/logout.html", app.LogoutHandler)
 
 

@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"database/sql"
 	"encoding/gob"
 	"fmt"
 	"github.com/cvtracker/crypto"
+	"github.com/cvtracker/database"
 	"github.com/cvtracker/models"
 	"github.com/cvtracker/sessions"
 	_ "github.com/go-sql-driver/mysql"
@@ -41,33 +41,24 @@ func (app *Application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
-	db, err := models.InitDB("root:password@tcp(localhost:3306)/verification")
 	session := sessions.InitSession(r)
 
 	var user models.User
 	var passwordCorrect = false
 
-	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.password, u.email_address, u.user_role  FROM users u WHERE username = ?", username)
-	err = result.Scan(&user.Id, &user.Username, &user.FullName, &user.Password, &user.EmailAddress, &user.UserRole)
+	user, err := database.GetUserFromUsername(username)
 
 	data := models.TemplateData{
 		CurrentUser:  models.User{},
 		CurrentPage:  "login",
 		LoggedInFlag: false,
 	}
-
 	if err != nil {
-		if err == sql.ErrNoRows {
-			fmt.Printf("No row found \n")
-
-		} else {
-			panic(err)
-		}
+		fmt.Printf(err.Error())
+		data.MessageWarning = "Error! Incorrect username or password."
 	} else {
 		passwordCorrect = crypto.Compare(user.Password, password)
 	}
-
-	fmt.Println(user.Password, password, passwordCorrect)
 
 	if passwordCorrect {
 		gob.Register(user)

@@ -11,12 +11,12 @@ import (
 )
 
 // QueryHello query the chaincode to get the state of hello
-func (t *ServiceSetup) QueryCVByHash() (string, error) {
+func (t *ServiceSetup) QueryCVByHash(cvHash string) (string, error) {
 
 	// Prepare arguments
 	var args []string
 	args = append(args, "queryCV")
-	args = append(args, "cv")
+	args = append(args, cvHash)
 
 	req := channel.Request{ChaincodeID: t.ChaincodeID, Fcn: args[0], Args: [][]byte{[]byte(args[1])}}
 

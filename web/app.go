@@ -17,6 +17,8 @@ func Serve(app *controllers.Application) {
 	http.HandleFunc("/addCVProcess.html", app.AddCVHandler)
 	http.HandleFunc("/mycv.html", app.ResultHandler)
 	http.HandleFunc("/logout.html", app.LogoutHandler)
+	http.HandleFunc("/register.html", app.RegisterView)
+	http.HandleFunc("/registerProcess.html", app.RegisterHandler)
 
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

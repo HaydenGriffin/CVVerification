@@ -20,6 +20,7 @@ func (t *CVTrackerChaincode) queryCV(stub shim.ChaincodeStubInterface, args []st
 	}
 
 	// Get the state of the value matching the key hello in the ledger
+	//state, err := stub.GetState("cv")
 	state, err := stub.GetState(args[0])
 	if err != nil {
 		return shim.Error("Failed to get state of cv")
@@ -46,7 +47,8 @@ func PutCV(stub shim.ChaincodeStubInterface, cv CVObject) ([]byte, bool) {
 	}
 
 	// Save resume status
-	err = stub.PutState("cv", b)
+	//err = stub.PutState("cv", b)
+	err = stub.PutState(cv.CVHash, b)
 	if err != nil {
 		return nil, false
 	}

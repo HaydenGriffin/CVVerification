@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/cvtracker/database"
 	"github.com/cvtracker/models"
+	"github.com/cvtracker/service"
 	"github.com/cvtracker/sessions"
 	"net/http"
 )
@@ -12,13 +14,7 @@ func (app *Application) ResultHandler(w http.ResponseWriter, r *http.Request) {
 
 	session := sessions.InitSession(r)
 
-	data := &struct {
-		CurrentUser    models.User
-		CurrentPage    string
-		LoggedInFlag   bool
-		MessageWarning string
-		MessageSuccess string
-	}{
+	data := models.TemplateData{
 		CurrentUser:  models.User{},
 		CurrentPage:  "index",
 		LoggedInFlag: false,
@@ -38,11 +34,16 @@ func (app *Application) ResultHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf(err.Error())
 		data.MessageWarning = "Unable to find CV from hash."
 	} else {
-		cv, err := app.Service.QueryCVByHash(cvHash)
+		cvString, err := app.Service.QueryCVByHash(cvHash)
 		if err != nil {
 			data.MessageWarning = "Unable to query the blockchain"
 		} else {
-			data.MessageSuccess = "cv:" + cv
+			var cv = service.CVObject{}
+			err := json.Unmarshal(cvString, &cv)
+			if err != nil {
+				data.MessageWarning = "Unable to unmarshal CV object"
+			}
+			data.CV = cv
 		}
 		renderTemplate(w, r, "mycv.html", data)
 	}

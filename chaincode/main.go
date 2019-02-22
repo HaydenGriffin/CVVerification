@@ -33,6 +33,8 @@ func (t *CVTrackerChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Respons
 		return t.queryCV(stub, args)
 	} else if function == "addCV" {
 		return t.addCV(stub, args)
+	} else if function == "updateCV" {
+		return t.updateCV(stub, args)
 	}
 
 	// If the arguments given don’t match any function, we return an error

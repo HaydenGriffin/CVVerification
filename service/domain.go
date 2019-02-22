@@ -18,6 +18,13 @@ type CVObject struct {
 	CVHash	string	`json:"CVHash"`
 	CVDate	string	`json:"CVDate"`
 	History	[]HistoryItem
+	Rating []CVRating
+}
+
+type CVRating struct {
+	Name string `json:"Name"`
+	Comment string `json:"Comment"`
+	Rating int `json:"Rating"`
 }
 
 type HistoryItem struct {

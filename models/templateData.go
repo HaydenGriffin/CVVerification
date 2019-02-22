@@ -1,5 +1,7 @@
 package models
 
+import "github.com/cvtracker/service"
+
 type TemplateData struct {
 	TxId string
 	CurrentUser User
@@ -7,4 +9,5 @@ type TemplateData struct {
 	LoggedInFlag bool
 	MessageWarning string
 	MessageSuccess string
+	CV service.CVObject
 }

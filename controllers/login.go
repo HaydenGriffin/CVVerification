@@ -14,13 +14,7 @@ import (
 func (app *Application) LoginView(w http.ResponseWriter, r *http.Request) {
 	session := sessions.InitSession(r)
 
-	data := &struct {
-		CurrentUser models.User
-		CurrentPage string
-		LoggedInFlag bool
-		MessageWarning string
-		MessageSuccess string
-	}{
+	data := models.TemplateData{
 		CurrentUser:models.User{},
 		CurrentPage:"login",
 		LoggedInFlag:false,

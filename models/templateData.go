@@ -10,4 +10,5 @@ type TemplateData struct {
 	MessageWarning string
 	MessageSuccess string
 	CV service.CVObject
+	CVList []service.CVObject
 }

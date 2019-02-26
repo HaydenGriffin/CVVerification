@@ -29,12 +29,23 @@ func (t *CVTrackerChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Respons
 	function, args := stub.GetFunctionAndParameters()
 	
 	// In order to manage multiple type of request, we will check the first argument.
-	if function == "queryCV" {
+/*	if function == "queryCV" {
 		return t.queryCV(stub, args)
 	} else if function == "addCV" {
 		return t.addCV(stub, args)
 	} else if function == "updateCV" {
 		return t.updateCV(stub, args)
+	} else */
+	if function == "addCV" {
+		return t.addCV(stub, args)
+	} else if function == "saveProfile" {
+		return t.saveProfile(stub, args)
+	} else if function == "QueryProfileByHash" {
+		return t.QueryProfileByHash(stub, args)
+	} else if function == "updateProfile" {
+		return t.updateProfile(stub, args)
+	} else if function == "GetCVFromProfileHash" {
+		return t.GetCVFromProfileHash(stub, args)
 	}
 
 	// If the arguments given don’t match any function, we return an error

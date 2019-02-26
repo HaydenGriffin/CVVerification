@@ -70,16 +70,11 @@ func (app *Application) UpdateCVHandler(w http.ResponseWriter, r *http.Request) 
 		renderTemplate(w, r, "index.html", nil)
 	}
 
-	cvHash, err := database.GetCVHashFromUserID(data.CurrentUser.Id)
-	if err != nil {
-		fmt.Printf(err.Error())
-	}
 
 	cv := service.CVObject{
 		Name:r.FormValue("name"),
 		Speciality:r.FormValue("speciality"),
 		CV:r.FormValue("CV"),
-		CVHash:cvHash,
 		CVDate:r.FormValue("CVDate"),
 	}
 

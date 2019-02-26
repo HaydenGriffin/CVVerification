@@ -6,6 +6,7 @@ import (
 	"github.com/cvtracker/crypto"
 	"github.com/cvtracker/database"
 	"github.com/cvtracker/models"
+	"github.com/cvtracker/service"
 	"github.com/cvtracker/sessions"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
@@ -34,13 +35,8 @@ func (app *Application) RegisterView(w http.ResponseWriter, r *http.Request) {
 func (app *Application) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	session := sessions.InitSession(r)
 
-	username := r.FormValue("username")
-	fullName := r.FormValue("fullName")
-	emailAddress := r.FormValue("emailAddress")
-	password := r.FormValue("password")
-
 	data := models.TemplateData{
-		CurrentUser:  models.User{},
+		//CurrentUser:  user,
 		CurrentPage:  "register",
 		LoggedInFlag: false,
 	}
@@ -54,13 +50,32 @@ func (app *Application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	hashedPassword, err := crypto.Generate(password)
+	var user models.User
+
+	user.Username = r.FormValue("username")
+	user.FullName = r.FormValue("fullName")
+	user.EmailAddress = r.FormValue("emailAddress")
+	hashedPassword, err := crypto.GenerateFromString(r.FormValue("password"))
 
 	if err != nil {
 		fmt.Printf(err.Error())
+		data.MessageWarning = "Error! Something went wrong. Please try again"
+		renderTemplate(w, r, "register.html", data)
+		return
+	}
+	user.Password = hashedPassword
+	user.UserRole = "APPLICANT"
+	profileHash, err := crypto.GenerateFromString(user.Username)
+	user.ProfileHash = profileHash
+
+	if err != nil {
+		fmt.Printf(err.Error())
+		data.MessageWarning = "Error! Something went wrong. Please try again"
+		renderTemplate(w, r, "register.html", data)
+		return
 	}
 
-	err = database.CreateNewUser(username,fullName,hashedPassword,emailAddress)
+	err = database.CreateNewUser(user.Username, user.FullName, user.Password, user.EmailAddress, user.UserRole, profileHash)
 
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -69,27 +84,19 @@ func (app *Application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var user models.User
-
-	user, err = database.GetUserFromUsername(username)
-
-	if err != nil {
-		fmt.Printf(err.Error())
-		data.MessageWarning = "Failed to retrieve account from database."
-		renderTemplate(w, r, "register.html", data)
-		return
-	} else {
-		gob.Register(user)
-		session.Values["User"] = user
-		session.Values["LoggedInFlag"] = true
-		err := session.Save(r, w)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		data.CurrentUser = user
-		data.CurrentPage = "index"
-		data.LoggedInFlag = true
-		data.MessageSuccess = "You have successfully created an account! Welcome, " + user.FullName
-		renderTemplate(w, r, "index.html", data)
+	profile := service.UserProfile{
+		Username:user.Username,
 	}
+	//user, err = database.GetUserFromUsername(username)
+	txid, err := app.Service.SaveProfile(profile, user.ProfileHash)
+
+	gob.Register(user)
+	session.Values["User"] = user
+	session.Values["LoggedInFlag"] = true
+	err = session.Save(r, w)
+	data.CurrentUser = user
+	data.CurrentPage = "index"
+	data.LoggedInFlag = true
+	data.MessageSuccess = "You have successfully created an account! Welcome, " + user.FullName + txid
+	renderTemplate(w, r, "index.html", data)
 }

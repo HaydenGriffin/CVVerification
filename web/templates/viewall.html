@@ -1,0 +1,20 @@
+{{define "title"}}Home{{end}}
+
+{{define "body"}}
+    <link rel="stylesheet" href="../assets/css/mycv.css">
+    <div class="container-fluid content-padding">
+    {{if .CV}}
+        <form id="update-cv" class="form-my-cv" action="/updateCV.html" method="post">
+            <h1>My CV</h1>
+            <p> {{.CV.Name}}</p>
+            <h4>Speciality</h4>
+            <p>{{.CV.Speciality}}</p>
+            <h4>Date of CV</h4>
+            <p>{{.CV.CVDate}}</p>
+            <h4>My CV</h4>
+            <p>{{.CV.CV}}</p>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Update your CV</button>
+        </form>
+        {{end}}
+    </div>
+{{end}}

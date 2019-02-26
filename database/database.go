@@ -28,8 +28,8 @@ func GetUserFromUsername(username string) (models.User, error) {
 
 	db, err := InitDB(dataSourceName)
 
-	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.password, u.email_address, u.user_role  FROM users u WHERE username = ?", username)
-	err = result.Scan(&user.Id, &user.Username, &user.FullName, &user.Password, &user.EmailAddress, &user.UserRole)
+	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.password, u.email_address, u.user_role, u.profile_hash  FROM users u WHERE username = ?", username)
+	err = result.Scan(&user.Id, &user.Username, &user.FullName, &user.Password, &user.EmailAddress, &user.UserRole, &user.ProfileHash)
 
 	if err != nil {
 		return user, err
@@ -70,10 +70,34 @@ func GetCVHashFromUserID(id int) (string, error) {
 	}
 }
 
-func CreateNewUser(username, full_name, password, email_address string) error {
+func GetAllCVHashes() ([]string, error) {
+	var cvHashList []string
 
 	db, err := InitDB(dataSourceName)
-	res, err := db.Exec("INSERT INTO users(username, full_name, password, email_address, user_role) VALUES (?, ?, ?, ?, ?)", username, full_name, password, email_address, "APPLICANT")
+
+	rows, err := db.Query("SELECT uc.cv_hash FROM user_cvs uc")
+	defer rows.Close()
+
+	for rows.Next() {
+		var cvHash string
+		err = rows.Scan(&cvHash)
+		if err != nil {
+			return cvHashList, err
+		}
+		cvHashList = append(cvHashList, cvHash)
+	}
+	err = rows.Err()
+	if err != nil {
+		return cvHashList, err
+	}
+
+	return cvHashList, nil
+}
+
+func CreateNewUser(username, full_name, password, email_address, user_role, profile_hash string) error {
+
+	db, err := InitDB(dataSourceName)
+	res, err := db.Exec("INSERT INTO users(username, full_name, password, email_address, user_role, profile_hash) VALUES (?, ?, ?, ?, ?, ?)", username, full_name, password, email_address, user_role, profile_hash)
 	fmt.Println(res)
 
 	return err

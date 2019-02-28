@@ -2,6 +2,7 @@ package sessions
 
 import (
 	"github.com/cvtracker/models"
+	"github.com/cvtracker/service"
 	"github.com/gorilla/securecookie"
 	"net/http"
 
@@ -45,4 +46,14 @@ func GetUser(s *sessions.Session) models.User {
 		return models.User{}
 	}
 	return user
+}
+
+func GetCV(s *sessions.Session) service.CVObject {
+	val := s.Values["CV"]
+	var cv = service.CVObject{}
+	cv, ok := val.(service.CVObject)
+	if !ok {
+		return service.CVObject{}
+	}
+	return cv
 }

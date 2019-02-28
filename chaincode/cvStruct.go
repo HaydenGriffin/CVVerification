@@ -9,6 +9,7 @@ package main
  */
 
 
+ //Rating map key = cv object
 type UserProfile struct {
 	Username	string	`json:"Name"`
 	CVHistory []string `json:"CVHistory"`
@@ -24,7 +25,6 @@ type CVObject struct {
 }
 
 type CVRating struct {
-	CVHash string `json:"CVHashes"`
 	Name string `json:"Name"`
 	Comment string `json:"Comment"`
 	Rating int `json:"Rating"`

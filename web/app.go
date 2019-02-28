@@ -18,6 +18,11 @@ func Serve(app *controllers.Application) {
 	http.HandleFunc("/updateCV.html", app.UpdateCVView)
 	http.HandleFunc("/updateCVProcess.html", app.UpdateCVHandler)
 	http.HandleFunc("/mycv.html", app.ResultHandler)
+
+	http.HandleFunc("/submitForReview.html", app.SubmitForReviewHandler)
+	http.HandleFunc("/withdrawFromReview.html", app.WithdrawFromReviewHandler)
+
+	http.HandleFunc("/viewall.html", app.ViewAllView)
 	http.HandleFunc("/logout.html", app.LogoutHandler)
 	http.HandleFunc("/register.html", app.RegisterView)
 	http.HandleFunc("/registerProcess.html", app.RegisterHandler)

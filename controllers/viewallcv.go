@@ -1,12 +1,16 @@
 package controllers
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/cvtracker/database"
 	"github.com/cvtracker/models"
+	"github.com/cvtracker/service"
 	"github.com/cvtracker/sessions"
 	"net/http"
 )
 
-func (app *Application) ViewAllHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) ViewAllView(w http.ResponseWriter, r *http.Request) {
 
 	session := sessions.InitSession(r)
 
@@ -22,29 +26,48 @@ func (app *Application) ViewAllHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		data.MessageWarning = "You must be logged in to view the CVs."
 		renderTemplate(w, r, "index.html", data)
+		return
 	}
 
-/*	var cvHashList []string
+	ratableCVs := make(map[string] string)
 
-	cvHashList, err := database.GetAllCVHashes()
-
-	for
+	ratableCVs, err := database.GetAllRatableCVHashes()
+	fmt.Println(ratableCVs)
 
 	if err != nil {
-		fmt.Printf(err.Error())
-		data.MessageWarning = "Unable to find CV from hash."
-	} else {
-		cvString, err := app.Service.QueryCVByHash(cvHash)
+		data.MessageWarning = err.Error()
+		renderTemplate(w, r, "index.html", data)
+		return
+	}
+
+	data.CVList = make(map[string] service.CVObject)
+
+
+	for profileHash, cvHash := range ratableCVs {
+		fmt.Println("profileHash: " + profileHash)
+		fmt.Println("cvHash: " + cvHash)
+		b, err := app.Service.GetCVFromCVHash(cvHash)
+
 		if err != nil {
-			data.MessageWarning = "Unable to query the blockchain"
-		} else {
-			var cv = service.CVObject{}
-			err := json.Unmarshal(cvString, &cv)
-			if err != nil {
-				data.MessageWarning = "Unable to unmarshal CV object"
-			}
-			data.CV = cv
+			data.MessageWarning = err.Error()
+			renderTemplate(w, r, "index.html", data)
+			return
 		}
-		renderTemplate(w, r, "mycv.html", data)
-	}*/
+		var cv service.CVObject
+		err = json.Unmarshal(b, &cv)
+		if err != nil {
+			data.MessageWarning = err.Error()
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
+		data.CVList[profileHash] = cv
+	}
+
+		if len(data.CVList) == 0 {
+			data.MessageWarning = "There are no CVs to be rated at this time."
+			renderTemplate(w, r, "viewall.html", data)
+			return
+		}
+
+		renderTemplate(w, r, "viewall.html", data)
 }

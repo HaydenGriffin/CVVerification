@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/cvtracker/crypto"
 	"github.com/cvtracker/database"
 	"github.com/cvtracker/models"
@@ -24,7 +23,7 @@ func (app *Application) AddCVView(w http.ResponseWriter, r *http.Request) {
 
 	if sessions.IsLoggedIn(session) {
 		data.CurrentUser = sessions.GetUser(session)
-		renderTemplate(w, r, "addcv.html", data)
+		renderTemplate(w, r, "cvform.html", data)
 	} else {
 		data.LoggedInFlag = false
 		data.MessageWarning = "Error! Please log in to add a CV."
@@ -65,22 +64,18 @@ func (app *Application) AddCVHandler(w http.ResponseWriter, r *http.Request) {
 
 	txid, err := app.Service.SaveCV(cv, cvHash)
 
-	txid, err = app.Service.UpdateProfile(data.CurrentUser.ProfileHash, cvHash)
-
-
-	db, err := database.InitDB("root:password@tcp(localhost:3306)/verification")
-
-	res, err := db.Exec("INSERT INTO user_cvs(user_id, timestamp, cv) VALUES (?, CURRENT_TIMESTAMP, ?)", data.CurrentUser.Id, cv.CV)
-
+	txid, err = app.Service.UpdateProfileCV(data.CurrentUser.ProfileHash, cvHash)
 
 	if err != nil {
-		panic(err)
-	} else {
-		fmt.Println(res)
+		data.MessageWarning = err.Error()
+		renderTemplate(w, r, "index.html", data)
+		return
 	}
 
+	err = database.CreateNewCV(data.CurrentUser.Id, cv.CV, cvHash)
+
 	if err != nil {
-		data.MessageWarning = "Unable to invoke"
+		data.MessageWarning = "Unable to create new CV"
 		renderTemplate(w, r, "mycv.html", data)
 	} else {
 		data.MessageSuccess = txid

@@ -13,8 +13,10 @@
             <p>{{.CV.CVDate}}</p>
             <h4>My CV</h4>
             <p>{{.CV.CV}}</p>
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Update your CV</button>
+            {{if .IsCVRatable}}<button class="btn btn-link" type="submit" formaction="/withdrawFromReview.html">Withdraw CV from Review</button>
+            {{else}}<button class="btn btn-lg btn-primary btn-block" type="submit">Update your CV</button>
+            <button class="btn btn-link" type="submit" formaction="/submitForReview.html">Submit CV for Review</button>{{end}}
         </form>
-        {{end}}
+    {{end}}
     </div>
 {{end}}

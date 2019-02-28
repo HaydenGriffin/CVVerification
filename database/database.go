@@ -38,67 +38,88 @@ func GetUserFromUsername(username string) (models.User, error) {
 	}
 }
 
-func GetUserFromId(id string) (models.User, error) {
-
-	user := models.User{}
+func GetAllRatableCVHashes() (map[string] string, error) {
 
 	db, err := InitDB(dataSourceName)
 
-	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.password, u.email_address, u.user_role  FROM users u WHERE id = ?", id)
-	err = result.Scan(&user.Id, &user.Username, &user.FullName, &user.Password, &user.EmailAddress, &user.UserRole)
+	rows, err := db.Query("SELECT u.profile_hash, uc.cv_hash FROM user_cvs uc JOIN users u ON uc.user_id = u.id WHERE uc.cv_ratable = 1")
+	fmt.Println("GetAllRatableCVHashes:")
 
-	if err != nil {
-		return user, err
-	} else {
-		return user, nil
-	}
-}
-
-func GetCVHashFromUserID(id int) (string, error) {
-
-	var cvHash string
-
-	db, err := InitDB(dataSourceName)
-
-	result := db.QueryRow("SELECT uc.cv_hash FROM user_cvs uc WHERE user_id = ?", id)
-	err = result.Scan(&cvHash)
-
-	if err != nil {
-		return "", err
-	} else {
-		return cvHash, nil
-	}
-}
-
-func GetAllCVHashes() ([]string, error) {
-	var cvHashList []string
-
-	db, err := InitDB(dataSourceName)
-
-	rows, err := db.Query("SELECT uc.cv_hash FROM user_cvs uc")
-	defer rows.Close()
+	ratableCVs := make(map[string] string)
 
 	for rows.Next() {
 		var cvHash string
-		err = rows.Scan(&cvHash)
+		var profileHash string
+		err = rows.Scan(&profileHash, &cvHash)
+		fmt.Println("ProfileHash: " + profileHash)
+		fmt.Println("CVHash: " + cvHash)
 		if err != nil {
-			return cvHashList, err
+			return ratableCVs, err
 		}
-		cvHashList = append(cvHashList, cvHash)
+		ratableCVs[profileHash] = cvHash
 	}
 	err = rows.Err()
 	if err != nil {
-		return cvHashList, err
+		return ratableCVs, err
 	}
 
-	return cvHashList, nil
+	return ratableCVs, nil
 }
 
-func CreateNewUser(username, full_name, password, email_address, user_role, profile_hash string) error {
+func CreateNewUser(username, full_name, password, email_address, user_role, profile_hash string) (user models.User, error error) {
 
 	db, err := InitDB(dataSourceName)
 	res, err := db.Exec("INSERT INTO users(username, full_name, password, email_address, user_role, profile_hash) VALUES (?, ?, ?, ?, ?, ?)", username, full_name, password, email_address, user_role, profile_hash)
 	fmt.Println(res)
 
+	if err != nil {
+		return user, err
+	}
+
+	var selectedUser models.User
+
+	selectedUser, err = GetUserFromUsername(username)
+
+	if err != nil {
+		return user, err
+	}
+
+	user = selectedUser
+
+	return user, err
+}
+
+func CreateNewCV(user_id int, cv, cv_hash string) error {
+	db, err := InitDB(dataSourceName)
+	res, err := db.Exec("INSERT INTO user_cvs(user_id, timestamp, cv, cv_hash, cv_ratable) VALUES (?, CURRENT_TIMESTAMP, ?, ?, 0)", user_id, cv, cv_hash)
+	fmt.Println(res)
+
 	return err
+}
+
+func UpdateCV(cv_hash string, ratable int) error {
+	db, err := InitDB(dataSourceName)
+	res, err := db.Exec("UPDATE user_cvs SET cv_ratable = ? WHERE cv_hash = ?", ratable, cv_hash)
+	fmt.Println(res)
+
+	return err
+}
+
+func IsCVRatable(cv_hash string) (bool, error) {
+	db, err := InitDB(dataSourceName)
+	result := db.QueryRow("SELECT cv_ratable FROM user_cvs WHERE cv_hash = ?", cv_hash)
+
+	var cv_ratable int
+
+	err = result.Scan(&cv_ratable)
+
+	if err != nil {
+		return false, err
+	}
+
+	if cv_ratable == 1 {
+		return true, nil
+	} else {
+		return false, nil
+	}
 }

@@ -5,13 +5,11 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/cvtracker/blockchain"
-	"github.com/cvtracker/crypto"
+	"github.com/cvtracker/controllers"
 	"github.com/cvtracker/service"
 	"github.com/cvtracker/web"
-	"github.com/cvtracker/controllers"
 	"os"
 )
 
@@ -57,59 +55,6 @@ func main() {
 		ChaincodeID:"cvtracker",
 		Client:channelClient,
 	}
-
-	profile := service.UserProfile{
-		Username: "admin",
-	}
-
-	userHash, err := crypto.GenerateFromString("admin")
-
-	result, err := serviceSetup.SaveProfile(profile, userHash)
-	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		fmt.Println("Successfully saved profile: " + result)
-	}
-
-	cv := service.CVObject{
-		Speciality: "Test",
-		CV:"The greatest CV of them all! Bow down to me peasants",
-	}
-
-	cvByte, err := json.Marshal(cv)
-
-	cvHash, err := crypto.GenerateFromByte(cvByte)
-
-	result, err = serviceSetup.SaveCV(cv, cvHash)
-	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		fmt.Println("Successfully saved CV: " + result)
-	}
-
-	result, err = serviceSetup.UpdateProfile(userHash, cvHash)
-	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		fmt.Println("Successfully updated profile: " + result)
-
-
-	profilebyte, err := serviceSetup.GetProfile(userHash)
-
-	json.Unmarshal(profilebyte, &profile)
-	fmt.Println(profile)
-
-	b, err := serviceSetup.QueryCVFromProfileHash(userHash)
-		if err != nil {
-			fmt.Println(err.Error())
-		} else {
-			var cv1 service.CVObject
-			json.Unmarshal(b, &cv1)
-			fmt.Println(cv1)
-		}
-	}
-
-
 
 	// Launch the web application listening
 	app := &controllers.Application{

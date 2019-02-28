@@ -50,11 +50,11 @@ func (app *Application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var user models.User
+	var newUser models.User
 
-	user.Username = r.FormValue("username")
-	user.FullName = r.FormValue("fullName")
-	user.EmailAddress = r.FormValue("emailAddress")
+	newUser.Username = r.FormValue("username")
+	newUser.FullName = r.FormValue("fullName")
+	newUser.EmailAddress = r.FormValue("emailAddress")
 	hashedPassword, err := crypto.GenerateFromString(r.FormValue("password"))
 
 	if err != nil {
@@ -63,10 +63,10 @@ func (app *Application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 		renderTemplate(w, r, "register.html", data)
 		return
 	}
-	user.Password = hashedPassword
-	user.UserRole = "APPLICANT"
-	profileHash, err := crypto.GenerateFromString(user.Username)
-	user.ProfileHash = profileHash
+	newUser.Password = hashedPassword
+	newUser.UserRole = "APPLICANT"
+	profileHash, err := crypto.GenerateFromString(newUser.Username)
+	newUser.ProfileHash = profileHash
 
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -75,7 +75,9 @@ func (app *Application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = database.CreateNewUser(user.Username, user.FullName, user.Password, user.EmailAddress, user.UserRole, profileHash)
+	var user models.User
+
+	user, err = database.CreateNewUser(newUser.Username, newUser.FullName, newUser.Password, newUser.EmailAddress, newUser.UserRole, newUser.ProfileHash)
 
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -87,8 +89,8 @@ func (app *Application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 	profile := service.UserProfile{
 		Username:user.Username,
 	}
-	//user, err = database.GetUserFromUsername(username)
-	txid, err := app.Service.SaveProfile(profile, user.ProfileHash)
+
+	_, err = app.Service.SaveProfile(profile, user.ProfileHash)
 
 	gob.Register(user)
 	session.Values["User"] = user
@@ -97,6 +99,6 @@ func (app *Application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 	data.CurrentUser = user
 	data.CurrentPage = "index"
 	data.LoggedInFlag = true
-	data.MessageSuccess = "You have successfully created an account! Welcome, " + user.FullName + txid
+	data.MessageSuccess = "You have successfully created an account! Welcome, " + user.FullName
 	renderTemplate(w, r, "index.html", data)
 }

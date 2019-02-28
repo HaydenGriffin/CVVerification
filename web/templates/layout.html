@@ -29,7 +29,7 @@
                         <li class="nav-item {{if eq .CurrentPage "index"}}active{{end}}">
                             <a href="index.html">Home</a>
                         </li>
-                        {{if (.LoggedInFlag) and eq .CurrentUser.IsApplicant "T"}}
+                        {{if eq .CurrentUser.UserRole "APPLICANT"}}
                             <li class="nav-item {{if eq .CurrentPage "addcv"}}active{{end}}">
                                 <a href="addCV.html">Add your CV</a>
                             </li>
@@ -37,9 +37,9 @@
                                 <a href="mycv.html">My CV</a>
                             </li>
                         {{end}}
-                        {{if (.LoggedInFlag) and eq .CurrentUser.IsAdmin "T"}}
+                        {{if eq .CurrentUser.UserRole "ADMIN"}}
                             <li class="nav-item">
-                                <a href="/viewallcv">View all CV's</a>
+                                <a href="/viewall.html">View all CV's</a>
                             </li>
                         {{end}}
                     </ul>
@@ -63,6 +63,7 @@
                 </div><!--/.navbar-collapse -->
             </div>
         </nav>
+        {{template "alerts" .}}
         {{template "body" .}}
     </body>
     <footer class="container text-center">

@@ -1,0 +1,14 @@
+{{define "alerts"}}
+    <div class="container-fluid content-padding">
+        {{if .MessageSuccess}}
+            <div class ="alert alert-success">
+                {{.MessageSuccess}}
+            </div>
+        {{end}}
+        {{if .MessageWarning}}
+            <div class ="alert alert-warning">
+                {{.MessageWarning}}
+            </div>
+        {{end}}
+    </div>
+{{end}}

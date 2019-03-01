@@ -3,35 +3,40 @@ package web
 import (
 	"fmt"
 	"github.com/cvtracker/controllers"
+	"log"
 	"net/http"
+	"github.com/gorilla/mux"
 )
 
 func Serve(app *controllers.Application) {
 	fs := http.FileServer(http.Dir("web/assets"))
-	http.Handle("/assets/", http.StripPrefix("/assets/", fs))
 
-	http.HandleFunc("/index.html", app.IndexHandler)
-	http.HandleFunc("/login.html", app.LoginView)
-	http.HandleFunc("/loginProcess.html", app.LoginHandler)
-	http.HandleFunc("/addCV.html", app.AddCVView)
-	http.HandleFunc("/addCVProcess.html", app.AddCVHandler)
-	http.HandleFunc("/updateCV.html", app.UpdateCVView)
-	http.HandleFunc("/updateCVProcess.html", app.UpdateCVHandler)
-	http.HandleFunc("/mycv.html", app.ResultHandler)
+	r := mux.NewRouter()
 
-	http.HandleFunc("/submitForReview.html", app.SubmitForReviewHandler)
-	http.HandleFunc("/withdrawFromReview.html", app.WithdrawFromReviewHandler)
+	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", fs))
 
-	http.HandleFunc("/viewall.html", app.ViewAllView)
-	http.HandleFunc("/logout.html", app.LogoutHandler)
-	http.HandleFunc("/register.html", app.RegisterView)
-	http.HandleFunc("/registerProcess.html", app.RegisterHandler)
+	r.HandleFunc("/", app.IndexHandler)
+	r.HandleFunc("/login.html", app.LoginView)
+	r.HandleFunc("/loginProcess.html", app.LoginHandler)
+	r.HandleFunc("/addCV.html", app.AddCVView)
+	r.HandleFunc("/addCVProcess.html", app.AddCVHandler)
+	r.HandleFunc("/updateCV.html", app.UpdateCVView)
+	r.HandleFunc("/updateCVProcess.html", app.UpdateCVHandler)
+	r.HandleFunc("/mycv.html", app.ResultHandler)
+
+	r.HandleFunc("/submitForReview.html", app.SubmitForReviewHandler)
+	r.HandleFunc("/withdrawFromReview.html", app.WithdrawFromReviewHandler)
+
+	r.HandleFunc("/viewall.html", app.ViewAllView)
+	r.HandleFunc("/logout.html", app.LogoutHandler)
+	r.HandleFunc("/register.html", app.RegisterView)
+	r.HandleFunc("/registerProcess.html", app.RegisterHandler)
 
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/index.html", http.StatusTemporaryRedirect)
+	r.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "/index.html")
 	})
 
 	fmt.Println("Listening (http://localhost:3000/) ...")
-	http.ListenAndServe(":3000", nil)
+	log.Fatal(http.ListenAndServe(":3000", r))
 }

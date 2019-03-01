@@ -3,10 +3,10 @@
 {{define "body"}}
     <link rel="stylesheet" href="../assets/css/mycv.css">
     <div class="container-fluid content-padding">
-    {{range $profileHash, $cvObject:=  .CVList}}
+    {{range $userID, $cvObject:=  .CVList}}
         <form id="update-cv" class="form-my-cv" action="/rateCV.html" method="post">
             <h4>Profile Hash</h4>
-            <p> {{$profileHash}}</p>
+            <p> {{$userID}}</p>
             <h4>CV Name</h4>
             <p> {{$cvObject.Name}}</p>
             <h4>Speciality</h4>

@@ -11,5 +11,5 @@ type TemplateData struct {
 	MessageSuccess string
 	CV service.CVObject
 	IsCVRatable bool
-	CVList map[string] service.CVObject
+	CVList map[int] service.CVObject
 }

@@ -38,25 +38,25 @@ func GetUserFromUsername(username string) (models.User, error) {
 	}
 }
 
-func GetAllRatableCVHashes() (map[string] string, error) {
+func GetAllRatableCVHashes() (map[int] string, error) {
 
 	db, err := InitDB(dataSourceName)
 
-	rows, err := db.Query("SELECT u.profile_hash, uc.cv_hash FROM user_cvs uc JOIN users u ON uc.user_id = u.id WHERE uc.cv_ratable = 1")
+	rows, err := db.Query("SELECT u.id, uc.cv_hash FROM user_cvs uc JOIN users u ON uc.user_id = u.id WHERE uc.cv_ratable = 1")
 	fmt.Println("GetAllRatableCVHashes:")
 
-	ratableCVs := make(map[string] string)
+	ratableCVs := make(map[int] string)
 
 	for rows.Next() {
 		var cvHash string
-		var profileHash string
-		err = rows.Scan(&profileHash, &cvHash)
-		fmt.Println("ProfileHash: " + profileHash)
+		var userID int
+		err = rows.Scan(&userID, &cvHash)
+		fmt.Println("ProfileID: " + string(userID))
 		fmt.Println("CVHash: " + cvHash)
 		if err != nil {
 			return ratableCVs, err
 		}
-		ratableCVs[profileHash] = cvHash
+		ratableCVs[userID] = cvHash
 	}
 	err = rows.Err()
 	if err != nil {

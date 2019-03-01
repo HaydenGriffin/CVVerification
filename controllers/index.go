@@ -6,8 +6,6 @@ import (
 	"net/http"
 )
 
-
-
 func (app *Application) IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := models.TemplateData{

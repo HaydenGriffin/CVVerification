@@ -29,7 +29,7 @@ func (app *Application) ViewAllView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ratableCVs := make(map[string] string)
+	ratableCVs := make(map[int] string)
 
 	ratableCVs, err := database.GetAllRatableCVHashes()
 	fmt.Println(ratableCVs)
@@ -40,11 +40,11 @@ func (app *Application) ViewAllView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data.CVList = make(map[string] service.CVObject)
+	data.CVList = make(map[int] service.CVObject)
 
 
-	for profileHash, cvHash := range ratableCVs {
-		fmt.Println("profileHash: " + profileHash)
+	for userID, cvHash := range ratableCVs {
+		fmt.Println("profileHash: " + string(userID))
 		fmt.Println("cvHash: " + cvHash)
 		b, err := app.Service.GetCVFromCVHash(cvHash)
 
@@ -60,7 +60,7 @@ func (app *Application) ViewAllView(w http.ResponseWriter, r *http.Request) {
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
-		data.CVList[profileHash] = cv
+		data.CVList[userID] = cv
 	}
 
 		if len(data.CVList) == 0 {

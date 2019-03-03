@@ -30,11 +30,11 @@ func (app *Application) ResultHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cvHash, err := app.Service.GetCVHashFromProfile(data.CurrentUser.ProfileHash)
+	_, cvHash, err := database.GetCVInfoFromID(data.CurrentUser.Id)
 
 	if err != nil {
 		fmt.Printf(err.Error())
-		data.MessageWarning = "Unable to find CVHash from profile hash."
+		data.MessageWarning = "Unable to find CV info in database."
 		renderTemplate(w, r, "index.html", data)
 		return
 	}
@@ -57,6 +57,30 @@ func (app *Application) ResultHandler(w http.ResponseWriter, r *http.Request) {
 		data.MessageWarning = "An error occurred whilst retrieving the CV."
 		renderTemplate(w, r, "index.html", data)
 		return
+	}
+
+	//Retrieve ratings
+	b, err = app.Service.GetRatings(data.CurrentUser.ProfileHash, cvHash)
+
+	fmt.Println(b)
+
+	// No ratings exist yet
+	if err != nil {
+		fmt.Printf(err.Error())
+	} else {
+		var ratings []service.CVRating
+		err = json.Unmarshal(b, &ratings)
+		if err != nil {
+			fmt.Printf(err.Error())
+			data.MessageWarning = "Unable to retrieve ratings from ledger"
+			renderTemplate(w, r, "index.html", data)
+		} else {
+			session.Values["Ratings"] = ratings
+			session.Save(r,w)
+			data.Ratings = ratings
+			fmt.Println("CV Ratings:")
+			fmt.Println(data.Ratings)
+		}
 	}
 
 	isRatable, err := database.IsCVRatable(cvHash)
@@ -110,6 +134,7 @@ func (app *Application) SubmitForReviewHandler(w http.ResponseWriter, r *http.Re
 		data.MessageSuccess = "Success! Your CV can now be rated."
 		data.IsCVRatable = true
 		data.CV = sessions.GetCV(session)
+		data.Ratings = sessions.GetRatings(session)
 		renderTemplate(w, r, "mycv.html", data)
 	}
 }
@@ -149,6 +174,7 @@ func (app *Application) WithdrawFromReviewHandler(w http.ResponseWriter, r *http
 		data.MessageSuccess = "Success! Your CV can now be edited."
 		data.IsCVRatable = false
 		data.CV = sessions.GetCV(session)
+		data.Ratings = sessions.GetRatings(session)
 		renderTemplate(w, r, "mycv.html", data)
 	}
 }

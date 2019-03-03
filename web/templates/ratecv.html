@@ -3,29 +3,33 @@
 {{define "body"}}
     <link rel="stylesheet" href="../assets/css/mycv.css">
     <div class="container-fluid content-padding">
-    {{if .CV}}
-        <form id="update-cv" class="form-my-cv" action="/rateCV.html" method="post">
-            <h1>CV</h1>
-            <p> {{.CV.Name}}</p>
-            <h4>Speciality</h4>
-            <p>{{.CV.Speciality}}</p>
-            <h4>Date of CV</h4>
-            <p>{{.CV.CVDate}}</p>
-            <h4>My CV</h4>
-            <p>{{.CV.CV}}</p>
-            <div class="form-group">
-                <label for="fullName">Raters Name</label>
-                <input type="text" class="form-control" name="fullName" required="" autofocus=""/>
-            </div>
-            <div class="form-group">
-                <label for="comment">Comment</label>
-                <textarea class="form-control" id="comment" name="comment" rows="5"></textarea>
-            </div>
-            <div class="form-group">
-                <label for="rating">Rating</label>
-                <input type="text" class="form-control" name="rating" placeholder="Leave your rating here" required="" autofocus=""/>
-            </div>
-        </form>
-    {{end}}
+        <h1>Rate CV Page</h1>
+        {{if .CV}}
+            <form id="update-cv" class="form-my-cv">
+                <h1>CV</h1>
+                <p> {{.CV.Name}}</p>
+                <h4>Speciality</h4>
+                <p>{{.CV.Speciality}}</p>
+                <h4>Date of CV</h4>
+                <p>{{.CV.CVDate}}</p>
+                <h4>My CV</h4>
+                <p>{{.CV.CV}}</p>
+            </form>
+            <form id="rate-cv" class="form-my-cv" action="/rateCVProcess.html" method="post">
+                <div class="form-group">
+                    <label for="fullName">Raters Name</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{.CurrentUser.FullName}}" readonly/>
+                </div>
+                <div class="form-group">
+                    <label for="comment">Comment</label>
+                    <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="rating">Rating</label>
+                    <input type="number" class="form-control" name="rating" placeholder="Leave your rating here" min="1" max="10" required="" autofocus=""/>
+                </div>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Rate CV</button>
+            </form>
+        {{end}}
     </div>
 {{end}}

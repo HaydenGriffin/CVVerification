@@ -10,6 +10,7 @@ type TemplateData struct {
 	MessageWarning string
 	MessageSuccess string
 	CV service.CVObject
+	Ratings []service.CVRating
 	IsCVRatable bool
 	CVList map[int] service.CVObject
 }

@@ -16,7 +16,15 @@ const DOC_TYPE = "cvObj"
  * @return []byte - Returns a byte array representation of the profile
  * @return bool - Returns true if the Put operation is successful, otherwise returns false
  */
-func PutProfile(stub shim.ChaincodeStubInterface, profile UserProfile, profileHash string) ([]byte, bool) {
+func PutProfile(stub shim.ChaincodeStubInterface, profile UserProfile, ratings map[string] []CVRating, profileHash string) ([]byte, bool) {
+
+	if ratings != nil {
+		profile.Ratings = make(map[string][]CVRating)
+
+		for cvHash, cvRatings := range ratings {
+			profile.Ratings[cvHash] = cvRatings
+		}
+	}
 
 	// Marshal the UserProfile into a byte array
 	b, err := json.Marshal(profile)
@@ -103,7 +111,7 @@ func (t *CVTrackerChaincode) saveProfile(stub shim.ChaincodeStubInterface, args 
 		return shim.Error("An error occurred whilst deserialising the object")
 	}
 
-	_, success := PutProfile(stub, profile, args[1])
+	_, success := PutProfile(stub, profile, nil, args[1])
 	if !success {
 		return shim.Error("An error occurred whilst creating the profile")
 	}
@@ -141,7 +149,7 @@ func (t *CVTrackerChaincode) updateProfileCV(stub shim.ChaincodeStubInterface, a
 
 
 	// put the updated profile back to the ledger
-	_, success := PutProfile(stub, profile, args[0])
+	_, success := PutProfile(stub, profile, nil, args[0])
 	if !success {
 		return shim.Error("An error occurred whilst creating the profile")
 	}
@@ -371,14 +379,17 @@ func (t *CVTrackerChaincode) saveRating(stub shim.ChaincodeStubInterface, args [
 		return shim.Error(err.Error())
 	}
 
-	// Append the rating to the map
-	profile.Ratings[cvHash] = append(profile.Ratings[cvHash], rating)
 
+	var ratings = make(map[string][]CVRating)
+
+	ratings = profile.Ratings
+
+	ratings[cvHash] = append(ratings[cvHash], rating)
 
 	// put the updated profile back to the ledger
-	_, success := PutProfile(stub, profile, args[0])
+	_, success := PutProfile(stub, profile, ratings, profileHash)
 	if !success {
-		return shim.Error("An error occurred whilst saving the profile")
+		return shim.Error("An error occurred whilst saving the profile and ratings")
 	}
 
 	err = stub.SetEvent(args[3], []byte{})

@@ -28,6 +28,10 @@ func Serve(app *controllers.Application) {
 	r.HandleFunc("/withdrawFromReview.html", app.WithdrawFromReviewHandler)
 
 	r.HandleFunc("/viewall.html", app.ViewAllView)
+
+	r.HandleFunc("/rateCV/{userID}.html", app.RateCVView)
+	r.HandleFunc("/rateCVProcess.html", app.RateCVHandler)
+
 	r.HandleFunc("/logout.html", app.LogoutHandler)
 	r.HandleFunc("/register.html", app.RegisterView)
 	r.HandleFunc("/registerProcess.html", app.RegisterHandler)

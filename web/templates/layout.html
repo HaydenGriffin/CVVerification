@@ -27,14 +27,14 @@
                 <div class="collapse navbar-collapse" id="navbar">
                     <ul class="nav navbar-nav">
                         <li class="nav-item {{if eq .CurrentPage "index"}}active{{end}}">
-                            <a href="index.html">Home</a>
+                            <a href="/index.html">Home</a>
                         </li>
                         {{if eq .CurrentUser.UserRole "APPLICANT"}}
                             <li class="nav-item {{if eq .CurrentPage "addcv"}}active{{end}}">
                                 <a href="addCV.html">Add your CV</a>
                             </li>
                             <li class="nav-item {{if eq .CurrentPage "result"}}active{{end}}">
-                                <a href="mycv.html">My CV</a>
+                                <a href="/mycv.html">My CV</a>
                             </li>
                         {{end}}
                         {{if eq .CurrentUser.UserRole "ADMIN"}}
@@ -49,14 +49,14 @@
                                 <a href="register.html">Register</a>
                             </li>
                             <li class="nav-item {{if eq .CurrentPage "login"}}active{{end}}">
-                                <a href="login.html">Login</a>
+                                <a href="/login.html">Login</a>
                             </li>
                         </ul>
                     {{end}}
                     {{if .LoggedInFlag}}
                         <ul class="nav navbar-nav navbar-right">
                             <li class="nav-item">
-                                <a href="logout.html">Log Out</a>
+                                <a href="/logout.html">Log Out</a>
                             </li>
                         </ul>
                     {{end}}

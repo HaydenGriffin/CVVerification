@@ -25,7 +25,6 @@ type CVObject struct {
 }
 
 type CVRating struct {
-	CVHash string `json:"CVHashes"`
 	Name string `json:"Name"`
 	Comment string `json:"Comment"`
 	Rating int `json:"Rating"`

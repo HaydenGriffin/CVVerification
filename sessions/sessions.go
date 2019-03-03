@@ -40,7 +40,7 @@ func IsLoggedIn(s *sessions.Session) bool {
 
 func GetUser(s *sessions.Session) models.User {
 	val := s.Values["User"]
-	var user = models.User{}
+
 	user, ok := val.(models.User)
 	if !ok {
 		return models.User{}
@@ -50,10 +50,20 @@ func GetUser(s *sessions.Session) models.User {
 
 func GetCV(s *sessions.Session) service.CVObject {
 	val := s.Values["CV"]
-	var cv = service.CVObject{}
+
 	cv, ok := val.(service.CVObject)
 	if !ok {
 		return service.CVObject{}
 	}
 	return cv
+}
+
+func GetRatings(s *sessions.Session) []service.CVRating {
+	val := s.Values["CV"]
+
+	ratings, ok := val.([]service.CVRating)
+	if !ok {
+		return []service.CVRating{}
+	}
+	return ratings
 }

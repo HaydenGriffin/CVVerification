@@ -185,6 +185,16 @@ organizations:
     certificateAuthorities:
       - ca.org1.cvtracker.com
 
+  # Orderer Org name
+  ordererorg:
+    # Membership Service Provider ID for this organization
+    mspid: cvtracker.com
+
+    # Needed to load users crypto keys and certs for this org (absolute path or relative to global crypto path, DEV mode)
+    cryptoPath: ordererOrganizations/cvtracker.com/users/{username}@cvtracker.com/msp
+
+
+
 #
 # List of orderers to send transaction and channel create/update requests to. For the time
 # being only one orderer is needed. If more than one is defined, which one get used by the
@@ -206,7 +216,7 @@ orderers:
       keep-alive-permit: false
       fail-fast: false
       # allow-insecure will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
-      allow-insecure: false
+      allow-insecure: true
 
     tlsCACerts:
       # Certificate location absolute path
@@ -234,7 +244,7 @@ peers:
       keep-alive-permit: false
       fail-fast: false
       # allow-insecure will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
-      allow-insecure: false
+      allow-insecure: true
 
     tlsCACerts:
       # Certificate location absolute path
@@ -256,7 +266,7 @@ peers:
       keep-alive-permit: false
       fail-fast: false
       # allow-insecure will be taken into consideration if address has no protocol defined, if true then grpc or else grpcs
-      allow-insecure: false
+      allow-insecure: true
 
     tlsCACerts:
       # Certificate location absolute path
@@ -269,7 +279,7 @@ peers:
 #
 certificateAuthorities:
   ca.org1.cvtracker.com:
-    url: https://localhost:7054
+    url: http://localhost:7054
     tlsCACerts:
       # Certificate location absolute path
       path: ${GOPATH}/src/github.com/cvtracker/fixtures/crypto-config/peerOrganizations/org1.cvtracker.com/ca/ca.org1.cvtracker.com-cert.pem
@@ -284,20 +294,18 @@ certificateAuthorities:
 
 entityMatchers:
   peer:
-    - pattern: (\w*)peer0.org1.cvtracker.com(\w*)
+    - pattern: peer0.org1.cvtracker.com(\w*)
       urlSubstitutionExp: localhost:7051
-      eventUrlSubstitutionExp: localhost:7053
       sslTargetOverrideUrlSubstitutionExp: peer0.org1.cvtracker.com
       mappedHost: peer0.org1.cvtracker.com
 
-    - pattern: (\w*)peer1.org1.cvtracker.com(\w*)
+    - pattern: peer1.org1.cvtracker.com(\w*)
       urlSubstitutionExp: localhost:8051
-      eventUrlSubstitutionExp: localhost:8053
       sslTargetOverrideUrlSubstitutionExp: peer1.org1.cvtracker.com
       mappedHost: peer1.org1.cvtracker.com
 
   orderer:
-    - pattern: (\w*)orderer.cvtracker.com(\w*)
+    - pattern: orderer.cvtracker.com(\w*)
       urlSubstitutionExp: localhost:7050
       sslTargetOverrideUrlSubstitutionExp: orderer.cvtracker.com
       mappedHost: orderer.cvtracker.com
@@ -305,4 +313,5 @@ entityMatchers:
   certificateAuthorities:
     - pattern: (\w*)ca.org1.cvtracker.com(\w*)
       urlSubstitutionExp: http://localhost:7054
+      sslTargetOverrideUrlSubstitutionExp: ca.org1.cvtracker.com
       mappedHost: ca.org1.cvtracker.com

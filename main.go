@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cvtracker/blockchain"
+	"github.com/cvtracker/chaincode/model"
 	"github.com/cvtracker/controllers"
 	"github.com/cvtracker/crypto"
 	"github.com/cvtracker/database"
@@ -30,9 +31,13 @@ func main() {
 		ChaincodeID:     "cvtracker",
 		ChaincodeGoPath: os.Getenv("GOPATH"),
 		ChaincodePath:   "github.com/cvtracker/chaincode/",
+		ChaincodeVersion: "v1.0.0",
 		OrgAdmin:        "Admin",
+		OrdererOrgID:    "ordererorg",
+		OrgMspID:        "org1.cvtracker.com",
 		OrgName:         "org1",
 		ConfigFile:      "config.yaml",
+		CaID: 			 "ca.org1.cvtracker.com",
 
 		// User parameters
 		UserName: "User1",
@@ -51,6 +56,12 @@ func main() {
 	channelClient, err := fSetup.InstallAndInstantiateCC()
 	if err != nil {
 		fmt.Printf("Unable to install and instantiate the chaincode: %v\n", err)
+		return
+	}
+
+	err = fSetup.RegisterUser("admin1", "password", model.ActorAdmin)
+	if err != nil {
+		fmt.Printf("Unable to register the user 'admin1': %v\n", err)
 		return
 	}
 

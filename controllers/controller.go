@@ -1,16 +1,53 @@
 package controllers
 
 import (
+	"encoding/base64"
 	"fmt"
-	"github.com/cvtracker/service"
+	"github.com/cvtracker/blockchain"
 	"html/template"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-type Application struct {
-	Service *service.ServiceSetup
+type Controller struct {
+	Fabric *blockchain.FabricSetup
+}
+
+// basicAuth used to check the authentication (using basic auth) and retrieve the blockchain user
+func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *blockchain.User)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+
+		auth := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
+
+		if len(auth) != 2 || auth[0] != "Basic" {
+			http.Error(w, "authorization failed", http.StatusUnauthorized)
+			return
+		}
+
+		payload, err := base64.StdEncoding.DecodeString(auth[1])
+		if err != nil {
+			http.Error(w, "authorization failed", http.StatusUnauthorized)
+			return
+		}
+		pair := strings.SplitN(string(payload), ":", 2)
+
+		if len(pair) != 2 {
+			http.Error(w, "authorization failed", http.StatusUnauthorized)
+			return
+		}
+
+		u, err := c.Fabric.LogUser(pair[0], pair[1])
+		if err != nil {
+			http.Error(w, fmt.Sprintf("authorization failed with error: %v", err), http.StatusUnauthorized)
+			return
+		}
+
+		pass(w, r, u)
+	}
 }
 
 func renderTemplate(w http.ResponseWriter, r *http.Request, templateName string, data interface{}) {

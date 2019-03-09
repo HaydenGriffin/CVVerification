@@ -1,26 +1,20 @@
 package controllers
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/cvtracker/database"
 	"github.com/cvtracker/models"
-	"github.com/cvtracker/service"
-	"github.com/cvtracker/sessions"
 	"net/http"
 )
 
-func (app *Application) ViewAllView(w http.ResponseWriter, r *http.Request) {
+func (app *Controller) ViewAllCVView(w http.ResponseWriter, r *http.Request) {
 
-	session := sessions.InitSession(r)
+		//session := sessions.InitSession(r)
 
-	data := models.TemplateData{
-		CurrentUser:  models.User{},
-		CurrentPage:  "index",
-		LoggedInFlag: false,
-	}
+		data := models.TemplateData{
+			CurrentPage:  "index",
+			LoggedInFlag: false,
+		}
 
-	if sessions.IsLoggedIn(session) {
+		/*if sessions.IsLoggedIn(session) {
 		data.CurrentUser = sessions.GetUser(session)
 		data.LoggedInFlag = true
 	} else {
@@ -68,6 +62,6 @@ func (app *Application) ViewAllView(w http.ResponseWriter, r *http.Request) {
 			renderTemplate(w, r, "viewall.html", data)
 			return
 		}
-
+*/
 		renderTemplate(w, r, "viewall.html", data)
 }

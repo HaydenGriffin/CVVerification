@@ -1,28 +1,23 @@
 package controllers
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/cvtracker/crypto"
-	"github.com/cvtracker/database"
 	"github.com/cvtracker/models"
-	"github.com/cvtracker/service"
 	"github.com/cvtracker/sessions"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
 )
 
 
-func (app *Application) UpdateCVView(w http.ResponseWriter, r *http.Request) {
-	session := sessions.InitSession(r)
+func (app *Controller) UpdateCVView(w http.ResponseWriter, r *http.Request) {
+	//session := sessions.InitSession(r)
 
 	data := models.TemplateData{
-		CurrentUser:models.User{},
+		//CurrentUser:models.User{},
 		CurrentPage:"addcv",
 		LoggedInFlag:true,
 	}
 
-	if sessions.IsLoggedIn(session) {
+	/*if sessions.IsLoggedIn(session) {
 		data.CurrentUser = sessions.GetUser(session)
 	} else {
 		data.LoggedInFlag = false
@@ -40,23 +35,21 @@ func (app *Application) UpdateCVView(w http.ResponseWriter, r *http.Request) {
 	} else {
 		var cv= service.CVObject{}
 		err = json.Unmarshal(b, &cv)
-		data.CV = cv
+		data.CV = cv*/
 		renderTemplate(w, r, "cvform.html", data)
-	}
 }
 
-func (app *Application) UpdateCVHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Controller) UpdateCVHandler(w http.ResponseWriter, r *http.Request) {
 
 	session := sessions.InitSession(r)
 
 	data := models.TemplateData{
-		CurrentUser:models.User{},
 		CurrentPage:"addcv",
 		LoggedInFlag:true,
 	}
 
 	if sessions.IsLoggedIn(session) {
-		data.CurrentUser = sessions.GetUser(session)
+		data.UserDetails = sessions.GetUserDetails(session)
 	} else {
 		data.LoggedInFlag = false
 		data.MessageWarning = "Error! Please log in to add a CV."
@@ -65,15 +58,15 @@ func (app *Application) UpdateCVHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 
-	cv := service.CVObject{
+	/*cv := model.CVObject{
 		Name:r.FormValue("name"),
 		Speciality:r.FormValue("speciality"),
 		CV:r.FormValue("CV"),
 		CVDate:r.FormValue("CVDate"),
-	}
+	}*/
 
 
-	cvByte, err := json.Marshal(cv)
+	/*cvByte, err := json.Marshal(cv)
 
 	cvHash, err := crypto.GenerateFromByte(cvByte)
 
@@ -88,8 +81,6 @@ func (app *Application) UpdateCVHandler(w http.ResponseWriter, r *http.Request) 
 		renderTemplate(w, r, "index.html", data)
 	} else {
 		data.MessageSuccess = txid
-		data.CV = cv
+		data.CV = cv*/
 		renderTemplate(w, r, "mycv.html", data)
-	}
-
 }

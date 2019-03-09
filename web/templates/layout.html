@@ -29,19 +29,18 @@
                         <li class="nav-item {{if eq .CurrentPage "index"}}active{{end}}">
                             <a href="/index.html">Home</a>
                         </li>
-                        {{if eq .CurrentUser.UserRole "APPLICANT"}}
+
                             <li class="nav-item {{if eq .CurrentPage "addcv"}}active{{end}}">
                                 <a href="addCV.html">Add your CV</a>
                             </li>
                             <li class="nav-item {{if eq .CurrentPage "result"}}active{{end}}">
                                 <a href="/mycv.html">My CV</a>
                             </li>
-                        {{end}}
-                        {{if eq .CurrentUser.UserRole "ADMIN"}}
+
                             <li class="nav-item">
                                 <a href="/viewall.html">View all CV's</a>
                             </li>
-                        {{end}}
+
                     </ul>
                     {{if not .LoggedInFlag}}
                         <ul class="nav navbar-nav navbar-right">

@@ -1,11 +1,9 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/cvtracker/database"
 	"github.com/cvtracker/models"
-	"github.com/cvtracker/service"
 	"github.com/cvtracker/sessions"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
@@ -14,20 +12,19 @@ import (
 )
 
 
-func (app *Application) RateCVView(w http.ResponseWriter, r *http.Request) {
+func (app *Controller) RateCVView(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("RateCVView")
 
 	session := sessions.InitSession(r)
 
 	data := models.TemplateData{
-		CurrentUser:models.User{},
-		CurrentPage:"addcv",
-		LoggedInFlag:true,
+		CurrentPage:  "addcv",
+		LoggedInFlag: true,
 	}
 
 	if sessions.IsLoggedIn(session) {
-		data.CurrentUser = sessions.GetUser(session)
+		data.UserDetails = sessions.GetUserDetails(session)
 	} else {
 		data.LoggedInFlag = false
 		data.MessageWarning = "Error! Please log in to update your CV."
@@ -60,7 +57,7 @@ func (app *Application) RateCVView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := app.Service.GetCVFromCVHash(cvHash)
+	//b, err := app.Service.GetCVFromCVHash(cvHash)
 
 	if err != nil {
 		fmt.Printf(err.Error())
@@ -69,9 +66,9 @@ func (app *Application) RateCVView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var cv= service.CVObject{}
-	err = json.Unmarshal(b, &cv)
-	data.CV = cv
+	//var cv= service.CVObject{}
+	//err = json.Unmarshal(b, &cv)
+	//data.CV = cv
 
 	session.Values["selectedProfileHash"] = profileHash
 	session.Values["selectedCVHash"] = cvHash
@@ -87,20 +84,20 @@ func (app *Application) RateCVView(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, r, "rateCV.html", data)
 }
 
-func (app *Application) RateCVHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Controller) RateCVHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("RateCVHandler")
 
 	session := sessions.InitSession(r)
 
 	data := models.TemplateData{
-		CurrentUser:models.User{},
-		CurrentPage:"addcv",
-		LoggedInFlag:true,
+		//CurrentUser:  models.User{},
+		CurrentPage:  "addcv",
+		LoggedInFlag: true,
 	}
 
 	if sessions.IsLoggedIn(session) {
-		data.CurrentUser = sessions.GetUser(session)
+		//data.CurrentUser = sessions.GetUser(session)
 	} else {
 		data.LoggedInFlag = false
 		data.MessageWarning = "Error! Please log in to update your CV."
@@ -108,32 +105,32 @@ func (app *Application) RateCVHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ratingInt, err := strconv.Atoi(r.FormValue("rating"))
+	/*ratingInt, err := strconv.Atoi(r.FormValue("rating"))
 
-	if err != nil {
-		data.MessageWarning = "Error! Rating must be a number."
-		renderTemplate(w, r, "index.html", data)
-		return
-	}
+if err != nil {
+	data.MessageWarning = "Error! Rating must be a number."
+	renderTemplate(w, r, "index.html", data)
+	return
+}
 
-	rating := service.CVRating{
-		Name:r.FormValue("name"),
-		Comment:r.FormValue("comment"),
-		Rating:ratingInt,
-	}
+rating := model.CVRating{
+	Name:r.FormValue("name"),
+	Comment:r.FormValue("comment"),
+	Rating:ratingInt,
+}
 
-	profileHash := session.Values["selectedProfileHash"].(string)
-	cvHash := session.Values["selectedCVHash"].(string)
-	// some handling required to ensure profile is returned
+profileHash := session.Values["selectedProfileHash"].(string)
+cvHash := session.Values["selectedCVHash"].(string)
+// some handling required to ensure profile is returned
 
-	txid, err := app.Service.SaveRating(profileHash, cvHash, rating)
+txid, err := app.Service.SaveRating(profileHash, cvHash, rating)
 
-	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		fmt.Println("Successfully saved rating: " + txid)
-	}
-
-	data.MessageSuccess = txid
+if err != nil {
+	fmt.Println(err.Error())
+} else {
+	fmt.Println("Successfully saved rating: " + txid)
+}
+*/
+	//data.MessageSuccess = txid
 	renderTemplate(w, r, "rateCV.html", data)
 }

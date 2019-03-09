@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func Serve(app *controllers.Application) {
+func Serve(app *controllers.Controller) {
 	fs := http.FileServer(http.Dir("web/assets"))
 
 	r := mux.NewRouter()
@@ -27,7 +27,7 @@ func Serve(app *controllers.Application) {
 	r.HandleFunc("/submitForReview.html", app.SubmitForReviewHandler)
 	r.HandleFunc("/withdrawFromReview.html", app.WithdrawFromReviewHandler)
 
-	r.HandleFunc("/viewall.html", app.ViewAllView)
+	r.HandleFunc("/viewall.html", app.ViewAllCVView)
 
 	r.HandleFunc("/rateCV/{userID}.html", app.RateCVView)
 	r.HandleFunc("/rateCVProcess.html", app.RateCVHandler)

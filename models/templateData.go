@@ -1,16 +1,20 @@
 package models
 
-import "github.com/cvtracker/service"
+import (
+	"github.com/cvtracker/chaincode/model"
+)
 
 type TemplateData struct {
 	TxId string
-	CurrentUser User
+	UserDetails UserDetails
 	CurrentPage string
 	LoggedInFlag bool
+	IsAdmin bool
+	IsApplicant bool
 	MessageWarning string
 	MessageSuccess string
-	CV service.CVObject
-	Ratings []service.CVRating
+	CV model.CVObject
+	Ratings []model.CVRating
 	IsCVRatable bool
-	CVList map[int] service.CVObject
+	CVList map[int] model.CVObject
 }

@@ -6,18 +6,16 @@ import (
 	"net/http"
 )
 
-func (app *Application) IndexHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Controller) IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := models.TemplateData{
-		CurrentUser:models.User{},
-		CurrentPage:"index",
-		LoggedInFlag:false,
+		CurrentPage:  "index",
+		LoggedInFlag: false,
 	}
 
 	session := sessions.InitSession(r)
 	if sessions.IsLoggedIn(session) {
-		user := sessions.GetUser(session)
-		data.CurrentUser = user
+		data.UserDetails = sessions.GetUserDetails(session)
 		data.LoggedInFlag = true
 		renderTemplate(w, r, "index.html", data)
 	} else {

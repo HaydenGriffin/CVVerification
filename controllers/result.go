@@ -1,28 +1,22 @@
 package controllers
 
 import (
-	"encoding/gob"
-	"encoding/json"
-	"fmt"
-	"github.com/cvtracker/database"
 	"github.com/cvtracker/models"
-	"github.com/cvtracker/service"
 	"github.com/cvtracker/sessions"
 	"net/http"
 )
 
-func (app *Application) ResultHandler(w http.ResponseWriter, r *http.Request) {
-
+func (app *Controller) ResultHandler(w http.ResponseWriter, r *http.Request) {
 	session := sessions.InitSession(r)
 
 	data := models.TemplateData{
-		CurrentUser:  models.User{},
+		//CurrentUser:  models.User{},
 		CurrentPage:  "index",
 		LoggedInFlag: false,
 	}
 
 	if sessions.IsLoggedIn(session) {
-		data.CurrentUser = sessions.GetUser(session)
+		data.UserDetails = sessions.GetUserDetails(session)
 		data.LoggedInFlag = true
 	} else {
 		data.MessageWarning = "You must be logged in to view your CV."
@@ -30,87 +24,86 @@ func (app *Application) ResultHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, cvHash, err := database.GetCVInfoFromID(data.CurrentUser.Id)
+	/*	_, cvHash, err := database.GetCVInfoFromID(data.CurrentUser.Id)
 
-	if err != nil {
-		fmt.Printf(err.Error())
-		data.MessageWarning = "Unable to find CV info in database."
-		renderTemplate(w, r, "index.html", data)
-		return
-	}
-
-	b, err := app.Service.GetCVFromCVHash(cvHash)
-
-	if err != nil {
-		fmt.Printf(err.Error())
-		data.MessageWarning = "Unable to find CV from CVHash."
-		renderTemplate(w, r, "index.html", data)
-		return
-	}
-
-	var cv service.CVObject
-
-	err = json.Unmarshal(b, &cv)
-
-	if err != nil {
-		fmt.Printf(err.Error())
-		data.MessageWarning = "An error occurred whilst retrieving the CV."
-		renderTemplate(w, r, "index.html", data)
-		return
-	}
-
-	//Retrieve ratings
-	b, err = app.Service.GetRatings(data.CurrentUser.ProfileHash, cvHash)
-
-	fmt.Println(b)
-
-	// No ratings exist yet
-	if err != nil {
-		fmt.Printf(err.Error())
-	} else {
-		var ratings []service.CVRating
-		err = json.Unmarshal(b, &ratings)
 		if err != nil {
 			fmt.Printf(err.Error())
-			data.MessageWarning = "Unable to retrieve ratings from ledger"
+			data.MessageWarning = "Unable to find CV info in database."
 			renderTemplate(w, r, "index.html", data)
-		} else {
-			session.Values["Ratings"] = ratings
-			session.Save(r,w)
-			data.Ratings = ratings
-			fmt.Println("CV Ratings:")
-			fmt.Println(data.Ratings)
+			return
+		}*/
+
+	/*	b, err := app.Service.GetCVFromCVHash(cvHash)
+
+		if err != nil {
+			fmt.Printf(err.Error())
+			data.MessageWarning = "Unable to find CV from CVHash."
+			renderTemplate(w, r, "index.html", data)
+			return
 		}
-	}
 
-	isRatable, err := database.IsCVRatable(cvHash)
+		var cv service.CVObject
 
-	if err != nil {
-		fmt.Printf(err.Error())
-		data.MessageWarning = "Unable to get status of CV."
-		renderTemplate(w, r, "index.html", data)
-		return
-	}
+		err = json.Unmarshal(b, &cv)
+
+		if err != nil {
+			fmt.Printf(err.Error())
+			data.MessageWarning = "An error occurred whilst retrieving the CV."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
+
+		//Retrieve ratings
+		b, err = app.Service.GetRatings(data.CurrentUser.ProfileHash, cvHash)
+
+		fmt.Println(b)
+
+		// No ratings exist yet
+		if err != nil {
+			fmt.Printf(err.Error())
+		} else {
+			var ratings []service.CVRating
+			err = json.Unmarshal(b, &ratings)
+			if err != nil {
+				fmt.Printf(err.Error())
+				data.MessageWarning = "Unable to retrieve ratings from ledger"
+				renderTemplate(w, r, "index.html", data)
+			} else {
+				session.Values["Ratings"] = ratings
+				session.Save(r, w)
+				data.Ratings = ratings
+				fmt.Println("CV Ratings:")
+				fmt.Println(data.Ratings)
+			}
+		}
+
+		isRatable, err := database.IsCVRatable(cvHash)
+
+		if err != nil {
+			fmt.Printf(err.Error())
+			data.MessageWarning = "Unable to get status of CV."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
 		data.IsCVRatable = isRatable
 		data.CV = cv
 		gob.Register(cv)
 		session.Values["CV"] = cv
-		session.Save(r,w)
+		session.Save(r, w)*/
 		renderTemplate(w, r, "mycv.html", data)
 }
 
-func (app *Application) SubmitForReviewHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Controller) SubmitForReviewHandler(w http.ResponseWriter, r *http.Request) {
 
 	session := sessions.InitSession(r)
 
 	data := models.TemplateData{
-		CurrentUser:  models.User{},
 		CurrentPage:  "index",
 		LoggedInFlag: false,
 	}
 
 	if sessions.IsLoggedIn(session) {
-		data.CurrentUser = sessions.GetUser(session)
+		data.UserDetails = sessions.GetUserDetails(session)
 		data.LoggedInFlag = true
 	} else {
 		data.MessageWarning = "You must be logged in to view your CV."
@@ -118,14 +111,14 @@ func (app *Application) SubmitForReviewHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	cvHash, err := app.Service.GetCVHashFromProfile(data.CurrentUser.ProfileHash)
+/*	cvHash, err := app.Service.GetCVHashFromProfile(data.CurrentUser.ProfileHash)
 
 	if err != nil {
 		fmt.Println("Error GetCVHashFromProfile: " + err.Error())
-	}
+	}*/
 
 
-	err = database.UpdateCV(cvHash,1)
+	/*err = database.UpdateCV(cvHash,1)
 	if err != nil {
 		fmt.Printf(err.Error())
 		data.MessageWarning = "Unable to update database."
@@ -134,23 +127,21 @@ func (app *Application) SubmitForReviewHandler(w http.ResponseWriter, r *http.Re
 		data.MessageSuccess = "Success! Your CV can now be rated."
 		data.IsCVRatable = true
 		data.CV = sessions.GetCV(session)
-		data.Ratings = sessions.GetRatings(session)
+		data.Ratings = sessions.GetRatings(session)*/
 		renderTemplate(w, r, "mycv.html", data)
-	}
 }
 
-func (app *Application) WithdrawFromReviewHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Controller) WithdrawFromReviewHandler(w http.ResponseWriter, r *http.Request) {
 
 	session := sessions.InitSession(r)
 
 	data := models.TemplateData{
-		CurrentUser:  models.User{},
 		CurrentPage:  "index",
 		LoggedInFlag: false,
 	}
 
 	if sessions.IsLoggedIn(session) {
-		data.CurrentUser = sessions.GetUser(session)
+		data.UserDetails = sessions.GetUserDetails(session)
 		data.LoggedInFlag = true
 	} else {
 		data.MessageWarning = "You must be logged in to view your CV."
@@ -158,8 +149,8 @@ func (app *Application) WithdrawFromReviewHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	cvHash, err := app.Service.GetCVHashFromProfile(data.CurrentUser.ProfileHash)
-
+	//cvHash, err := app.Service.GetCVHashFromProfile(data.CurrentUser.ProfileHash)
+/*
 	if err != nil {
 		fmt.Println("Error GetCVHashFromProfile: " + err.Error())
 	}
@@ -174,7 +165,6 @@ func (app *Application) WithdrawFromReviewHandler(w http.ResponseWriter, r *http
 		data.MessageSuccess = "Success! Your CV can now be edited."
 		data.IsCVRatable = false
 		data.CV = sessions.GetCV(session)
-		data.Ratings = sessions.GetRatings(session)
+		data.Ratings = sessions.GetRatings(session)*/
 		renderTemplate(w, r, "mycv.html", data)
-	}
 }

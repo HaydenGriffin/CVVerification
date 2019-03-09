@@ -14,10 +14,6 @@
 
 package model
 
-import (
-	"time"
-)
-
 // Actor metadata used for an admin and a consumer
 type Actor struct {
 	ID   string `json:"id"`
@@ -27,8 +23,10 @@ type Actor struct {
 // Available actor type
 const (
 	ActorAttribute = "actor"
-	ActorConsumer  = "consumer"
-	ActorAdmin     = "admin"
+	ActorApplicant = "applicant"
+	ActorVerifier = "verifier"
+	ActorEmployer = "employer"
+	ActorAdmin = "admin"
 )
 
 // Admin that manage resources available
@@ -36,37 +34,29 @@ type Admin struct {
 	Actor
 }
 
-// Consumer that acquire and release some resources
-type Consumer struct {
+type Applicant struct {
 	Actor
 }
 
-// Resource that is manage by an admin actor and can be acquire and release by a consumer
-type Resource struct {
-	ID          string `json:"id"`
-	Description string `json:"description"`
-	Available   bool   `json:"available"`
-	Mission     string `json:"mission,omitempty"`
-	Consumer    string `json:"consumer,omitempty"`
+type UserProfile struct {
+	Username	string	`json:"Name"`
+	CVHistory []string `json:"CVHistory"`
+	Ratings map[string] []CVRating
 }
 
-// ResourceHistory is a detailed information about a resource state in the ledger
-type ResourceHistory struct {
-	Transaction string    `json:"transaction"`
-	Resource    Resource  `json:"value"`
-	Time        time.Time `json:"time"`
-	Deleted     bool      `json:"deleted"`
+type CVObject struct {
+	ObjectType	string	`json:"docType"`
+	Name	string	`json:"Name"`
+	Speciality	string	`json:"Speciality"`
+	CV	string	`json:"CV"`
+	CVDate	string	`json:"CVDate"`
 }
 
-// ResourceHistories the list of state in the ledger of a resource (with sorting, older at the end)
-type ResourceHistories []ResourceHistory
-
-func (a ResourceHistories) Len() int           { return len(a) }
-func (a ResourceHistories) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ResourceHistories) Less(i, j int) bool { return a[i].Time.After(a[j].Time) }
-
-// ResourcesDeleted list of resources deleted
-type ResourcesDeleted []Resource
+type CVRating struct {
+	Name string `json:"Name"`
+	Comment string `json:"Comment"`
+	Rating int `json:"Rating"`
+}
 
 // List of object type stored in the ledger
 const (

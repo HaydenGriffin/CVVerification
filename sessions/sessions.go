@@ -1,8 +1,9 @@
 package sessions
 
 import (
+	"github.com/cvtracker/blockchain"
+	"github.com/cvtracker/chaincode/model"
 	"github.com/cvtracker/models"
-	"github.com/cvtracker/service"
 	"github.com/gorilla/securecookie"
 	"net/http"
 
@@ -38,32 +39,42 @@ func IsLoggedIn(s *sessions.Session) bool {
 	}
 }
 
-func GetUser(s *sessions.Session) models.User {
-	val := s.Values["User"]
+func GetFabricUser(s *sessions.Session) *blockchain.User {
+	val := s.Values["FabricUser"]
 
-	user, ok := val.(models.User)
-	if !ok {
-		return models.User{}
+	user, ok := val.(*blockchain.User)
+	if !ok || user == nil {
+		return nil
 	}
 	return user
 }
 
-func GetCV(s *sessions.Session) service.CVObject {
+func GetUserDetails(s *sessions.Session) models.UserDetails {
+	val := s.Values["FabricUser"]
+
+	user, ok := val.(models.UserDetails)
+	if !ok {
+		return models.UserDetails{}
+	}
+	return user
+}
+
+func GetCV(s *sessions.Session) model.CVObject {
 	val := s.Values["CV"]
 
-	cv, ok := val.(service.CVObject)
+	cv, ok := val.(model.CVObject)
 	if !ok {
-		return service.CVObject{}
+		return model.CVObject{}
 	}
 	return cv
 }
 
-func GetRatings(s *sessions.Session) []service.CVRating {
+func GetRatings(s *sessions.Session) []model.CVRating {
 	val := s.Values["CV"]
 
-	ratings, ok := val.([]service.CVRating)
+	ratings, ok := val.([]model.CVRating)
 	if !ok {
-		return []service.CVRating{}
+		return []model.CVRating{}
 	}
 	return ratings
 }

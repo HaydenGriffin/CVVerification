@@ -22,9 +22,9 @@ func InitDB(dataSourceName string) (*sql.DB, error) {
 	return db, nil
 }
 
-func GetUserFromUsername(username string) (models.User, error) {
+func GetUserDetailsFromUsername(username string) (models.UserDetails, error) {
 
-	user := models.User{}
+	user := models.UserDetails{}
 
 	db, err := InitDB(dataSourceName)
 
@@ -32,8 +32,8 @@ func GetUserFromUsername(username string) (models.User, error) {
 		return user, err
 	}
 
-	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.password, u.email_address, u.user_role, u.profile_hash  FROM users u WHERE username = ?", username)
-	err = result.Scan(&user.Id, &user.Username, &user.FullName, &user.Password, &user.EmailAddress, &user.UserRole, &user.ProfileHash)
+	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.email_address, u.profile_hash  FROM users u WHERE username = ?", username)
+	err = result.Scan(&user.Id, &user.Username, &user.FullName, &user.EmailAddress, &user.ProfileHash)
 
 	if err != nil {
 		return user, err
@@ -70,32 +70,32 @@ func GetAllRatableCVHashes() (map[int] string, error) {
 	return ratableCVs, nil
 }
 
-func CreateNewUser(username, full_name, password, email_address, user_role, profile_hash string) (user models.User, error error) {
+func CreateNewUser(username, full_name, email_address, profile_hash string) (userDetails models.UserDetails, error error) {
 
 	db, err := InitDB(dataSourceName)
 
 	if err != nil {
-		return user, err
+		return userDetails, err
 	}
 
-	res, err := db.Exec("INSERT INTO users(username, full_name, password, email_address, user_role, profile_hash) VALUES (?, ?, ?, ?, ?, ?)", username, full_name, password, email_address, user_role, profile_hash)
+	res, err := db.Exec("INSERT INTO users(username, full_name, email_address, profile_hash) VALUES (?, ?, ?, ?)", username, full_name, email_address, profile_hash)
 	fmt.Println(res)
 
 	if err != nil {
-		return user, err
+		return userDetails, err
 	}
 
-	var selectedUser models.User
+	var selectedUser models.UserDetails
 
-	selectedUser, err = GetUserFromUsername(username)
+	selectedUser, err = GetUserDetailsFromUsername(username)
 
 	if err != nil {
-		return user, err
+		return userDetails, err
 	}
 
-	user = selectedUser
+	userDetails = selectedUser
 
-	return user, err
+	return userDetails, err
 }
 
 func GetCVInfoFromID(user_id int) (string, string, error) {

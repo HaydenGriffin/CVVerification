@@ -5,14 +5,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/cvtracker/blockchain"
 	"github.com/cvtracker/chaincode/model"
 	"github.com/cvtracker/controllers"
-	"github.com/cvtracker/crypto"
-	"github.com/cvtracker/database"
-	"github.com/cvtracker/service"
 	"github.com/cvtracker/web"
 	"os"
 )
@@ -53,9 +49,15 @@ func main() {
 	defer fSetup.CloseSDK()	
 
 	// Install and instantiate the chaincode
-	channelClient, err := fSetup.InstallAndInstantiateCC()
+	_, err = fSetup.InstallAndInstantiateCC()
 	if err != nil {
 		fmt.Printf("Unable to install and instantiate the chaincode: %v\n", err)
+		return
+	}
+
+	_, err = fSetup.LogUser("admin", "adminpw")
+	if err != nil {
+		fmt.Printf("failed to enroll identity 'admin': %v", err)
 		return
 	}
 
@@ -65,14 +67,7 @@ func main() {
 		return
 	}
 
-	serviceSetup := service.ServiceSetup{
-		ChaincodeID:"cvtracker",
-		Client:channelClient,
-	}
-
-
-
-	//Init a dummy user and test chaincode methods
+	/*//Init a dummy user and test chaincode methods
 	profile := service.UserProfile{
 		Username: "testUser",
 	}
@@ -157,10 +152,10 @@ func main() {
 	} else {
 		fmt.Println(profile1)
 	}
-
+*/
 	// Launch the web application listening
-	app := &controllers.Application{
-		Service: &serviceSetup,
+	app := &controllers.Controller{
+		Fabric: &fSetup,
 	}
 	web.Serve(app)
 }

@@ -24,7 +24,7 @@ func (app *Controller) RateCVView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sessions.IsLoggedIn(session) {
-		data.UserDetails = sessions.GetUserDetails(session)
+		//data.UserDetails = sessions.GetUserDetails(session)
 	} else {
 		data.LoggedInFlag = false
 		data.MessageWarning = "Error! Please log in to update your CV."

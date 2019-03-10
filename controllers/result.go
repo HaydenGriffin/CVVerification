@@ -16,7 +16,7 @@ func (app *Controller) ResultHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sessions.IsLoggedIn(session) {
-		data.UserDetails = sessions.GetUserDetails(session)
+		//data.UserDetails = sessions.GetUserDetails(session)
 		data.LoggedInFlag = true
 	} else {
 		data.MessageWarning = "You must be logged in to view your CV."
@@ -103,7 +103,7 @@ func (app *Controller) SubmitForReviewHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	if sessions.IsLoggedIn(session) {
-		data.UserDetails = sessions.GetUserDetails(session)
+	//	data.UserDetails = sessions.GetUserDetails(session)
 		data.LoggedInFlag = true
 	} else {
 		data.MessageWarning = "You must be logged in to view your CV."
@@ -141,7 +141,7 @@ func (app *Controller) WithdrawFromReviewHandler(w http.ResponseWriter, r *http.
 	}
 
 	if sessions.IsLoggedIn(session) {
-		data.UserDetails = sessions.GetUserDetails(session)
+		//data.UserDetails = sessions.GetUserDetails(session)
 		data.LoggedInFlag = true
 	} else {
 		data.MessageWarning = "You must be logged in to view your CV."

@@ -16,7 +16,7 @@ func (app *Controller) AddCVView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sessions.IsLoggedIn(session) {
-		data.UserDetails = sessions.GetUserDetails(session)
+		//data.UserDetails = sessions.GetUserDetails(session)
 		renderTemplate(w, r, "cvform.html", data)
 		return
 	} else {
@@ -37,7 +37,7 @@ func (app *Controller) AddCVHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sessions.IsLoggedIn(session) {
-		data.UserDetails = sessions.GetUserDetails(session)
+		//data.UserDetails = sessions.GetUserDetails(session)
 	} else {
 		data.LoggedInFlag = false
 		data.MessageWarning = "Error! Please log in to add a CV."

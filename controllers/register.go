@@ -3,7 +3,7 @@ package controllers
 import (
 	"encoding/gob"
 	"fmt"
-	"github.com/cvtracker/chaincode/model"
+	"github.com/cvtracker/blockchain"
 	"github.com/cvtracker/crypto"
 	"github.com/cvtracker/database"
 	"github.com/cvtracker/models"
@@ -12,105 +12,90 @@ import (
 	"net/http"
 )
 
-func (app *Controller) RegisterView(w http.ResponseWriter, r *http.Request) {
-	session := sessions.InitSession(r)
+func (c *Controller) RegisterView() func(http.ResponseWriter, *http.Request) {
+	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
+		data := models.TemplateData{
+			CurrentPage:  "register",
+			LoggedInFlag: false,
+		}
 
-	data := models.TemplateData{
-		UserDetails:  models.UserDetails{},
-		CurrentPage:  "register",
-		LoggedInFlag: false,
-	}
+		session := sessions.InitSession(r)
+		if sessions.IsLoggedIn(session) {
+			data.LoggedInFlag = true
 
-	if sessions.IsLoggedIn(session) {
-		data.UserDetails = sessions.GetUserDetails(session)
-		data.LoggedInFlag = true
-		data.CurrentPage = "index"
-		data.MessageWarning = "You are already logged in!"
-		renderTemplate(w, r, "index.html", data)
-	} else {
-		renderTemplate(w, r, "register.html", data)
-	}
+			if sessions.HasSavedUserDetails(session) {
+				userDetails := sessions.GetUserDetails(session)
+				data.UserDetails = userDetails
+				renderTemplate(w, r, "register.html", data)
+			} else {
+				data.CurrentPage = "register"
+				data.UserDetails.Username = u.Username
+				renderTemplate(w, r, "register.html", data)
+			}
+		}
+	})
 }
+func (c *Controller) RegisterHandler() func(http.ResponseWriter, *http.Request) {
+	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-func (app *Controller) RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	session := sessions.InitSession(r)
+		data := models.TemplateData{
+			CurrentPage:  "index",
+			LoggedInFlag: false,
+		}
 
-	data := models.TemplateData{
-		//CurrentUser:  user,
-		CurrentPage:  "register",
-		LoggedInFlag: false,
-	}
+		session := sessions.InitSession(r)
+		if sessions.IsLoggedIn(session) {
+			data.LoggedInFlag = true
 
-	if sessions.IsLoggedIn(session) {
-		data.UserDetails = sessions.GetUserDetails(session)
-		data.LoggedInFlag = true
-		data.CurrentPage = "index"
-		data.MessageWarning = "You are already logged in!"
-		renderTemplate(w, r, "index.html", data)
-		return
-	}
+			// Form values to insert into DB
+			username := r.FormValue("username")
+			fullName := r.FormValue("fullName")
+			emailAddress := r.FormValue("emailAddress")
 
-	// Required for CA registration
-	username := r.FormValue("username")
-	password := r.FormValue("password")
+			if sessions.HasSavedUserDetails(session) {
+				// Logic to update a profile
+				renderTemplate(w, r, "index.html", data)
+			} else {
+				// Profile details haven't been saved to DB yet
+				// Generate a unique profile hash. This is made up from the users signing identity + their chosen username
+				profileHash, err := crypto.GenerateFromString(u.SigningIdentity.Identifier().ID + u.Username)
+				if err != nil {
+					fmt.Printf(err.Error())
+					data.MessageWarning = "Error! Something went wrong. Please try again"
+					renderTemplate(w, r, "register.html", data)
+					return
+				}
 
-	// Additional user info
-	fullName := r.FormValue("fullName")
-	emailAddress := r.FormValue("emailAddress")
+				// Insert row into DB
+				userDetails, err := database.CreateNewUser(username, fullName, emailAddress, profileHash)
+				if err != nil {
+					fmt.Printf(err.Error())
+					data.MessageWarning = "Error! Something went wrong whilst saving the user details to the DB. Please try again"
+					renderTemplate(w, r, "register.html", data)
+					return
+				}
 
-	err := app.Fabric.RegisterUser(username, password, model.ActorApplicant)
-
-	if err != nil {
-		fmt.Printf(err.Error())
-		data.MessageWarning = "Error! Something went wrong whilst registering. Please try again"
-		renderTemplate(w, r, "register.html", data)
-		return
-	}
-
-	fabricUser, err := app.Fabric.LogUser(username, password)
-
-	if err != nil {
-		fmt.Printf(err.Error())
-		data.MessageWarning = "Failed to retrieve user details. Please try again"
-		renderTemplate(w, r, "register.html", data)
-		return
-	}
-
-	// Generate a unique profile hash. This is made up from the users signing identity + their chosen username
-	profileHash, err := crypto.GenerateFromString(fabricUser.SigningIdentity.Identifier().ID+fabricUser.Username)
-	if err != nil {
-		fmt.Printf(err.Error())
-		data.MessageWarning = "Error! Something went wrong. Please try again"
-		renderTemplate(w, r, "register.html", data)
-		return
-	}
-
-	userDetails, err := database.CreateNewUser(fabricUser.Username,fullName, emailAddress, profileHash)
-	if err != nil {
-		fmt.Printf(err.Error())
-		data.MessageWarning = "Error! Something went wrong whilst saving the user details to the DB. Please try again"
-		renderTemplate(w, r, "register.html", data)
-		return
-	}
+				// Register the userDetails gob to be used as a session value
+				gob.Register(userDetails)
+				session.Values["UserDetails"] = userDetails
+				err = session.Save(r, w)
+				if err != nil {
+					fmt.Printf(err.Error())
+				}
+				data.UserDetails = userDetails
+				data.MessageSuccess = "You have successfully registered your details! Welcome, " + userDetails.FullName
+				renderTemplate(w, r, "index.html", data)
+			}
+		}
 
 
-	/*profile := model.UserProfile{
-		Username: user.Username,
-	}
-*/
+		/*profile := model.UserProfile{
+			Username: user.Username,
+		}
+	*/
 
-// STILL NEED TO SAVE THE PROFILE
-	//_, err = app.Service.SaveProfile(profile, user.ProfileHash)
+		// STILL NEED TO SAVE THE PROFILE
+		//_, err = app.Service.SaveProfile(profile, user.ProfileHash)
 
-	gob.Register(userDetails)
-	session.Values["UserDetails"] = userDetails
-	session.Values["LoggedInFlag"] = true
-	err = session.Save(r, w)
-	if err != nil {
-		fmt.Printf(err.Error())
-	}
-	data.CurrentPage = "index"
-	data.LoggedInFlag = true
-	data.MessageSuccess = "You have successfully created an account! Welcome, " + fabricUser.Username
-	renderTemplate(w, r, "index.html", data)
+	})
 }

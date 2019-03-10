@@ -15,9 +15,9 @@ func Serve(app *controllers.Controller) {
 
 	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", fs))
 
-	r.HandleFunc("/", app.IndexHandler)
+	r.HandleFunc("/", app.IndexHandler())
 	r.HandleFunc("/login.html", app.LoginView)
-	r.HandleFunc("/loginProcess.html", app.LoginHandler)
+	//r.HandleFunc("/loginProcess.html", app.LoginHandler)
 	r.HandleFunc("/addCV.html", app.AddCVView)
 	r.HandleFunc("/addCVProcess.html", app.AddCVHandler)
 	r.HandleFunc("/updateCV.html", app.UpdateCVView)
@@ -33,8 +33,8 @@ func Serve(app *controllers.Controller) {
 	r.HandleFunc("/rateCVProcess.html", app.RateCVHandler)
 
 	r.HandleFunc("/logout.html", app.LogoutHandler)
-	r.HandleFunc("/register.html", app.RegisterView)
-	r.HandleFunc("/registerProcess.html", app.RegisterHandler)
+	r.HandleFunc("/register.html", app.RegisterView())
+	r.HandleFunc("/registerProcess.html", app.RegisterHandler())
 
 
 	r.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

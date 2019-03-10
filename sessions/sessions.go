@@ -1,7 +1,6 @@
 package sessions
 
 import (
-	"github.com/cvtracker/blockchain"
 	"github.com/cvtracker/chaincode/model"
 	"github.com/cvtracker/models"
 	"github.com/gorilla/securecookie"
@@ -39,24 +38,24 @@ func IsLoggedIn(s *sessions.Session) bool {
 	}
 }
 
-func GetFabricUser(s *sessions.Session) *blockchain.User {
-	val := s.Values["FabricUser"]
+func HasSavedUserDetails(s *sessions.Session) bool {
+	saved := s.Values["SavedUserDetails"]
 
-	user, ok := val.(*blockchain.User)
-	if !ok || user == nil {
-		return nil
+	if saved != true {
+		return false
+	} else {
+		return true
 	}
-	return user
 }
 
 func GetUserDetails(s *sessions.Session) models.UserDetails {
-	val := s.Values["FabricUser"]
+	val := s.Values["UserDetails"]
 
-	user, ok := val.(models.UserDetails)
+	userDetails, ok := val.(models.UserDetails)
 	if !ok {
 		return models.UserDetails{}
 	}
-	return user
+	return userDetails
 }
 
 func GetCV(s *sessions.Session) model.CVObject {

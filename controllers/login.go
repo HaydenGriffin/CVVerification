@@ -1,9 +1,7 @@
 package controllers
 
 import (
-	"encoding/gob"
 	"fmt"
-	"github.com/cvtracker/database"
 	"github.com/cvtracker/models"
 	"github.com/cvtracker/sessions"
 	_ "github.com/go-sql-driver/mysql"
@@ -19,7 +17,7 @@ func (app *Controller) LoginView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sessions.IsLoggedIn(session) {
-		data.UserDetails = sessions.GetUserDetails(session)
+		//data.UserDetails = sessions.GetUserDetails(session)
 		data.LoggedInFlag = true
 		data.CurrentPage = "index"
 		data.MessageWarning = "You are already logged in!"
@@ -29,7 +27,7 @@ func (app *Controller) LoginView(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *Controller) LoginHandler(w http.ResponseWriter, r *http.Request) {
+/*func (app *Controller) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
@@ -41,7 +39,7 @@ func (app *Controller) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sessions.IsLoggedIn(session) {
-		data.UserDetails = sessions.GetUserDetails(session)
+		//data.UserDetails = sessions.GetUserDetails(session)
 		data.LoggedInFlag = true
 		data.CurrentPage = "index"
 		data.MessageWarning = "You are already logged in!"
@@ -78,7 +76,7 @@ func (app *Controller) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	data.LoggedInFlag = true
 	data.MessageSuccess = "You have successfully logged in! Welcome, " + fabricUser.Username
 	renderTemplate(w, r, "index.html", data)
-}
+}*/
 
 // Logout
 func (app *Controller) LogoutHandler(w http.ResponseWriter, r *http.Request) {
@@ -88,6 +86,8 @@ func (app *Controller) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		CurrentPage:  "login",
 		LoggedInFlag: false,
 	}
+	w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+	w.WriteHeader(http.StatusUnauthorized)
 
 	session.Values["UserDetails"] = models.UserDetails{}
 	session.Values["LoggedInFlag"] = false

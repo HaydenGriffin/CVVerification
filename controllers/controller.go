@@ -2,8 +2,11 @@ package controllers
 
 import (
 	"encoding/base64"
+	"encoding/gob"
 	"fmt"
 	"github.com/cvtracker/blockchain"
+	"github.com/cvtracker/database"
+	"github.com/cvtracker/sessions"
 	"html/template"
 	"net/http"
 	"os"
@@ -44,6 +47,24 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 		if err != nil {
 			http.Error(w, fmt.Sprintf("authorization failed with error: %v", err), http.StatusUnauthorized)
 			return
+		}
+
+		session := sessions.InitSession(r)
+		session.Values["LoggedInFlag"] = true
+
+		userDetails, err := database.GetUserDetailsFromUsername(pair[0])
+		if err != nil {
+			session.Values["SavedUserDetails"] = false
+			fmt.Println(err.Error())
+		} else {
+			gob.Register(userDetails)
+			session.Values["SavedUserDetails"] = true
+			session.Values["UserDetails"] = userDetails
+		}
+
+		err = session.Save(r, w)
+		if err != nil {
+			fmt.Println(err.Error())
 		}
 
 		pass(w, r, u)

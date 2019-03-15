@@ -22,7 +22,6 @@ func (c *Controller) RegisterView() func(http.ResponseWriter, *http.Request) {
 		session := sessions.InitSession(r)
 		if sessions.IsLoggedIn(session) {
 			data.LoggedInFlag = true
-
 			if sessions.HasSavedUserDetails(session) {
 				userDetails := sessions.GetUserDetails(session)
 				data.UserDetails = userDetails

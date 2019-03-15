@@ -9,7 +9,7 @@
                     <h2>Update your CV</h2>
                     <div class="form-group">
                         <label for="applicantName">Applicant Name</label>
-                        <input type="text" class="form-control" id="applicantName" name="name" value="{{.CurrentUser.FullName}}" disabled>
+                        <input type="text" class="form-control" id="applicantName" name="name" value="{{.UserDetails.FullName}}" readonly>
                     </div>
                     <div class="form-group">
                         <label for="applicantSpeciality">Field of Work</label>
@@ -30,7 +30,7 @@
                     <h2>Add your CV</h2>
                     <div class="form-group">
                         <label for="applicantName">Applicant Name</label>
-                        <input type="text" class="form-control" id="applicantName" name="name" value="{{.CurrentUser.FullName}}" readonly>
+                        <input type="text" class="form-control" id="applicantName" name="name" value="{{.UserDetails.FullName}}" readonly>
                     </div>
                     <div class="form-group">
                         <label for="applicantSpeciality">Field of Work</label>

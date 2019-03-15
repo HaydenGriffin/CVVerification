@@ -1,68 +1,79 @@
 package controllers
 
 import (
+	"encoding/json"
+	"github.com/cvtracker/blockchain"
+	"github.com/cvtracker/chaincode/model"
+	"github.com/cvtracker/crypto"
 	"github.com/cvtracker/models"
 	"github.com/cvtracker/sessions"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
 )
 
-func (app *Controller) AddCVView(w http.ResponseWriter, r *http.Request) {
-	session := sessions.InitSession(r)
+func (c *Controller) AddCVView() func(http.ResponseWriter, *http.Request) {
+	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
+		session := sessions.InitSession(r)
 
-	data := models.TemplateData{
-		CurrentPage:"addcv",
-		LoggedInFlag:true,
-	}
+		data := models.TemplateData{
+			CurrentPage:  "addcv",
+			LoggedInFlag: true,
+		}
 
-	if sessions.IsLoggedIn(session) {
-		//data.UserDetails = sessions.GetUserDetails(session)
-		renderTemplate(w, r, "cvform.html", data)
-		return
-	} else {
-		data.LoggedInFlag = false
-		data.MessageWarning = "Error! Please log in to add a CV."
-		renderTemplate(w, r, "index.html", data)
-		return
-	}
+		if sessions.IsLoggedIn(session) {
+			if sessions.HasSavedUserDetails(session) {
+				data.UserDetails = sessions.GetUserDetails(session)
+				renderTemplate(w, r, "cvform.html", data)
+			} else {
+				data.CurrentPage = "register"
+				data.UserDetails.Username = u.Username
+				renderTemplate(w, r, "register.html", data)
+			}
+		}
+	})
 }
 
-func (app *Controller) AddCVHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
+	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-	session := sessions.InitSession(r)
+		session := sessions.InitSession(r)
 
-	data := models.TemplateData{
-		CurrentPage:  "addcv",
-		LoggedInFlag: true,
-	}
+		data := models.TemplateData{
+			CurrentPage:  "addcv",
+			LoggedInFlag: true,
+		}
 
-	if sessions.IsLoggedIn(session) {
-		//data.UserDetails = sessions.GetUserDetails(session)
-	} else {
-		data.LoggedInFlag = false
-		data.MessageWarning = "Error! Please log in to add a CV."
-		renderTemplate(w, r, "index.html", nil)
-		return
-	}
+		if sessions.IsLoggedIn(session) {
+			if sessions.HasSavedUserDetails(session) {
+				data.UserDetails = sessions.GetUserDetails(session)
+				renderTemplate(w, r, "cvform.html", data)
+			} else {
+				data.CurrentPage = "register"
+				data.UserDetails.Username = u.Username
+				data.MessageWarning = "You must enter your user details before adding your CV."
+				renderTemplate(w, r, "register.html", data)
+				return
+			}
+		}
 
-	//fabricUser, err := app.Fabric.LogUser(data.UserDetails.Username, data.UserDetails)
 
-	/*cv := model.CVObject{
+		//fabricUser, err := app.Fabric.LogUser(data.UserDetails.Username, data.UserDetails)
+		cv := model.CVObject{
 		Name:       r.FormValue("name"),
 		Speciality: r.FormValue("speciality"),
 		CV:         r.FormValue("CV"),
 		CVDate:     r.FormValue("CVDate"),
-	}*/
+	}
 
-//	cvByte, err := json.Marshal(cv)
+			cvByte, err := json.Marshal(cv)
 
-	//cvHash, err := crypto.GenerateFromByte(cvByte)
+		cvHash, err := crypto.GenerateFromByte(cvByte)
 
-	//txid, err := app.Service.SaveCV(cv, cvHash)
+		txid, err := u.UpdateAddCV()
 
-	//txid, err = app.Service.UpdateProfileCV(data.CurrentUser.ProfileHash, cvHash)
+		//txid, err = app.Service.UpdateProfileCV(data.CurrentUser.ProfileHash, cvHash)
 
-/*	if err != nil {
+		/*	if err != nil {
 		data.MessageWarning = err.Error()
 		renderTemplate(w, r, "index.html", data)
 		return
@@ -77,4 +88,5 @@ func (app *Controller) AddCVHandler(w http.ResponseWriter, r *http.Request) {
 		//	data.MessageSuccess = txid*/
 		renderTemplate(w, r, "index.html", data)
 
+	})
 }

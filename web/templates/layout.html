@@ -31,9 +31,9 @@
                         </li>
 
                             <li class="nav-item {{if eq .CurrentPage "addcv"}}active{{end}}">
-                                <a href="addCV.html">Add your CV</a>
+                                <a href="/addcv.html">Add your CV</a>
                             </li>
-                            <li class="nav-item {{if eq .CurrentPage "result"}}active{{end}}">
+                            <li class="nav-item {{if eq .CurrentPage "mycv"}}active{{end}}">
                                 <a href="/mycv.html">My CV</a>
                             </li>
 
@@ -42,23 +42,16 @@
                             </li>
 
                     </ul>
-                    {{if not .LoggedInFlag}}
-                        <ul class="nav navbar-nav navbar-right">
-                            <li class="nav-item">
-                                <a href="register.html">Register</a>
-                            </li>
-                            <li class="nav-item {{if eq .CurrentPage "login"}}active{{end}}">
-                                <a href="/login.html">Login</a>
-                            </li>
-                        </ul>
-                    {{end}}
-                    {{if .LoggedInFlag}}
-                        <ul class="nav navbar-nav navbar-right">
-                            <li class="nav-item">
-                                <a href="/logout.html">Log Out</a>
-                            </li>
-                        </ul>
-                    {{end}}
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="nav-item">
+                            <a href="/logout.html">Log Out</a>
+                        </li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="nav-item {{if eq .CurrentPage "userdetails"}}active{{end}}">
+                            <a href="/updatedetails.html">{{.UserDetails.Username}}</a>
+                        </li>
+                    </ul>
                 </div><!--/.navbar-collapse -->
             </div>
         </nav>

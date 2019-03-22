@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/cvtracker/blockchain"
 	"github.com/cvtracker/database"
+	"github.com/cvtracker/models"
 	"github.com/cvtracker/sessions"
 	"html/template"
 	"net/http"
@@ -52,24 +53,49 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 		session := sessions.InitSession(r)
 		session.Values["LoggedInFlag"] = true
 
+		// Check that there is corresponding user details stored in DB
 		userDetails, err := database.GetUserDetailsFromUsername(pair[0])
 		if err != nil {
 			session.Values["SavedUserDetails"] = false
-			fmt.Println(err.Error())
+			err = session.Save(r, w)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			pass(w, r, u)
 		} else {
 			gob.Register(userDetails)
 			session.Values["SavedUserDetails"] = true
 			session.Values["UserDetails"] = userDetails
+			err = session.Save(r, w)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			pass(w, r, u)
 		}
-
-		err = session.Save(r, w)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-
-		pass(w, r, u)
 	}
 }
+
+// Logout
+func (app *Controller) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	session := sessions.InitSession(r)
+
+	data := models.TemplateData{
+		CurrentPage:  "index",
+	}
+	w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+	w.WriteHeader(http.StatusUnauthorized)
+
+	session.Values["UserDetails"] = models.UserDetails{}
+	session.Values["LoggedInFlag"] = false
+	err := session.Save(r, w)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	data.MessageSuccess = "You have been successfully logged out."
+	renderTemplate(w, r, "index.html", data)
+}
+
 
 func renderTemplate(w http.ResponseWriter, r *http.Request, templateName string, data interface{}) {
 	lp := filepath.Join("web", "templates", "layout.html")

@@ -47,11 +47,21 @@ func (u *User) UpdateRegister() error {
 	return u.update([][]byte{[]byte("register"), []byte(u.Username)}, nil)
 }
 
-// UpdateAdd allow to add a resource into the blockchain
-func (u *User) UpdateAddCV(resourceID, resourceDescription string) error {
-	return u.update([][]byte{[]byte("add"), []byte(resourceID), []byte(resourceDescription)}, nil)
+// UpdateSaveCV allow to add a resource into the blockchain
+func (u *User) UpdateSaveCV(cvByte []byte, cvHash string) error {
+	return u.update([][]byte{[]byte("savecv"), cvByte, []byte(cvHash)}, nil)
 }
 
+// UpdateSaveProfile allow to add a resource into the blockchain
+func (u *User) UpdateSaveProfile(profileByte []byte, profileHash string) error {
+	return u.update([][]byte{[]byte("saveprofile"), profileByte, []byte(profileHash)}, nil)
+}
+
+// UpdateSaveProfileCV allow to add a resource into the blockchain
+func (u *User) UpdateSaveProfileCV(profileHash, cvHash string) error {
+	return u.update([][]byte{[]byte("saveprofilecv"), []byte(profileHash), []byte(cvHash)}, nil)
+}
+/*
 // UpdateDelete allow to delete a resource into the blockchain
 func (u *User) UpdateDelete(resourceID string) error {
 	return u.update([][]byte{[]byte("delete"), []byte(resourceID)}, nil)
@@ -66,3 +76,4 @@ func (u *User) UpdateAcquire(resourceID string, mission string) error {
 func (u *User) UpdateRelease(resourceID string) error {
 	return u.update([][]byte{[]byte("release"), []byte(resourceID)}, nil)
 }
+*/

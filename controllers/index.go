@@ -12,22 +12,16 @@ func (c *Controller) IndexHandler() func(http.ResponseWriter, *http.Request) {
 
 		data := models.TemplateData{
 			CurrentPage:  "index",
-			LoggedInFlag: false,
 		}
 
 		session := sessions.InitSession(r)
-		if sessions.IsLoggedIn(session) {
-			data.LoggedInFlag = true
-
-			if sessions.HasSavedUserDetails(session) {
-				userDetails := sessions.GetUserDetails(session)
-				data.UserDetails = userDetails
-				renderTemplate(w, r, "index.html", data)
-			} else {
-				data.CurrentPage = "register"
-				data.UserDetails.Username = u.Username
-				renderTemplate(w, r, "register.html", data)
-			}
+		if sessions.HasSavedUserDetails(session) {
+			data.UserDetails = sessions.GetUserDetails(session)
+			renderTemplate(w, r, "index.html", data)
+		} else {
+			data.CurrentPage = "userdetails"
+			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "userdetails.html", data)
 		}
 	})
 }

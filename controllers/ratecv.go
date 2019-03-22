@@ -20,13 +20,11 @@ func (app *Controller) RateCVView(w http.ResponseWriter, r *http.Request) {
 
 	data := models.TemplateData{
 		CurrentPage:  "addcv",
-		LoggedInFlag: true,
 	}
 
 	if sessions.IsLoggedIn(session) {
 		//data.UserDetails = sessions.GetUserDetails(session)
 	} else {
-		data.LoggedInFlag = false
 		data.MessageWarning = "Error! Please log in to update your CV."
 		renderTemplate(w, r, "index.html", data)
 		return
@@ -93,13 +91,11 @@ func (app *Controller) RateCVHandler(w http.ResponseWriter, r *http.Request) {
 	data := models.TemplateData{
 		//CurrentUser:  models.User{},
 		CurrentPage:  "addcv",
-		LoggedInFlag: true,
 	}
 
 	if sessions.IsLoggedIn(session) {
 		//data.CurrentUser = sessions.GetUser(session)
 	} else {
-		data.LoggedInFlag = false
 		data.MessageWarning = "Error! Please log in to update your CV."
 		renderTemplate(w, r, "index.html", nil)
 		return

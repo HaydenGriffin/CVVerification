@@ -4,12 +4,6 @@
 
 package main
 
-/**
-
- */
-
-
- //Rating map key = cv object
 type UserProfile struct {
 	Username	string	`json:"Name"`
 	CVHistory []string `json:"CVHistory"`

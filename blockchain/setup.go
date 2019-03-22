@@ -194,7 +194,7 @@ func (setup *FabricSetup) RegisterUser(username, password, userType string) erro
 		Name:           username,
 		Secret:         password,
 		Type:           "user",
-		MaxEnrollments: 1,
+		MaxEnrollments: -1,
 		Affiliation:    "org1",
 		Attributes: []caMsp.Attribute{
 			{
@@ -209,12 +209,12 @@ func (setup *FabricSetup) RegisterUser(username, password, userType string) erro
 		return fmt.Errorf("unable to register user '%s': %v", username, err)
 	}
 
-	_, err = setup.LogUser(username, password)
+	u, err := setup.LogUser(username, password)
 	if err != nil {
 		return fmt.Errorf("unable to log user '%s' after registration: %v", username, err)
 	}
 
-	//err = u.UpdateRegister()
+	err = u.UpdateRegister()
 	if err != nil {
 		return fmt.Errorf("unable to add the user '%s' in the ledger: %v", username, err)
 	}

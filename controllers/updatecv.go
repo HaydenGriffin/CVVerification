@@ -14,7 +14,6 @@ func (app *Controller) UpdateCVView(w http.ResponseWriter, r *http.Request) {
 	data := models.TemplateData{
 		//CurrentUser:models.User{},
 		CurrentPage:"addcv",
-		LoggedInFlag:true,
 	}
 
 	/*if sessions.IsLoggedIn(session) {
@@ -45,13 +44,11 @@ func (app *Controller) UpdateCVHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := models.TemplateData{
 		CurrentPage:"addcv",
-		LoggedInFlag:true,
 	}
 
 	if sessions.IsLoggedIn(session) {
 		//data.UserDetails = sessions.GetUserDetails(session)
 	} else {
-		data.LoggedInFlag = false
 		data.MessageWarning = "Error! Please log in to add a CV."
 		renderTemplate(w, r, "index.html", nil)
 		return

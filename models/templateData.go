@@ -8,12 +8,11 @@ type TemplateData struct {
 	TxId string
 	UserDetails UserDetails
 	CurrentPage string
-	LoggedInFlag bool
 	IsAdmin bool
 	IsApplicant bool
 	MessageWarning string
 	MessageSuccess string
-	CV model.CVObject
+	CV *model.CVObject
 	Ratings []model.CVRating
 	IsCVRatable bool
 	CVList map[int] model.CVObject

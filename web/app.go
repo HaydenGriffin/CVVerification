@@ -16,25 +16,23 @@ func Serve(app *controllers.Controller) {
 	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", fs))
 
 	r.HandleFunc("/", app.IndexHandler())
-	r.HandleFunc("/login.html", app.LoginView)
-	//r.HandleFunc("/loginProcess.html", app.LoginHandler)
-	r.HandleFunc("/addCV.html", app.AddCVView)
-	r.HandleFunc("/addCVProcess.html", app.AddCVHandler)
-	r.HandleFunc("/updateCV.html", app.UpdateCVView)
-	r.HandleFunc("/updateCVProcess.html", app.UpdateCVHandler)
-	r.HandleFunc("/mycv.html", app.ResultHandler)
+	r.HandleFunc("/addcv.html", app.AddCVView())
+	r.HandleFunc("/addcvprocess.html", app.AddCVHandler())
+	r.HandleFunc("/updatecv.html", app.UpdateCVView)
+	r.HandleFunc("/updatecvprocess.html", app.UpdateCVHandler)
+	r.HandleFunc("/mycv.html", app.ViewCVHandler())
 
-	r.HandleFunc("/submitForReview.html", app.SubmitForReviewHandler)
-	r.HandleFunc("/withdrawFromReview.html", app.WithdrawFromReviewHandler)
+	//r.HandleFunc("/submitcvforreview.html", app.SubmitForReviewHandler)
+	r.HandleFunc("/withdrawcvfromreview.html", app.WithdrawFromReviewHandler)
 
-	r.HandleFunc("/viewall.html", app.ViewAllCVView)
+	r.HandleFunc("/viewallcv.html", app.ViewAllCVView)
 
-	r.HandleFunc("/rateCV/{userID}.html", app.RateCVView)
-	r.HandleFunc("/rateCVProcess.html", app.RateCVHandler)
+	r.HandleFunc("/ratecv/{userID}.html", app.RateCVView)
+	r.HandleFunc("/ratecvprocess.html", app.RateCVHandler)
 
 	r.HandleFunc("/logout.html", app.LogoutHandler)
-	r.HandleFunc("/register.html", app.RegisterView())
-	r.HandleFunc("/registerProcess.html", app.RegisterHandler())
+	r.HandleFunc("/userdetails.html", app.UpdateDetailsView())
+	r.HandleFunc("/updatedetailsprocess.html", app.UpdateDetailsHandler())
 
 
 	r.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

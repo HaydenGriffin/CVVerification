@@ -67,6 +67,11 @@ func main() {
 		return
 	}
 
+	err = fSetup.RegisterUser("applicant1", "password", model.ActorApplicant)
+	if err != nil {
+		fmt.Printf("Unable to register the user 'applicant1': %v\n", err)
+		return
+	}
 	/*//Init a dummy user and test chaincode methods
 	profile := service.UserProfile{
 		Username: "testUser",

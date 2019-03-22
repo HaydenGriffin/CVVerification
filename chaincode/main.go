@@ -11,25 +11,58 @@ type CVTrackerChaincode struct {
 }
 
 // Init of the chaincode
-// This function is called only one when the chaincode is instantiated.
-// So the goal is to prepare the ledger to handle future requests.
+// Function is called to instantiate the chaincode
 func (t *CVTrackerChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
-	fmt.Println("########### CVTrackerChaincode Init ###########")
+	fmt.Println("CVTrackerChaincode Init")
+
+	// Get the function and arguments from the request
+	function, _ := stub.GetFunctionAndParameters()
+
+	// Check if the request is the init function
+	if function != "init" {
+		return shim.Error("Unknown function call")
+	}
 
 	// Return a successful message
 	return shim.Success(nil)
 }
 
-// Invoke
+// Invoke chaincode
 // All future requests named invoke will arrive here.
 func (t *CVTrackerChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
-	fmt.Println("########### CVTrackerChaincode Invoke ###########")
+	fmt.Println("CVTrackerChaincode Invoke")
 
 	// Get the function and arguments from the request
 	function, args := stub.GetFunctionAndParameters()
-	
+
+	// Check whether it is an invoke request
+	if function != "invoke" {
+		return shim.Error("Unknown function call")
+	}
+
+	// Check whether the number of arguments is sufficient
+	if len(args) < 1 {
+		return shim.Error("The number of arguments is invalid.")
+	}
+
+	// The chaincode request operation is stored within the first argument
+	operationType := args[0]
+
+	// All query operations
+	if operationType == "query" {
+		return t.query(stub, args[1:])
+	}
+
+	// The update argument will manage all update in the ledger
+	if operationType == "update" {
+		return t.update(stub, args[1:])
+	}
+
+	// If the arguments given don’t match any function, we return an error
+	return shim.Error("Unknown action, check the first argument")
+
 	// In order to manage multiple type of request, we will check the first argument.
-	if function == "saveProfile" {
+	/*if function == "saveProfile" {
 		return t.saveProfile(stub, args)
 	} else if function == "getProfile" {
 		return t.getProfile(stub, args)
@@ -50,7 +83,7 @@ func (t *CVTrackerChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Respons
 	}
 
 	// If the arguments given don’t match any function, we return an error
-	return shim.Error("Unknown action, check the first argument")
+	return shim.Error("Unknown action, check the first argument")*/
 }
 
 func main() {

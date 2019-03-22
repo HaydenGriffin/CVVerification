@@ -98,6 +98,32 @@ func CreateNewUser(username, full_name, email_address, profile_hash string) (use
 	return userDetails, err
 }
 
+func UpdateUser(username, full_name, email_address string) (userDetails models.UserDetails, error error) {
+
+	db, err := InitDB(dataSourceName)
+
+	if err != nil {
+		return userDetails, err
+	}
+
+	user, err := GetUserDetailsFromUsername(username)
+
+	if err != nil {
+		return models.UserDetails{}, err
+	}
+
+	_, err = db.Exec("UPDATE users SET full_name = ?, email_address = ? WHERE id = ?", full_name, email_address, user.Id)
+
+	if err != nil {
+		return models.UserDetails{}, err
+	} else {
+		user.FullName = full_name
+		user.EmailAddress = email_address
+	}
+
+	return userDetails, err
+}
+
 func GetCVInfoFromID(user_id int) (string, string, error) {
 	db, err := InitDB(dataSourceName)
 

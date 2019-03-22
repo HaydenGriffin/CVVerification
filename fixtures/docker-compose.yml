@@ -6,7 +6,7 @@ networks:
 services:
 
   orderer.cvtracker.com:
-    image: hyperledger/fabric-orderer:x86_64-1.0.5
+    image: hyperledger/fabric-orderer:amd64-1.4.0
     container_name: orderer.cvtracker.com
     environment:
       - ORDERER_GENERAL_LOGLEVEL=debug
@@ -36,7 +36,7 @@ services:
           - orderer.cvtracker.com
 
   ca.org1.cvtracker.com:
-    image: hyperledger/fabric-ca:x86_64-1.0.5
+    image: hyperledger/fabric-ca:amd64-1.4.0
     container_name: ca.org1.cvtracker.com
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
@@ -57,7 +57,7 @@ services:
           - ca.org1.cvtracker.com
 
   peer0.org1.cvtracker.com:
-    image: hyperledger/fabric-peer:x86_64-1.0.5
+    image: hyperledger/fabric-peer:amd64-1.4.0
     container_name: peer0.org1.cvtracker.com
     environment:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
@@ -98,7 +98,7 @@ services:
           - peer0.org1.cvtracker.com
 
   peer1.org1.cvtracker.com:
-    image: hyperledger/fabric-peer:x86_64-1.0.5
+    image: hyperledger/fabric-peer:amd64-1.4.0
     container_name: peer1.org1.cvtracker.com
     environment:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock

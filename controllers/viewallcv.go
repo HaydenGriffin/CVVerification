@@ -11,7 +11,6 @@ func (app *Controller) ViewAllCVView(w http.ResponseWriter, r *http.Request) {
 
 		data := models.TemplateData{
 			CurrentPage:  "index",
-			LoggedInFlag: false,
 		}
 
 		/*if sessions.IsLoggedIn(session) {

@@ -29,7 +29,6 @@ const (
 	ActorAdmin = "admin"
 )
 
-// Admin that manage resources available
 type Admin struct {
 	Actor
 }
@@ -61,9 +60,10 @@ type CVRating struct {
 // List of object type stored in the ledger
 const (
 	ObjectTypeAdmin            = "admin"
-	ObjectTypeConsumer         = "consumer"
-	ObjectTypeResource         = "resource"
-	ObjectTypeResourcesDeleted = "resources-deleted"
+	ObjectTypeApplicant        = "applicant"
+	ObjectTypeCV         	   = "cv"
+	ObjectTypeProfile          = "profile"
+	ObjectTypeRating           = "rating"
 )
 
 // List of available filter for query resources

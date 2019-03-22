@@ -53,14 +53,24 @@ func (u *User) QueryAdmin() (*model.Admin, error) {
 	return admin, nil
 }
 
-// QueryConsumer query the blockchain chaincode to retrieve information about the current consumer user connected
-func (u *User) QueryConsumer() (*model.Applicant, error) {
+// QueryApplicant query the blockchain chaincode to retrieve information about the current applicant user connected
+func (u *User) QueryApplicant() (*model.Applicant, error) {
 	var applicant *model.Applicant
-	err := u.query([][]byte{[]byte("consumer")}, &applicant)
+	err := u.query([][]byte{[]byte("applicant")}, &applicant)
 	if err != nil {
 		return nil, err
 	}
 	return applicant, nil
+}
+
+// QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
+func (u *User) QueryCV(cvHash string) (*model.CVObject, error) {
+	var cv *model.CVObject
+	err := u.query([][]byte{[]byte("cv"), []byte(cvHash)}, &cv)
+	if err != nil {
+		return nil, err
+	}
+	return cv, nil
 }
 
 

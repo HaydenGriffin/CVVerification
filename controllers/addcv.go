@@ -2,9 +2,11 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/cvtracker/blockchain"
 	"github.com/cvtracker/chaincode/model"
 	"github.com/cvtracker/crypto"
+	"github.com/cvtracker/database"
 	"github.com/cvtracker/models"
 	"github.com/cvtracker/sessions"
 	_ "github.com/go-sql-driver/mysql"
@@ -13,22 +15,31 @@ import (
 
 func (c *Controller) AddCVView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
+
 		session := sessions.InitSession(r)
 
 		data := models.TemplateData{
-			CurrentPage:  "addcv",
-			LoggedInFlag: true,
+			CurrentPage: "addcv",
 		}
 
-		if sessions.IsLoggedIn(session) {
-			if sessions.HasSavedUserDetails(session) {
-				data.UserDetails = sessions.GetUserDetails(session)
-				renderTemplate(w, r, "cvform.html", data)
-			} else {
-				data.CurrentPage = "register"
-				data.UserDetails.Username = u.Username
-				renderTemplate(w, r, "register.html", data)
-			}
+		// Check that the user connected is an applicant
+		_, err := u.QueryApplicant()
+		if err != nil {
+			fmt.Println(err)
+			data.CurrentPage = "index"
+			data.MessageWarning = "You must be an applicant user to upload a CV."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
+
+		if sessions.HasSavedUserDetails(session) {
+			data.UserDetails = sessions.GetUserDetails(session)
+			renderTemplate(w, r, "cvform.html", data)
+		} else {
+			data.CurrentPage = "userdetails"
+			data.UserDetails.Username = u.Username
+			data.MessageWarning = "You must register your user details before using the system."
+			renderTemplate(w, r, "userdetails.html", data)
 		}
 	})
 }
@@ -39,54 +50,59 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 		session := sessions.InitSession(r)
 
 		data := models.TemplateData{
-			CurrentPage:  "addcv",
-			LoggedInFlag: true,
+			CurrentPage: "addcv",
 		}
 
-		if sessions.IsLoggedIn(session) {
-			if sessions.HasSavedUserDetails(session) {
-				data.UserDetails = sessions.GetUserDetails(session)
-				renderTemplate(w, r, "cvform.html", data)
-			} else {
-				data.CurrentPage = "register"
-				data.UserDetails.Username = u.Username
-				data.MessageWarning = "You must enter your user details before adding your CV."
-				renderTemplate(w, r, "register.html", data)
-				return
-			}
+		// Check that the user connected is an applicant
+		_, err := u.QueryApplicant()
+		if err != nil {
+			data.CurrentPage = "index"
+			data.MessageWarning = "You must be an applicant user to upload a CV."
+			renderTemplate(w, r, "index.html", data)
+			return
 		}
 
+		if sessions.HasSavedUserDetails(session) {
+			data.UserDetails = sessions.GetUserDetails(session)
+		} else {
+			data.CurrentPage = "userdetails"
+			data.UserDetails.Username = u.Username
+			data.MessageWarning = "You must register your user details before using the system."
+			renderTemplate(w, r, "userdetails.html", data)
+			return
+		}
 
-		//fabricUser, err := app.Fabric.LogUser(data.UserDetails.Username, data.UserDetails)
 		cv := model.CVObject{
-		Name:       r.FormValue("name"),
-		Speciality: r.FormValue("speciality"),
-		CV:         r.FormValue("CV"),
-		CVDate:     r.FormValue("CVDate"),
-	}
+			Name:       r.FormValue("name"),
+			Speciality: r.FormValue("speciality"),
+			CV:         r.FormValue("cv"),
+			CVDate:     r.FormValue("cvDate"),
+		}
 
-			cvByte, err := json.Marshal(cv)
+		cvByte, err := json.Marshal(cv)
 
 		cvHash, err := crypto.GenerateFromByte(cvByte)
 
-		txid, err := u.UpdateAddCV()
+		err = u.UpdateSaveCV(cvByte, cvHash)
 
-		//txid, err = app.Service.UpdateProfileCV(data.CurrentUser.ProfileHash, cvHash)
+		if err != nil {
+			fmt.Println(err)
+			data.MessageWarning = "An error occurred whilst saving the CV to ledger."
+			renderTemplate(w, r, "addcv.html", data)
+			return
+		}
 
-		/*	if err != nil {
-		data.MessageWarning = err.Error()
-		renderTemplate(w, r, "index.html", data)
-		return
-	}
+		fmt.Println(cv)
 
-	//err = database.CreateNewCV(data.CurrentUser.Id, cv.CV, cvHash)
+		err = database.CreateNewCV(data.UserDetails.Id, cv.CV, cvHash)
 
-	if err != nil {
-		data.MessageWarning = "Unable to create new CV"
-		renderTemplate(w, r, "mycv.html", data)
-	} else {
-		//	data.MessageSuccess = txid*/
-		renderTemplate(w, r, "index.html", data)
+		if err != nil {
+			data.MessageWarning = "An error occurred whilst saving CV details to database."
+			renderTemplate(w, r, "addcv.html", data)
+		} else {
+			data.MessageSuccess = "You have successfully saved your CV to the ledger."
+			renderTemplate(w, r, "index.html", data)
 
+		}
 	})
 }

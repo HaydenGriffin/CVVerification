@@ -3,10 +3,11 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"github.com/cvtracker/chaincode/model"
 	"github.com/cvtracker/models"
 )
 
-var dataSourceName = "root:password@tcp(localhost:3306)/verification"
+var dataSourceName = "root:password@tcp(localhost:3306)/verification?parseTime=true"
 
 func InitDB(dataSourceName string) (*sql.DB, error) {
 	db, err := sql.Open("mysql", dataSourceName)
@@ -68,6 +69,38 @@ func GetAllRatableCVHashes() (map[int] string, error) {
 		return ratableCVs, err
 	}
 	return ratableCVs, nil
+}
+
+func GetUserCVDetails(user_id int) ([]model.CVHistoryInfo, error) {
+
+	var allCVHistoryInfo []model.CVHistoryInfo
+
+	db, err := InitDB(dataSourceName)
+
+	if err != nil {
+		return allCVHistoryInfo, err
+	}
+
+	rows, err := db.Query("SELECT uc.cv_hash, uc.cv_ratable, uc.timestamp FROM user_cvs uc WHERE uc.user_id = ? ORDER BY uc.timestamp ASC", user_id)
+
+	var index = 1
+
+	for rows.Next() {
+		var cvHistoryInfo model.CVHistoryInfo
+		err = rows.Scan(&cvHistoryInfo.CVHash, &cvHistoryInfo.CVInReview, &cvHistoryInfo.Timestamp)
+		if err != nil {
+			fmt.Println(err.Error())
+			return allCVHistoryInfo, err
+		}
+		cvHistoryInfo.Index = index
+		allCVHistoryInfo = append(allCVHistoryInfo, cvHistoryInfo)
+		index++
+	}
+	err = rows.Err()
+	if err != nil {
+		return allCVHistoryInfo, err
+	}
+	return allCVHistoryInfo, nil
 }
 
 func CreateNewUser(username, full_name, email_address, profile_hash string) (userDetails models.UserDetails, error error) {
@@ -169,16 +202,40 @@ func UpdateCV(cv_hash string, ratable int) error {
 		return err
 	}
 
-	_, err = db.Exec("UPDATE user_cvs SET cv_ratable = ? WHERE cv_hash = ? AND status_control = 'C'", ratable, cv_hash)
+	_, err = db.Exec("UPDATE user_cvs SET cv_ratable = ? WHERE cv_hash = ?", ratable, cv_hash)
 
 	return err
 }
 
-func IsCVRatable(cv_hash string) (bool, error) {
+func UserHasCVInReview(user_id int) bool {
 	db, err := InitDB(dataSourceName)
 
 	if err != nil {
-		return false, err
+		return false
+	}
+
+	result := db.QueryRow("SELECT cv_ratable FROM user_cvs WHERE user_id = ?", user_id)
+
+	var cv_ratable int
+
+	err = result.Scan(&cv_ratable)
+
+	if err != nil {
+		return false
+	}
+
+	if cv_ratable != 1 {
+		return false
+	} else {
+		return true
+	}
+}
+
+func IsCVInReview(cv_hash string) bool {
+	db, err := InitDB(dataSourceName)
+
+	if err != nil {
+		return false
 	}
 
 	result := db.QueryRow("SELECT cv_ratable FROM user_cvs WHERE cv_hash = ? AND status_control = 'C'", cv_hash)
@@ -188,12 +245,12 @@ func IsCVRatable(cv_hash string) (bool, error) {
 	err = result.Scan(&cv_ratable)
 
 	if err != nil {
-		return false, err
+		return false
 	}
 
-	if cv_ratable == 1 {
-		return true, nil
+	if cv_ratable != 1 {
+		return false
 	} else {
-		return false, nil
+		return true
 	}
 }

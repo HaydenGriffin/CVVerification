@@ -4,6 +4,8 @@
 
 package main
 
+import "time"
+
 type UserProfile struct {
 	Username	string	`json:"Name"`
 	CVHistory []string `json:"CVHistory"`
@@ -17,6 +19,15 @@ type CVObject struct {
 	CV	string	`json:"CV"`
 	CVDate	string	`json:"CVDate"`
 }
+
+type CVHistory struct {
+	Transaction string    `json:"transaction"`
+	CV    CVObject  `json:"value"`
+	Time        time.Time `json:"time"`
+	Deleted     bool      `json:"deleted"`
+}
+
+type CVHistoryDetails []CVHistory
 
 type CVRating struct {
 	Name string `json:"Name"`

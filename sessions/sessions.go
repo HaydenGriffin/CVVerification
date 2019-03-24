@@ -58,14 +58,34 @@ func GetUserDetails(s *sessions.Session) models.UserDetails {
 	return userDetails
 }
 
-func GetCV(s *sessions.Session) model.CVObject {
+func GetCV(s *sessions.Session) *model.CVObject {
 	val := s.Values["CV"]
 
-	cv, ok := val.(model.CVObject)
+	cv, ok := val.(*model.CVObject)
 	if !ok {
-		return model.CVObject{}
+		return nil
 	}
 	return cv
+}
+
+func GetCVHash(s *sessions.Session) string {
+	val := s.Values["CVHash"]
+
+	cvHash, ok := val.(string)
+	if !ok {
+		return ""
+	}
+	return cvHash
+}
+
+func GetInReviewCVHash(s *sessions.Session) string {
+	val := s.Values["InReviewCVHash"]
+
+	cvHash, ok := val.(string)
+	if !ok {
+		return ""
+	}
+	return cvHash
 }
 
 func GetRatings(s *sessions.Session) []model.CVRating {

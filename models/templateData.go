@@ -5,15 +5,14 @@ import (
 )
 
 type TemplateData struct {
-	TxId string
 	UserDetails UserDetails
 	CurrentPage string
-	IsAdmin bool
-	IsApplicant bool
 	MessageWarning string
 	MessageSuccess string
 	CV *model.CVObject
+	CVHistory []model.CVHistoryInfo
 	Ratings []model.CVRating
-	IsCVRatable bool
-	CVList map[int] model.CVObject
+	CurrentCVInReview bool
+	UserHasCVInReview bool
+	CVList map[int] *model.CVObject
 }

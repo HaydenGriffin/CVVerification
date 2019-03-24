@@ -92,7 +92,14 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		fmt.Println(cv)
+		err = u.UpdateSaveProfileCV(data.UserDetails.ProfileHash, cvHash)
+
+		if err != nil {
+			fmt.Println(err)
+			data.MessageWarning = "An error occurred whilst updating profile information in ledger."
+			renderTemplate(w, r, "addcv.html", data)
+			return
+		}
 
 		err = database.CreateNewCV(data.UserDetails.Id, cv.CV, cvHash)
 

@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="../assets/css/mycv.css">
     <div class="container-fluid content-padding">
     {{range $userID, $cvObject:=  .CVList}}
-        <form id="rate-cv" class="form-my-cv" action="/rateCV/{{$userID}}.html" method="post">
+        <form id="rate-cv" class="form-my-cv" action="/rateCV/{{$userID}}" method="post">
             <h4>Profile Hash</h4>
             <p> {{$userID}}</p>
             <h4>CV Name</h4>

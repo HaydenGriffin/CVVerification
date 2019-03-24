@@ -202,37 +202,28 @@ func (t *CVTrackerChaincode) saveProfileCV(stub shim.ChaincodeStubInterface, arg
 		return shim.Error("The cv hash is empty.")
 	}
 
-	getFromLedger(stub, model.ObjectTypeProfile, profileHash,)
+	var profile model.UserProfile
 
-	// Check whether the number of arguments is sufficient
-	if len(args) != 2 {
-		return shim.Error("The number of arguments is invalid.")
-	}
+	err := getFromLedger(stub, model.ObjectTypeProfile, profileHash, &profile)
 
-	var profile UserProfile
-
-	err := json.Unmarshal([]byte(args[0]), &profile)
 	if err != nil {
-		return shim.Error("An error occurred whilst deserialising the object")
+		return shim.Error(fmt.Sprintf("Unable to retrieve profile from the ledger: %v", err))
 	}
 
-	profileHash := args[1]
+	profile.CVHistory = append(profile.CVHistory, cvHash)
 
-	if profileHash == "" {
-		return shim.Error("The profile hash is empty.")
-	}
 
 	err = updateInLedger(stub, model.ObjectTypeProfile, profileHash, profile)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable to create the CV in the ledger: %v", err))
 	}
 
-	resourceAsByte, err := convertObjectToByte(profile)
+	profileAsByte, err := convertObjectToByte(profile)
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable convert the resource to byte: %v", err))
+		return shim.Error(fmt.Sprintf("Unable convert the profile to byte: %v", err))
 	}
 
-	fmt.Printf("Resource created:\n  ID -> %s\n  Description -> %s\n", model.ObjectTypeCV, profileHash)
+	fmt.Printf("Resource updated:\n  ID -> %s\n  Description -> %s\n", model.ObjectTypeProfile, profileHash)
 
-	return shim.Success(resourceAsByte)
+	return shim.Success(profileAsByte)
 }

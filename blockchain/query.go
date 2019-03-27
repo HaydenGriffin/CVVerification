@@ -93,3 +93,13 @@ func (u *User) QueryCVRatings(profileHash, cvHash string) ([]model.CVRating, err
 	}
 	return ratings, nil
 }
+
+// QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
+func (u *User) QueryCVRatable(profileHash, cvHash string) (model.CVRating, error) {
+	var rating model.CVRating
+	err := u.query([][]byte{[]byte("cvratable"), []byte(profileHash), []byte(cvHash)}, &rating)
+	if err != nil {
+		return model.CVRating{}, err
+	}
+	return rating, nil
+}

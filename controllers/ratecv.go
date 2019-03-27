@@ -61,6 +61,22 @@ func (c *Controller) RateCVView() func(http.ResponseWriter, *http.Request) {
 
 		profileHash, cvHash, err := database.GetCVInfoFromID(userID)
 
+		rating, err := u.QueryCVRatable(profileHash, cvHash)
+		if err != nil {
+			fmt.Printf(err.Error())
+			fmt.Printf("cuck")
+
+		}
+
+		if (model.CVRating{}) == rating {
+			fmt.Printf("Reviewer hasn't reviewed yet")
+		} else {
+			fmt.Printf("Reviewer has reviewed!!!")
+		}
+		fmt.Println(rating)
+
+		data.CVInfo.Rating = rating
+
 		if err != nil {
 			fmt.Printf(err.Error())
 			data.MessageWarning = "Unable to find CV info in database."

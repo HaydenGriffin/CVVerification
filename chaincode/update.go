@@ -245,7 +245,7 @@ func (t *CVTrackerChaincode) saveRating(stub shim.ChaincodeStubInterface, args [
 	profileHash := args[0]
 	cvHash := args[1]
 	ratingString := args[2]
-	var rating model.CVRating
+	var verifierRating model.CVRating
 	var profile model.UserProfile
 
 	if profileHash == "" {
@@ -256,56 +256,48 @@ func (t *CVTrackerChaincode) saveRating(stub shim.ChaincodeStubInterface, args [
 		return shim.Error("The cv hash is empty.")
 	}
 
-	fmt.Println(cvHash)
-
 	if len(ratingString) == 0 {
 		return shim.Error("There is no rating to be saved.")
 	}
 
-	fmt.Println(ratingString)
-
-	err := convertByteToObject([]byte(ratingString), &rating)
+	err := convertByteToObject([]byte(ratingString), &verifierRating)
 	if err != nil {
 		fmt.Println(err)
 		return shim.Error("Unable to convert rating byte to object")
 	}
 
-	rating.Id, err = cid.GetID(stub)
+	verifierRating.Id, err = cid.GetID(stub)
 	if err != nil {
 		fmt.Println(err)
-		return shim.Error("Unable to get invoking ID")
+		return shim.Error("Unable to get invoking chaincode identity")
 	}
-
-	fmt.Println(rating)
 
 	err = getFromLedger(stub, model.ObjectTypeProfile, profileHash, &profile)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable to retrieve profile in the ledger: %v", err))
 	}
 
-	fmt.Println(profile)
-
 	var ratings = make(map[string][]model.CVRating)
-
-	id, err := cid.GetID(stub)
-	if err != nil {
-		return shim.Error("Unable to retrieve profile information")
-	}
+	existingRatingFound := false
 
 	if profile.Ratings != nil {
 		fmt.Println("profile.Ratings not nil")
 		fmt.Println(profile.Ratings)
 		ratings = profile.Ratings
 
-		for _, rating := range profile.Ratings[cvHash] {
+		for i, rating := range profile.Ratings[cvHash] {
 
-			if rating.Id == id {
-				return shim.Error("Unable to save rating: Rating has already been saved for this CV.")
+			// If the verifier has already rated the CV
+			if rating.Id == verifierRating.Id {
+				ratings[cvHash][i] = verifierRating
+				existingRatingFound = true
 				}
 			}
 		}
 
-	ratings[cvHash] = append(ratings[cvHash], rating)
+	if existingRatingFound == false {
+		ratings[cvHash] = append(ratings[cvHash], verifierRating)
+	}
 
 	profile.Ratings = make(map[string][]model.CVRating)
 

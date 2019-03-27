@@ -27,6 +27,8 @@ func (t *CVTrackerChaincode) query(stub shim.ChaincodeStubInterface, args []stri
 		return t.cv(stub, args[1:])
 	} else if args[0] == "cvratings" {
 		return t.cvratings(stub, args[1:])
+	} else if args[0] == "cvratable" {
+		return t.cvratable(stub, args[1:])
 	}
 
 	// If the arguments given don’t match any function, we return an error
@@ -210,4 +212,56 @@ func (t *CVTrackerChaincode) cvratings(stub shim.ChaincodeStubInterface, args []
 	fmt.Println(ratingsAsByte)
 
 	return shim.Success(ratingsAsByte)
+}
+
+func (t *CVTrackerChaincode) cvratable(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	fmt.Println("# cv ratings")
+
+	if len(args) != 2 {
+		return shim.Error("The number of arguments is invalid.")
+	}
+
+	var profile model.UserProfile
+	verifierRating := model.CVRating{}
+	profileHash := args[0]
+	cvHash := args[1]
+
+	if profileHash == "" {
+		return shim.Error("The profile hash is empty.")
+	}
+
+	if cvHash == "" {
+		return shim.Error("The cv hash is empty.")
+	}
+
+	id, err := cid.GetID(stub)
+
+	if err != nil {
+		return shim.Error("Unable to retrieve user identity.")
+	}
+
+	err = getFromLedger(stub, model.ObjectTypeProfile, profileHash, &profile)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Unable to retrieve profile in the ledger: %v", err))
+	}
+
+	if profile.Ratings[cvHash] == nil {
+		fmt.Println("No ratings yet")
+	} else {
+		for _, rating := range profile.Ratings[cvHash] {
+			if rating.Id == id {
+				verifierRating = rating
+			}
+		}
+	}
+
+	ratingAsByte, err := convertObjectToByte(verifierRating)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Unable convert the rating to byte: %v", err))
+	}
+
+	fmt.Println(ratingAsByte)
+
+	return shim.Success(ratingAsByte)
 }

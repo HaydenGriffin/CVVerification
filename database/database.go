@@ -170,7 +170,7 @@ func GetCVInfoFromID(user_id int) (string, string, error) {
 		return "", "", err
 	}
 
-	result := db.QueryRow("SELECT u.profile_hash, uc.cv_hash FROM users u JOIN user_cvs uc ON u.id = uc.user_id WHERE u.id = ?", user_id)
+	result := db.QueryRow("SELECT u.profile_hash, uc.cv_hash FROM users u JOIN user_cvs uc ON u.id = uc.user_id WHERE u.id = ? AND uc.cv_ratable = 1", user_id)
 
 	var profileHash, cvHash string
 

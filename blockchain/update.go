@@ -61,6 +61,11 @@ func (u *User) UpdateSaveProfile(profileByte []byte, profileHash string) error {
 func (u *User) UpdateSaveProfileCV(profileHash, cvHash string) error {
 	return u.update([][]byte{[]byte("saveprofilecv"), []byte(profileHash), []byte(cvHash)}, nil)
 }
+
+// UpdateSaveProfileCV allow to add a resource into the blockchain
+func (u *User) UpdateSaveRating(profileHash, cvHash string, ratingByte []byte) error {
+	return u.update([][]byte{[]byte("saverating"), []byte(profileHash), []byte(cvHash), ratingByte}, nil)
+}
 /*
 // UpdateDelete allow to delete a resource into the blockchain
 func (u *User) UpdateDelete(resourceID string) error {

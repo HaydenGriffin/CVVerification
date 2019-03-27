@@ -3,18 +3,18 @@
 {{define "body"}}
     <link rel="stylesheet" href="../assets/css/mycv.css">
     <div class="container-fluid content-padding">
-    {{range $userID, $cvObject:=  .CVList}}
-        <form id="rate-cv" class="form-my-cv" action="/rateCV/{{$userID}}" method="post">
+    {{range $userID, $cv:=  .CVInfo.CVList}}
+        <form id="rate-cv" class="form-my-cv" action="/ratecv/{{$userID}}" method="post">
             <h4>Profile Hash</h4>
             <p> {{$userID}}</p>
-            <h4>CV Name</h4>
-            <p> {{$cvObject.Name}}</p>
+            <h4>Applicant Name</h4>
+            <p> {{$cv.Name}}</p>
             <h4>Speciality</h4>
-            <p>{{$cvObject.Speciality}}</p>
+            <p>{{$cv.Speciality}}</p>
             <h4>Date of CV</h4>
-            <p>{{$cvObject.CVDate}}</p>
+            <td>{{$cv.CVDate}}</td>
             <h4>CV</h4>
-            <p>{{$cvObject.CV}}</p>
+            <p>{{$cv.CV}}</p>
             <button class="btn btn-lg btn-link" type="submit">Rate CV</button>
         </form>
     {{end}}

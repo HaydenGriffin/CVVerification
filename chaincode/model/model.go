@@ -40,6 +40,7 @@ type CVObject struct {
 }
 
 type CVRating struct {
+	Id string `json:"Id"`
 	Name string `json:"Name"`
 	Comment string `json:"Comment"`
 	Rating int `json:"Rating"`

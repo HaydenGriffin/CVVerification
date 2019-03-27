@@ -1,7 +1,10 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/cvtracker/blockchain"
+	"github.com/cvtracker/chaincode/model"
 	"github.com/cvtracker/database"
 	"github.com/cvtracker/models"
 	"github.com/cvtracker/sessions"
@@ -11,122 +14,153 @@ import (
 	"strconv"
 )
 
+func (c *Controller) RateCVView() func(http.ResponseWriter, *http.Request) {
+	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-func (app *Controller) RateCVView(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("RateCVView")
 
-	fmt.Println("RateCVView")
+		session := sessions.InitSession(r)
 
-	session := sessions.InitSession(r)
+		data := models.TemplateData{
+			CurrentPage: "addcv",
+		}
 
-	data := models.TemplateData{
-		CurrentPage:  "addcv",
-	}
+		if sessions.IsLoggedIn(session) {
+			data.UserDetails = sessions.GetUserDetails(session)
+		} else {
+			data.MessageWarning = "You must be logged in to view the CVs."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
 
-	if sessions.IsLoggedIn(session) {
-		//data.UserDetails = sessions.GetUserDetails(session)
-	} else {
-		data.MessageWarning = "Error! Please log in to update your CV."
-		renderTemplate(w, r, "index.html", data)
-		return
-	}
+		// Check that the user connected is an admin
+		_, err := u.QueryAdmin()
+		if err != nil {
+			fmt.Println(err)
+			data.CurrentPage = "index"
+			data.MessageWarning = "You must be an admin user to rate a CV."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
 
-	res, success := mux.Vars(r)["userID"]
+		result, success := mux.Vars(r)["userID"]
 
-	if !success {
-		data.MessageWarning = "Error! Please log in to update your CV."
-		renderTemplate(w, r, "index.html", data)
-		return
-	}
+		if !success {
+			data.MessageWarning = "Error! No CV to be retrieved."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
 
-	userID, err := strconv.Atoi(res)
+		userID, err := strconv.Atoi(result)
 
-	if err != nil {
-		data.MessageWarning = "Error! Please log in to update your CV."
-		renderTemplate(w, r, "index.html", data)
-		return
-	}
+		if err != nil {
+			data.MessageWarning = "Error! Invalid CV ID."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
 
-	profileHash, cvHash, err := database.GetCVInfoFromID(userID)
+		profileHash, cvHash, err := database.GetCVInfoFromID(userID)
 
-	if err != nil {
-		fmt.Printf(err.Error())
-		data.MessageWarning = "Unable to find CV info in database."
-		renderTemplate(w, r, "index.html", data)
-		return
-	}
+		if err != nil {
+			fmt.Printf(err.Error())
+			data.MessageWarning = "Unable to find CV info in database."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
 
-	//b, err := app.Service.GetCVFromCVHash(cvHash)
+		cv, err := u.QueryCV(cvHash)
 
-	if err != nil {
-		fmt.Printf(err.Error())
-		data.MessageWarning = "Unable to find CV from hash."
-		renderTemplate(w, r, "index.html", data)
-		return
-	}
+		if err != nil {
+			fmt.Printf(err.Error())
+			data.MessageWarning = "Unable to find CV from hash."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
 
-	//var cv= service.CVObject{}
-	//err = json.Unmarshal(b, &cv)
-	//data.CV = cv
+		data.CVInfo.CV = cv
 
-	session.Values["selectedProfileHash"] = profileHash
-	session.Values["selectedCVHash"] = cvHash
+		session.Values["ProfileHash"] = profileHash
+		session.Values["CVHash"] = cvHash
 
-	err = session.Save(r, w)
-	if err != nil {
-		data.MessageWarning = err.Error()
-		fmt.Println(err.Error())
-		renderTemplate(w, r, "index.html", data)
-		return
-	}
+		err = session.Save(r, w)
+		if err != nil {
+			data.MessageWarning = err.Error()
+			fmt.Println(err.Error())
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
 
-	renderTemplate(w, r, "rateCV.html", data)
+		renderTemplate(w, r, "rateCV.html", data)
+	})
 }
 
-func (app *Controller) RateCVHandler(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Println("RateCVHandler")
 
-	session := sessions.InitSession(r)
+func (c *Controller) RateCVHandler() func(http.ResponseWriter, *http.Request) {
+	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-	data := models.TemplateData{
-		//CurrentUser:  models.User{},
-		CurrentPage:  "addcv",
-	}
+		fmt.Println("RateCVHandler")
 
-	if sessions.IsLoggedIn(session) {
-		//data.CurrentUser = sessions.GetUser(session)
-	} else {
-		data.MessageWarning = "Error! Please log in to update your CV."
-		renderTemplate(w, r, "index.html", nil)
-		return
-	}
+		session := sessions.InitSession(r)
 
-	/*ratingInt, err := strconv.Atoi(r.FormValue("rating"))
+		data := models.TemplateData{
+			CurrentPage: "addcv",
+		}
 
-if err != nil {
-	data.MessageWarning = "Error! Rating must be a number."
-	renderTemplate(w, r, "index.html", data)
-	return
-}
+		if sessions.IsLoggedIn(session) {
+			data.UserDetails = sessions.GetUserDetails(session)
+		} else {
+			data.MessageWarning = "You must be logged in to view the CVs."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
 
-rating := model.CVRating{
-	Name:r.FormValue("name"),
-	Comment:r.FormValue("comment"),
-	Rating:ratingInt,
-}
+		// Check that the user connected is an admin
+		_, err := u.QueryAdmin()
+		if err != nil {
+			fmt.Println(err)
+			data.CurrentPage = "index"
+			data.MessageWarning = "You must be an admin user to rate a CV."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
 
-profileHash := session.Values["selectedProfileHash"].(string)
-cvHash := session.Values["selectedCVHash"].(string)
-// some handling required to ensure profile is returned
 
-txid, err := app.Service.SaveRating(profileHash, cvHash, rating)
+		ratingInt, err := strconv.Atoi(r.FormValue("rating"))
 
-if err != nil {
-	fmt.Println(err.Error())
-} else {
-	fmt.Println("Successfully saved rating: " + txid)
-}
-*/
-	//data.MessageSuccess = txid
-	renderTemplate(w, r, "rateCV.html", data)
+		if err != nil {
+			data.MessageWarning = "Error! Rating must be a number."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
+
+		rating := model.CVRating{
+			Name:    r.FormValue("name"),
+			Comment: r.FormValue("comment"),
+			Rating:  ratingInt,
+		}
+
+		profileHash := sessions.GetProfileHash(session)
+		cvHash := sessions.GetCVHash(session)
+
+		if profileHash == "" || cvHash == "" {
+			data.MessageWarning = "Couldn't retrieve cv information"
+			renderTemplate(w, r, "index.html", data)
+			return
+
+		}
+
+		ratingByte, err := json.Marshal(rating)
+
+		err = u.UpdateSaveRating(profileHash, cvHash, ratingByte)
+		if err != nil {
+			fmt.Println(err)
+			data.MessageWarning = "An error occurred whilst saving rating in ledger."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
+
+		//data.MessageSuccess = txid
+		renderTemplate(w, r, "rateCV.html", data)
+	})
 }

@@ -64,6 +64,17 @@ func (u *User) QueryApplicant() (*model.Applicant, error) {
 }
 
 // QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
+func (u *User) QueryProfile(profileHash string) (*model.UserProfile, error) {
+	var profile *model.UserProfile
+	err := u.query([][]byte{[]byte("profile"), []byte(profileHash)}, &profile)
+	if err != nil {
+		return nil, err
+	}
+	return profile, nil
+}
+
+
+// QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
 func (u *User) QueryCV(cvHash string) (*model.CVObject, error) {
 	var cv *model.CVObject
 	err := u.query([][]byte{[]byte("cv"), []byte(cvHash)}, &cv)
@@ -73,4 +84,12 @@ func (u *User) QueryCV(cvHash string) (*model.CVObject, error) {
 	return cv, nil
 }
 
-
+// QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
+func (u *User) QueryCVRatings(profileHash, cvHash string) ([]model.CVRating, error) {
+	var ratings []model.CVRating
+	err := u.query([][]byte{[]byte("cvratings"), []byte(profileHash), []byte(cvHash)}, &ratings)
+	if err != nil {
+		return nil, err
+	}
+	return ratings, nil
+}

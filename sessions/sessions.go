@@ -78,6 +78,16 @@ func GetCVHash(s *sessions.Session) string {
 	return cvHash
 }
 
+func GetProfileHash(s *sessions.Session) string {
+	val := s.Values["ProfileHash"]
+
+	profileHash, ok := val.(string)
+	if !ok {
+		return ""
+	}
+	return profileHash
+}
+
 func GetInReviewCVHash(s *sessions.Session) string {
 	val := s.Values["InReviewCVHash"]
 

@@ -48,7 +48,7 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		data.CVList = make(map[int]*model.CVObject)
+		data.CVInfo.CVList = make(map[int]*model.CVObject)
 
 		for userID, cvHash := range ratableCVs {
 			fmt.Println("profileHash: " + string(userID))
@@ -62,21 +62,15 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 				return
 			}
 
-			if err != nil {
-				data.MessageWarning = err.Error()
-				renderTemplate(w, r, "index.html", data)
-				return
-			}
-
-			data.CVList[userID] = cv
+			data.CVInfo.CVList[userID] = cv
 		}
 
-		if len(data.CVList) == 0 {
+		if len(data.CVInfo.CVList) == 0 {
 			data.MessageWarning = "There are no CVs to be rated at this time."
-			renderTemplate(w, r, "viewall.html", data)
+			renderTemplate(w, r, "viewallcv.html", data)
 			return
 		}
 
-		renderTemplate(w, r, "viewall.html", data)
+		renderTemplate(w, r, "viewallcv.html", data)
 	})
 }

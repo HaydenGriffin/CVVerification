@@ -28,6 +28,8 @@ func (t *CVTrackerChaincode) update(stub shim.ChaincodeStubInterface, args []str
 		return t.saveProfile(stub, args[1:])
 	} else if function == "saveprofilecv" {
 		return t.saveProfileCV(stub, args[1:])
+	} else if function == "saverating" {
+		return t.saveRating(stub, args[1:])
 	}
 
 	// If the arguments given don’t match any function, we return an error
@@ -113,7 +115,7 @@ func (t *CVTrackerChaincode) saveCV(stub shim.ChaincodeStubInterface, args []str
 		return shim.Error("The number of arguments is insufficient.")
 	}
 
-	var cv CVObject
+	var cv model.CVObject
 
 	cvByte := args[0]
 	if len(cvByte) == 0 {
@@ -121,6 +123,9 @@ func (t *CVTrackerChaincode) saveCV(stub shim.ChaincodeStubInterface, args []str
 	}
 
 	err = convertByteToObject([]byte(cvByte), &cv)
+	if err != nil {
+		return shim.Error("Unable to convert cv byte to object")
+	}
 
 	cvHash := args[1]
 	if cvHash == "" {
@@ -152,7 +157,7 @@ func (t *CVTrackerChaincode) saveProfile(stub shim.ChaincodeStubInterface, args 
 		return shim.Error("The number of arguments is invalid.")
 	}
 
-	var profile UserProfile
+	var profile model.UserProfile
 
 	err := json.Unmarshal([]byte(args[0]), &profile)
 	if err != nil {
@@ -212,7 +217,6 @@ func (t *CVTrackerChaincode) saveProfileCV(stub shim.ChaincodeStubInterface, arg
 
 	profile.CVHistory = append(profile.CVHistory, cvHash)
 
-
 	err = updateInLedger(stub, model.ObjectTypeProfile, profileHash, profile)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable to create the CV in the ledger: %v", err))
@@ -226,4 +230,96 @@ func (t *CVTrackerChaincode) saveProfileCV(stub shim.ChaincodeStubInterface, arg
 	fmt.Printf("Resource updated:\n  ID -> %s\n  Description -> %s\n", model.ObjectTypeProfile, profileHash)
 
 	return shim.Success(profileAsByte)
+}
+
+// Add CV Chaincode
+// args: CV object
+// CV Hash is key, CVObject is the value
+func (t *CVTrackerChaincode) saveRating(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	// Check whether the number of arguments is sufficient
+	if len(args) != 3 {
+		return shim.Error("The number of arguments is invalid.")
+	}
+
+	profileHash := args[0]
+	cvHash := args[1]
+	ratingString := args[2]
+	var rating model.CVRating
+	var profile model.UserProfile
+
+	if profileHash == "" {
+		return shim.Error("The profile hash is empty.")
+	}
+
+	if cvHash == "" {
+		return shim.Error("The cv hash is empty.")
+	}
+
+	fmt.Println(cvHash)
+
+	if len(ratingString) == 0 {
+		return shim.Error("There is no rating to be saved.")
+	}
+
+	fmt.Println(ratingString)
+
+	err := convertByteToObject([]byte(ratingString), &rating)
+	if err != nil {
+		fmt.Println(err)
+		return shim.Error("Unable to convert rating byte to object")
+	}
+
+	rating.Id, err = cid.GetID(stub)
+	if err != nil {
+		fmt.Println(err)
+		return shim.Error("Unable to get invoking ID")
+	}
+
+	fmt.Println(rating)
+
+	err = getFromLedger(stub, model.ObjectTypeProfile, profileHash, &profile)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Unable to retrieve profile in the ledger: %v", err))
+	}
+
+	fmt.Println(profile)
+
+	var ratings = make(map[string][]model.CVRating)
+
+	id, err := cid.GetID(stub)
+	if err != nil {
+		return shim.Error("Unable to retrieve profile information")
+	}
+
+	if profile.Ratings != nil {
+		fmt.Println("profile.Ratings not nil")
+		fmt.Println(profile.Ratings)
+		ratings = profile.Ratings
+
+		for _, rating := range profile.Ratings[cvHash] {
+
+			if rating.Id == id {
+				return shim.Error("Unable to save rating: Rating has already been saved for this CV.")
+				}
+			}
+		}
+
+	ratings[cvHash] = append(ratings[cvHash], rating)
+
+	profile.Ratings = make(map[string][]model.CVRating)
+
+	for cvHash, cvRatings := range ratings {
+		profile.Ratings[cvHash] = cvRatings
+	}
+
+	fmt.Println(profile)
+
+	// put the updated profile back to the ledger
+	err = updateInLedger(stub, model.ObjectTypeProfile, profileHash, profile)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Unable to create the CV in the ledger: %v", err))
+	}
+
+	return shim.Success([]byte("Successfully saved the rating"))
 }

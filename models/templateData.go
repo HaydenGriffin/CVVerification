@@ -9,10 +9,15 @@ type TemplateData struct {
 	CurrentPage string
 	MessageWarning string
 	MessageSuccess string
+	CVInfo CVDisplayInfo
+}
+
+type CVDisplayInfo struct {
 	CV *model.CVObject
 	CVHistory []model.CVHistoryInfo
 	Ratings []model.CVRating
 	CurrentCVInReview bool
+	CurrentCVHash string
 	UserHasCVInReview bool
 	CVList map[int] *model.CVObject
 }

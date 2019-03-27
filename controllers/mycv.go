@@ -37,6 +37,9 @@ func (c *Controller) MyCVHandler() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
+		fmt.Println("Query profile")
+		fmt.Println(u.QueryProfile(data.UserDetails.ProfileHash))
+
 		result, success := mux.Vars(r)["cvToDisplayID"]
 		var cvToDisplayID int
 
@@ -64,6 +67,7 @@ func (c *Controller) MyCVHandler() func(http.ResponseWriter, *http.Request) {
 		var cvToDisplayCVHash string
 
 		if cvToDisplayID != 0 {
+			// Specific CV ID requested
 			for i := range allCVHistoryInfo {
 				fmt.Println("first info")
 				fmt.Println(allCVHistoryInfo[i])
@@ -73,11 +77,13 @@ func (c *Controller) MyCVHandler() func(http.ResponseWriter, *http.Request) {
 					if allCVHistoryInfo[i].CVInReview == 1 {
 						fmt.Println("cv is in review")
 						foundCVInReview = true
-						data.CurrentCVInReview = true
+						data.CVInfo.CurrentCVInReview = true
 					}
+					data.CVInfo.CurrentCVHash = allCVHistoryInfo[i].CVHash
 				}
 			}
 		} else {
+			// No CV ID requested - retrieve any CV in review
 			for i := range allCVHistoryInfo {
 				fmt.Println("first info")
 				fmt.Println(allCVHistoryInfo[i])
@@ -86,7 +92,8 @@ func (c *Controller) MyCVHandler() func(http.ResponseWriter, *http.Request) {
 					cvToDisplayCVHash = allCVHistoryInfo[i].CVHash
 					fmt.Println("cv is in review")
 					foundCVInReview = true
-					data.CurrentCVInReview = true
+					data.CVInfo.CurrentCVInReview = true
+					data.CVInfo.CurrentCVHash = allCVHistoryInfo[i].CVHash
 				}
 			}
 		}
@@ -94,8 +101,10 @@ func (c *Controller) MyCVHandler() func(http.ResponseWriter, *http.Request) {
 		// No CV in review - display the most recent CV version to the user
 		if cvToDisplayID == 0 && foundCVInReview == false {
 			cvToDisplayCVHash = allCVHistoryInfo[len(allCVHistoryInfo)-1].CVHash
+			data.CVInfo.CurrentCVHash = allCVHistoryInfo[len(allCVHistoryInfo)-1].CVHash
 		}
 
+		// Retrieve CV from ledger
 		cv, err := u.QueryCV(cvToDisplayCVHash)
 		if err != nil {
 			fmt.Println(err)
@@ -103,16 +112,28 @@ func (c *Controller) MyCVHandler() func(http.ResponseWriter, *http.Request) {
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
-		data.CV = cv
+		data.CVInfo.CV = cv
 
-		data.UserHasCVInReview = database.UserHasCVInReview(data.UserDetails.Id)
+		data.CVInfo.UserHasCVInReview = database.UserHasCVInReview(data.UserDetails.Id)
 
 
-		data.CVHistory = allCVHistoryInfo
+		data.CVInfo.CVHistory = allCVHistoryInfo
 		data.CurrentPage = "mycv"
 
-		gob.Register(data.CV)
-		session.Values["CV"] = data.CV
+
+		ratings, err := u.QueryCVRatings(data.UserDetails.ProfileHash, cvToDisplayCVHash)
+		if err != nil {
+			fmt.Println(err)
+			data.MessageWarning = "An error occurred whilst retrieving ratings for the CV."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
+
+		data.CVInfo.Ratings = ratings
+		fmt.Println(ratings)
+
+		gob.Register(data.CVInfo.CV)
+		session.Values["CV"] = data.CVInfo.CV
 		session.Values["CVHash"] = cvToDisplayCVHash
 
 		err = session.Save(r, w)
@@ -207,11 +228,12 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 			return
 		}
 
-		data.CV = cv
+		data.CVInfo.CV = cv
+		data.CVInfo.CurrentCVHash = cvHash
 
-		data.UserHasCVInReview = database.UserHasCVInReview(data.UserDetails.Id)
+		data.CVInfo.UserHasCVInReview = database.UserHasCVInReview(data.UserDetails.Id)
 
-		if data.UserHasCVInReview {
+		if data.CVInfo.UserHasCVInReview {
 			fmt.Println("Only allowed one CV in review")
 			data.MessageWarning = "Error! You are only allowed one version of your CV in review at a time."
 		} else {
@@ -222,10 +244,10 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 				renderTemplate(w, r, "index.html", data)
 				return
 			}
-			data.MessageSuccess = "Success! Your CV can now be reviwed."
-			data.CurrentCVInReview = true
+			data.MessageSuccess = "Success! Your CV can now be reviewed."
+			data.CVInfo.CurrentCVInReview = true
 			data.CurrentPage = "mycv"
-			data.UserHasCVInReview = true
+			data.CVInfo.UserHasCVInReview = true
 		}
 
 		allCVHistoryInfo, err := database.GetUserCVDetails(data.UserDetails.Id)
@@ -237,7 +259,7 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 			return
 		}
 
-		data.CVHistory = allCVHistoryInfo
+		data.CVInfo.CVHistory = allCVHistoryInfo
 		//data.Ratings = sessions.GetRatings(session)
 		renderTemplate(w, r, "mycv.html", data)
 
@@ -270,7 +292,8 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 			return
 		}
 
-		data.CV = cv
+		data.CVInfo.CV = cv
+		data.CVInfo.CurrentCVHash = cvHash
 
 		err := database.UpdateCV(cvHash, 0)
 		if err != nil {
@@ -288,9 +311,9 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 			return
 		}
 
-		data.CVHistory = allCVHistoryInfo
+		data.CVInfo.CVHistory = allCVHistoryInfo
 		data.MessageSuccess = "Success! Your CV has been withdrawn from review."
-		data.CurrentCVInReview = false
+		data.CVInfo.CurrentCVInReview = false
 		//data.Ratings = sessions.GetRatings(session)
 		renderTemplate(w, r, "mycv.html", data)
 

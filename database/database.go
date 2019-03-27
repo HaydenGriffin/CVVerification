@@ -11,6 +11,8 @@ var dataSourceName = "root:password@tcp(localhost:3306)/verification?parseTime=t
 
 func InitDB(dataSourceName string) (*sql.DB, error) {
 	db, err := sql.Open("mysql", dataSourceName)
+	db.SetMaxOpenConns(1000)
+	db.SetMaxIdleConns(100)
 
 	if err != nil {
 		return nil, err
@@ -60,11 +62,13 @@ func GetAllRatableCVHashes() (map[int] string, error) {
 		var userID int
 		err = rows.Scan(&userID, &cvHash)
 		if err != nil {
+			rows.Close()
 			return ratableCVs, err
 		}
 		ratableCVs[userID] = cvHash
 	}
 	err = rows.Err()
+	rows.Close()
 	if err != nil {
 		return ratableCVs, err
 	}
@@ -89,6 +93,7 @@ func GetUserCVDetails(user_id int) ([]model.CVHistoryInfo, error) {
 		var cvHistoryInfo model.CVHistoryInfo
 		err = rows.Scan(&cvHistoryInfo.CVHash, &cvHistoryInfo.CVInReview, &cvHistoryInfo.Timestamp)
 		if err != nil {
+			rows.Close()
 			fmt.Println(err.Error())
 			return allCVHistoryInfo, err
 		}
@@ -96,6 +101,7 @@ func GetUserCVDetails(user_id int) ([]model.CVHistoryInfo, error) {
 		allCVHistoryInfo = append(allCVHistoryInfo, cvHistoryInfo)
 		index++
 	}
+	rows.Close()
 	err = rows.Err()
 	if err != nil {
 		return allCVHistoryInfo, err
@@ -164,7 +170,7 @@ func GetCVInfoFromID(user_id int) (string, string, error) {
 		return "", "", err
 	}
 
-	result := db.QueryRow("SELECT u.profile_hash, uc.cv_hash FROM users u JOIN user_cvs uc ON u.id = uc.user_id WHERE u.id = ? AND uc.status_control = 'C'", user_id)
+	result := db.QueryRow("SELECT u.profile_hash, uc.cv_hash FROM users u JOIN user_cvs uc ON u.id = uc.user_id WHERE u.id = ?", user_id)
 
 	var profileHash, cvHash string
 
@@ -214,7 +220,7 @@ func UserHasCVInReview(user_id int) bool {
 		return false
 	}
 
-	result := db.QueryRow("SELECT cv_ratable FROM user_cvs WHERE user_id = ?", user_id)
+	result := db.QueryRow("SELECT cv_ratable FROM user_cvs WHERE user_id = ? AND cv_ratable = 1", user_id)
 
 	var cv_ratable int
 

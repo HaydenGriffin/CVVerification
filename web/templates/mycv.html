@@ -3,7 +3,7 @@
 {{define "body"}}
   <link rel="stylesheet" href="../assets/css/mycv.css">
   <div class="container-fluid content-padding">
-    {{if .CV}}
+    {{if .CVInfo.CV}}
       <div class="form-my-cv">
         <table class="table">
           <thead>
@@ -15,10 +15,10 @@
           </tr>
           </thead>
           <tbody>
-          {{range $i, $cv := .CVHistory}}
-            <tr>
+          {{range $i, $cv := .CVInfo.CVHistory}}
+            <tr {{if eq $.CVInfo.CurrentCVHash $cv.CVHash}}class="active"{{end}}>
               <td>{{$cv.Index}}</td>
-              <td>{{$cv.Timestamp.Format "Jan 02, 2006 15:04:05 UTC"}}</td>
+              <td>{{$cv.Timestamp.Format "Jan 02, 2006 15:04:05"}}</td>
               <td>
                 {{if eq $cv.CVInReview 1}}
                   In Review
@@ -35,23 +35,14 @@
       <form id="update-cv" action="/updateCV" method="post">
         <div class="form-my-cv">
           <h1>My CV</h1>
-          <p> {{.CV.Name}}</p>
+          <p> {{.CVInfo.CV.Name}}</p>
           <h4>Speciality</h4>
-          <p>{{.CV.Speciality}}</p>
+          <p>{{.CVInfo.CV.Speciality}}</p>
           <h4>Date of CV</h4>
-          <p>{{.CV.CVDate}}</p>
+          <p>{{.CVInfo.CV.CVDate}}</p>
           <h4>My CV</h4>
-          <p>{{.CV.CV}}</p>
-          {{if .CurrentCVInReview}}
-            <button class="btn btn-link" type="submit" formaction="/withdrawcvfromreview">Withdraw CV from Review
-            </button>
-          {{else}}
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Update your CV</button>
-            <button class="btn btn-link" type="submit" formaction="/submitcvforreview"
-                    {{if .UserHasCVInReview}}readonly title="You can only have one CV in review at a time."{{end}}> Submit CV for Review
-            </button>
-          {{end}}
-          {{range $cvHash, $CVRating:=  .Ratings}}
+          <p>{{.CVInfo.CV.CV}}</p>
+          {{range $cvHash, $CVRating:=  .CVInfo.Ratings}}
             <div class="form-my-cv">
               <h4>Raters Name:</h4>
               {{$CVRating.Name}}
@@ -61,6 +52,18 @@
               {{$CVRating.Rating}}
             </div>
           {{end}}
+          {{if .CVInfo.CurrentCVInReview}}
+            <button class="btn btn-link" type="submit" formaction="/withdrawcvfromreview">Withdraw CV from Review
+            </button>
+          {{else if .CVInfo.UserHasCVInReview}}
+            <button class="btn btn-link" type="submit" formaction="/submitcvforreview"
+                    title="You may only have one CV in review at a time." disabled> Submit CV for Review
+            </button>
+          {{else}}
+            <button class="btn btn-link" type="submit" formaction="/submitcvforreview"> Submit CV for Review</button>
+          {{end}}
+          <button class="btn btn-lg btn-primary btn-block" type="submit">Update your CV</button>
+        </div>
       </form>
     {{end}}
   </div>

@@ -4,18 +4,18 @@
     <link rel="stylesheet" href="../assets/css/mycv.css">
     <div class="container-fluid content-padding">
         <h1>Rate CV Page</h1>
-        {{if .CV}}
+        {{if .CVInfo.CV}}
             <form id="update-cv" class="form-my-cv">
                 <h1>CV</h1>
-                <p> {{.CV.Name}}</p>
+                <p> {{.CVInfo.CV.Name}}</p>
                 <h4>Speciality</h4>
-                <p>{{.CV.Speciality}}</p>
+                <p>{{.CVInfo.CV.Speciality}}</p>
                 <h4>Date of CV</h4>
-                <p>{{.CV.CVDate}}</p>
+                <p>{{.CVInfo.CV.CVDate}}</p>
                 <h4>My CV</h4>
-                <p>{{.CV.CV}}</p>
+                <p>{{.CVInfo.CV.CV}}</p>
             </form>
-            <form id="rate-cv" class="form-my-cv" action="/rateCVProcess" method="post">
+            <form id="rate-cv" class="form-my-cv" action="/ratecvprocess" method="post">
                 <div class="form-group">
                     <label for="fullName">Raters Name</label>
                     <input type="text" class="form-control" id="name" name="name" value="{{.UserDetails.FullName}}" readonly/>

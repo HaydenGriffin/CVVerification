@@ -45,7 +45,7 @@ func GetUserDetailsFromUsername(username string) (models.UserDetails, error) {
 	}
 }
 
-func GetAllRatableCVHashes() (map[int] string, error) {
+func GetAllReviewableCVHashes() (map[int] string, error) {
 
 	ratableCVs := make(map[int] string)
 
@@ -55,7 +55,7 @@ func GetAllRatableCVHashes() (map[int] string, error) {
 		return ratableCVs, err
 	}
 
-	rows, err := db.Query("SELECT u.id, uc.cv_hash FROM user_cvs uc JOIN users u ON uc.user_id = u.id WHERE uc.cv_ratable = 1")
+	rows, err := db.Query("SELECT u.id, uc.cv_hash FROM user_cvs uc JOIN users u ON uc.user_id = u.id WHERE uc.cv_in_review = 1")
 
 	for rows.Next() {
 		var cvHash string
@@ -85,7 +85,7 @@ func GetUserCVDetails(user_id int) ([]model.CVHistoryInfo, error) {
 		return allCVHistoryInfo, err
 	}
 
-	rows, err := db.Query("SELECT uc.cv_hash, uc.cv_ratable, uc.timestamp FROM user_cvs uc WHERE uc.user_id = ? ORDER BY uc.timestamp ASC", user_id)
+	rows, err := db.Query("SELECT uc.cv_hash, uc.cv_in_review, uc.timestamp FROM user_cvs uc WHERE uc.user_id = ? ORDER BY uc.timestamp ASC", user_id)
 
 	var index = 1
 
@@ -170,7 +170,7 @@ func GetCVInfoFromID(user_id int) (string, string, error) {
 		return "", "", err
 	}
 
-	result := db.QueryRow("SELECT u.profile_hash, uc.cv_hash FROM users u JOIN user_cvs uc ON u.id = uc.user_id WHERE u.id = ? AND uc.cv_ratable = 1", user_id)
+	result := db.QueryRow("SELECT u.profile_hash, uc.cv_hash FROM users u JOIN user_cvs uc ON u.id = uc.user_id WHERE u.id = ? AND uc.cv_in_review = 1", user_id)
 
 	var profileHash, cvHash string
 
@@ -183,20 +183,14 @@ func GetCVInfoFromID(user_id int) (string, string, error) {
 	return profileHash, cvHash, nil
 }
 
-func CreateNewCV(user_id int, cv, cv_hash string) error {
+func CreateNewCV(user_id int, cv_hash string) error {
 	db, err := InitDB(dataSourceName)
 
 	if err != nil {
 		return err
 	}
 
-	_, err = db.Exec("UPDATE user_cvs SET status_control = 'H' WHERE user_id = ?", user_id)
-
-	if err != nil {
-		return err
-	}
-
-	_, err = db.Exec("INSERT INTO user_cvs(user_id, timestamp, cv, cv_hash, cv_ratable, status_control) VALUES (?, CURRENT_TIMESTAMP, ?, ?, 0, 'C')", user_id, cv, cv_hash)
+	_, err = db.Exec("INSERT INTO user_cvs(user_id, timestamp, cv_hash, cv_in_review) VALUES (?, CURRENT_TIMESTAMP, ?, 0)", user_id, cv_hash)
 
 	return err
 }
@@ -208,7 +202,7 @@ func UpdateCV(cv_hash string, ratable int) error {
 		return err
 	}
 
-	_, err = db.Exec("UPDATE user_cvs SET cv_ratable = ? WHERE cv_hash = ?", ratable, cv_hash)
+	_, err = db.Exec("UPDATE user_cvs SET cv_in_review = ? WHERE cv_hash = ?", ratable, cv_hash)
 
 	return err
 }
@@ -220,31 +214,7 @@ func UserHasCVInReview(user_id int) bool {
 		return false
 	}
 
-	result := db.QueryRow("SELECT cv_ratable FROM user_cvs WHERE user_id = ? AND cv_ratable = 1", user_id)
-
-	var cv_ratable int
-
-	err = result.Scan(&cv_ratable)
-
-	if err != nil {
-		return false
-	}
-
-	if cv_ratable != 1 {
-		return false
-	} else {
-		return true
-	}
-}
-
-func IsCVInReview(cv_hash string) bool {
-	db, err := InitDB(dataSourceName)
-
-	if err != nil {
-		return false
-	}
-
-	result := db.QueryRow("SELECT cv_ratable FROM user_cvs WHERE cv_hash = ? AND status_control = 'C'", cv_hash)
+	result := db.QueryRow("SELECT cv_in_review FROM user_cvs WHERE user_id = ? AND cv_in_review = 1", user_id)
 
 	var cv_ratable int
 

@@ -27,20 +27,20 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		// Check that the user connected is an admin
-		_, err := u.QueryAdmin()
+		// Check that the user connected is a verifier
+		_, err := u.QueryVerifier()
 		if err != nil {
 			fmt.Println(err)
 			data.CurrentPage = "index"
-			data.MessageWarning = "You must be an admin user to view CVs."
+			data.MessageWarning = "You must be a verifier user to review CVs."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-		ratableCVs := make(map[int]string)
+		reviewableCVs := make(map[int]string)
 
-		ratableCVs, err = database.GetAllRatableCVHashes()
-		fmt.Println(ratableCVs)
+		reviewableCVs, err = database.GetAllReviewableCVHashes()
+		fmt.Println(reviewableCVs)
 
 		if err != nil {
 			data.MessageWarning = err.Error()
@@ -50,7 +50,7 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 
 		data.CVInfo.CVList = make(map[int]*model.CVObject)
 
-		for userID, cvHash := range ratableCVs {
+		for userID, cvHash := range reviewableCVs {
 			fmt.Println("profileHash: " + string(userID))
 			fmt.Println("cvHash: " + cvHash)
 			cv, err := u.QueryCV(cvHash)
@@ -66,7 +66,7 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 		}
 
 		if len(data.CVInfo.CVList) == 0 {
-			data.MessageWarning = "There are no CVs to be rated at this time."
+			data.MessageWarning = "There are no CVs to be reviewed at this time."
 			renderTemplate(w, r, "viewallcv.html", data)
 			return
 		}

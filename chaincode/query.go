@@ -21,14 +21,16 @@ func (t *CVTrackerChaincode) query(stub shim.ChaincodeStubInterface, args []stri
 		return t.admin(stub, args[1:])
 	} else if args[0] == "applicant" {
 		return t.applicant(stub, args[1:])
+	} else if args[0] == "verifier" {
+		return t.verifier(stub, args[1:])
 	} else if args[0] == "profile" {
 		return t.profile(stub, args[1:])
 	} else if args[0] == "cv" {
 		return t.cv(stub, args[1:])
-	} else if args[0] == "cvratings" {
-		return t.cvratings(stub, args[1:])
-	} else if args[0] == "cvratable" {
-		return t.cvratable(stub, args[1:])
+	} else if args[0] == "cvreviews" {
+		return t.cvreviews(stub, args[1:])
+	} else if args[0] == "cvreviewable" {
+		return t.cvreviewable(stub, args[1:])
 	}
 
 	// If the arguments given don’t match any function, we return an error
@@ -85,6 +87,32 @@ func (t *CVTrackerChaincode) applicant(stub shim.ChaincodeStubInterface, args []
 	}
 
 	return shim.Success(applicantAsByte)
+}
+
+func (t *CVTrackerChaincode) verifier(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	fmt.Println("# verifier information")
+
+	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorVerifier)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Only verifier is allowed for the kind of request: %v", err))
+	}
+
+	verifierID, err := cid.GetID(stub)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Unable to identify the ID of the request owner: %v", err))
+	}
+	var verifier model.Verifier
+	err = getFromLedger(stub, model.ObjectTypeVerifier, verifierID, &verifier)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Unable to retrieve verifier in the ledger: %v", err))
+	}
+	verifierAsByte, err := convertObjectToByte(verifier)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Unable convert the verifier to byte: %v", err))
+	}
+
+	return shim.Success(verifierAsByte)
 }
 
 func (t *CVTrackerChaincode) allowedtovote(stub shim.ChaincodeStubInterface, args []string) pb.Response {
@@ -169,9 +197,9 @@ func (t *CVTrackerChaincode) cv(stub shim.ChaincodeStubInterface, args []string)
 	return shim.Success(cvAsByte)
 }
 
-func (t *CVTrackerChaincode) cvratings(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVTrackerChaincode) cvreviews(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
-	fmt.Println("# cv ratings")
+	fmt.Println("# cv reviews")
 
 	if len(args) != 2 {
 		return shim.Error("The number of arguments is invalid.")
@@ -180,7 +208,7 @@ func (t *CVTrackerChaincode) cvratings(stub shim.ChaincodeStubInterface, args []
 	profileHash := args[0]
 	cvHash := args[1]
 	var profile model.UserProfile
-	var ratings []model.CVRating
+	var reviews []model.CVReview
 
 	if profileHash == "" {
 		return shim.Error("The profile hash is empty.")
@@ -195,35 +223,35 @@ func (t *CVTrackerChaincode) cvratings(stub shim.ChaincodeStubInterface, args []
 		return shim.Error(fmt.Sprintf("Unable to retrieve profile in the ledger: %v", err))
 	}
 
-	if profile.Ratings[cvHash] == nil {
+	if profile.Reviews[cvHash] == nil {
 		fmt.Println("No ratings yet")
 	} else {
 		fmt.Println("ratings found")
-		fmt.Println(profile.Ratings[cvHash])
+		fmt.Println(profile.Reviews[cvHash])
 	}
 
-	ratings = profile.Ratings[cvHash]
+	reviews = profile.Reviews[cvHash]
 
-	ratingsAsByte, err := convertObjectToByte(ratings)
+	reviewsAsByte, err := convertObjectToByte(reviews)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable convert the ratings to byte: %v", err))
 	}
 
-	fmt.Println(ratingsAsByte)
+	fmt.Println(reviewsAsByte)
 
-	return shim.Success(ratingsAsByte)
+	return shim.Success(reviewsAsByte)
 }
 
-func (t *CVTrackerChaincode) cvratable(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVTrackerChaincode) cvreviewable(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
-	fmt.Println("# cv ratings")
+	fmt.Println("# cv reviewable")
 
 	if len(args) != 2 {
 		return shim.Error("The number of arguments is invalid.")
 	}
 
 	var profile model.UserProfile
-	verifierRating := model.CVRating{}
+	verifierRating := model.CVReview{}
 	profileHash := args[0]
 	cvHash := args[1]
 
@@ -246,10 +274,10 @@ func (t *CVTrackerChaincode) cvratable(stub shim.ChaincodeStubInterface, args []
 		return shim.Error(fmt.Sprintf("Unable to retrieve profile in the ledger: %v", err))
 	}
 
-	if profile.Ratings[cvHash] == nil {
+	if profile.Reviews[cvHash] == nil {
 		fmt.Println("No ratings yet")
 	} else {
-		for _, rating := range profile.Ratings[cvHash] {
+		for _, rating := range profile.Reviews[cvHash] {
 			if rating.Id == id {
 				verifierRating = rating
 			}

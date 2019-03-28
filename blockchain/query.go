@@ -1,17 +1,3 @@
-// Copyright 2018 Antoine CHABERT, toHero.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package blockchain
 
 import (
@@ -63,6 +49,16 @@ func (u *User) QueryApplicant() (*model.Applicant, error) {
 	return applicant, nil
 }
 
+// QueryVerifier query the blockchain chaincode to retrieve information about the current applicant user connected
+func (u *User) QueryVerifier() (*model.Verifier, error) {
+	var verifier *model.Verifier
+	err := u.query([][]byte{[]byte("verifier")}, &verifier)
+	if err != nil {
+		return nil, err
+	}
+	return verifier, nil
+}
+
 // QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
 func (u *User) QueryProfile(profileHash string) (*model.UserProfile, error) {
 	var profile *model.UserProfile
@@ -85,9 +81,9 @@ func (u *User) QueryCV(cvHash string) (*model.CVObject, error) {
 }
 
 // QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
-func (u *User) QueryCVRatings(profileHash, cvHash string) ([]model.CVRating, error) {
-	var ratings []model.CVRating
-	err := u.query([][]byte{[]byte("cvratings"), []byte(profileHash), []byte(cvHash)}, &ratings)
+func (u *User) QueryCVReviews(profileHash, cvHash string) ([]model.CVReview, error) {
+	var ratings []model.CVReview
+	err := u.query([][]byte{[]byte("cvreviews"), []byte(profileHash), []byte(cvHash)}, &ratings)
 	if err != nil {
 		return nil, err
 	}
@@ -95,11 +91,11 @@ func (u *User) QueryCVRatings(profileHash, cvHash string) ([]model.CVRating, err
 }
 
 // QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
-func (u *User) QueryCVRatable(profileHash, cvHash string) (model.CVRating, error) {
-	var rating model.CVRating
-	err := u.query([][]byte{[]byte("cvratable"), []byte(profileHash), []byte(cvHash)}, &rating)
+func (u *User) QueryCVReviewable(profileHash, cvHash string) (model.CVReview, error) {
+	var rating model.CVReview
+	err := u.query([][]byte{[]byte("cvreviewable"), []byte(profileHash), []byte(cvHash)}, &rating)
 	if err != nil {
-		return model.CVRating{}, err
+		return model.CVReview{}, err
 	}
 	return rating, nil
 }

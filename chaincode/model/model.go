@@ -25,10 +25,14 @@ type Applicant struct {
 	Actor
 }
 
+type Verifier struct {
+	Actor
+}
+
 type UserProfile struct {
 	Username	string	`json:"Name"`
 	CVHistory []string `json:"CVHistory"`
-	Ratings map[string] []CVRating
+	Reviews map[string] []CVReview
 }
 
 type CVObject struct {
@@ -39,7 +43,7 @@ type CVObject struct {
 	CVDate	string	`json:"CVDate"`
 }
 
-type CVRating struct {
+type CVReview struct {
 	Id string `json:"Id"`
 	Name string `json:"Name"`
 	Comment string `json:"Comment"`
@@ -57,6 +61,7 @@ type CVHistoryInfo struct {
 const (
 	ObjectTypeAdmin            = "admin"
 	ObjectTypeApplicant        = "applicant"
+	ObjectTypeVerifier        = "verifier"
 	ObjectTypeCV         	   = "cv"
 	ObjectTypeProfile          = "profile"
 	ObjectTypeRating           = "rating"

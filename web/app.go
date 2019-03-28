@@ -28,10 +28,10 @@ func Serve(app *controllers.Controller) {
 
 	r.HandleFunc("/viewallcv", app.ViewAllCVView())
 
-	r.HandleFunc("/ratecv/{userID}", app.RateCVView())
-	r.HandleFunc("/ratecvprocess", app.RateCVHandler())
+	r.HandleFunc("/reviewcv/{userID}", app.ReviewCVView())
+	r.HandleFunc("/reviewcvprocess", app.ReviewCVHandler())
 
-	r.HandleFunc("/logout", app.LogoutHandler)
+	r.HandleFunc("/logout", app.LogoutHandler())
 	r.HandleFunc("/userdetails", app.UpdateDetailsView())
 	r.HandleFunc("/updatedetailsprocess", app.UpdateDetailsHandler())
 

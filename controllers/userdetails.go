@@ -113,15 +113,5 @@ func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Requ
 			data.MessageSuccess = "You have successfully registered your details! Welcome, " + userDetails.FullName
 			renderTemplate(w, r, "index.html", data)
 		}
-
-
-		/*profile := model.UserProfile{
-			Username: user.Username,
-		}
-	*/
-
-		// STILL NEED TO SAVE THE PROFILE
-		//_, err = app.Service.SaveProfile(profile, user.ProfileHash)
-
 	})
 }

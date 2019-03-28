@@ -73,92 +73,12 @@ func main() {
 		return
 	}
 
-	/*//Init a dummy user and test chaincode methods
-	profile := service.UserProfile{
-		Username: "testUser",
-	}
-
-	var profile1 service.UserProfile
-
-	profile.Ratings = make(map[string][]service.CVRating)
-
-	userHash, err := crypto.GenerateFromString("testUser")
-
-	passwordHash, err := crypto.GenerateFromString("password")
-
-	user, err := database.CreateNewUser("testUser", "Test User", passwordHash, "test@user.com", "APPLICANT", userHash)
-
-	result, err := serviceSetup.SaveProfile(profile, userHash)
+	err = fSetup.RegisterUser("verifier1", "password", model.ActorVerifier)
 	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		fmt.Println("Successfully saved profile: " + result)
+		fmt.Printf("Unable to register the user 'verifier1': %v\n", err)
+		return
 	}
 
-	cv := service.CVObject{
-		Name:"Test User",
-		Speciality: "Test Speciality",
-		CV:"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-	}
-
-	cvByte, err := json.Marshal(cv)
-
-	cvHash, err := crypto.GenerateFromByte(cvByte)
-
-	result, err = serviceSetup.SaveCV(cv, cvHash)
-	err = database.CreateNewCV(user.Id, cv.CV, cvHash)
-	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		fmt.Println("Successfully saved CV: " + result)
-	}
-
-	result, err = serviceSetup.UpdateProfileCV(userHash, cvHash)
-	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		fmt.Println("Successfully updated profile: " + result)
-
-
-		profilebyte, err := serviceSetup.GetProfile(userHash)
-
-		json.Unmarshal(profilebyte, &profile)
-		fmt.Println(profile)
-
-		b, err := serviceSetup.GetCVFromProfile(userHash)
-		if err != nil {
-			fmt.Println(err.Error())
-		} else {
-			var cv1 service.CVObject
-			json.Unmarshal(b, &cv1)
-			fmt.Println(cv1)
-		}
-	}
-
-	rating :=  service.CVRating{
-		Name: "Test Rater",
-		Comment: "Test Comment",
-		Rating: 4,
-	}
-
-	txid, err := serviceSetup.SaveRating(userHash, cvHash, rating)
-
-	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		fmt.Println("TXID: " + txid)
-	}
-
-	profilebyte, err := serviceSetup.GetProfile(userHash)
-
-	err = json.Unmarshal(profilebyte, &profile1)
-
-	if err != nil {
-		fmt.Println("An error occurred whilst retrieving the profile: " + err.Error())
-	} else {
-		fmt.Println(profile1)
-	}
-*/
 	// Launch the web application listening
 	app := &controllers.Controller{
 		Fabric: &fSetup,

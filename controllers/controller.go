@@ -76,24 +76,26 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 }
 
 // Logout
-func (app *Controller) LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	session := sessions.InitSession(r)
+func (c *Controller) LogoutHandler() func(http.ResponseWriter, *http.Request) {
+	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
+		session := sessions.InitSession(r)
 
-	data := models.TemplateData{
-		CurrentPage:  "index",
-	}
-	w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
-	w.WriteHeader(http.StatusUnauthorized)
+		data := models.TemplateData{
+			CurrentPage: "index",
+		}
+		w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+		w.WriteHeader(http.StatusUnauthorized)
 
-	session.Values["UserDetails"] = models.UserDetails{}
-	session.Values["LoggedInFlag"] = false
-	err := session.Save(r, w)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+		session.Values["UserDetails"] = models.UserDetails{}
+		session.Values["LoggedInFlag"] = false
+		err := session.Save(r, w)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 
-	data.MessageSuccess = "You have been successfully logged out."
-	renderTemplate(w, r, "index.html", data)
+		data.MessageSuccess = "You have been successfully logged out."
+		renderTemplate(w, r, "index.html", data)
+	})
 }
 
 

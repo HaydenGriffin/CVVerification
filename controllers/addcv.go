@@ -101,7 +101,7 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		err = database.CreateNewCV(data.UserDetails.Id, cv.CV, cvHash)
+		err = database.CreateNewCV(data.UserDetails.Id, cvHash)
 
 		if err != nil {
 			data.MessageWarning = "An error occurred whilst saving CV details to database."

@@ -14,10 +14,10 @@ import (
 	"strconv"
 )
 
-func (c *Controller) RateCVView() func(http.ResponseWriter, *http.Request) {
+func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		fmt.Println("RateCVView")
+		fmt.Println("ReviewCVView")
 
 		session := sessions.InitSession(r)
 
@@ -34,11 +34,11 @@ func (c *Controller) RateCVView() func(http.ResponseWriter, *http.Request) {
 		}
 
 		// Check that the user connected is an admin
-		_, err := u.QueryAdmin()
+		_, err := u.QueryVerifier()
 		if err != nil {
 			fmt.Println(err)
 			data.CurrentPage = "index"
-			data.MessageWarning = "You must be an admin user to rate a CV."
+			data.MessageWarning = "You must be a verifier user to rate a CV."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
@@ -61,28 +61,28 @@ func (c *Controller) RateCVView() func(http.ResponseWriter, *http.Request) {
 
 		profileHash, cvHash, err := database.GetCVInfoFromID(userID)
 
-		rating, err := u.QueryCVRatable(profileHash, cvHash)
-		if err != nil {
-			fmt.Printf(err.Error())
-			fmt.Printf("cuck")
-
-		}
-
-		if (model.CVRating{}) == rating {
-			fmt.Printf("Reviewer hasn't reviewed yet")
-		} else {
-			fmt.Printf("Reviewer has reviewed!!!")
-		}
-		fmt.Println(rating)
-
-		data.CVInfo.Rating = rating
-
 		if err != nil {
 			fmt.Printf(err.Error())
 			data.MessageWarning = "Unable to find CV info in database."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
+
+		verifierReview, err := u.QueryCVReviewable(profileHash, cvHash)
+		if err != nil {
+			fmt.Printf(err.Error())
+			fmt.Printf("cuck")
+
+		}
+
+		if (model.CVReview{}) == verifierReview {
+			fmt.Printf("Verifier hasn't reviewed yet")
+		} else {
+			fmt.Printf("Verifier has reviewed!!!")
+		}
+		fmt.Println(verifierReview)
+
+		data.CVInfo.Review = verifierReview
 
 		cv, err := u.QueryCV(cvHash)
 
@@ -106,16 +106,16 @@ func (c *Controller) RateCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		renderTemplate(w, r, "rateCV.html", data)
+		renderTemplate(w, r, "reviewcv.html", data)
 	})
 }
 
 
 
-func (c *Controller) RateCVHandler() func(http.ResponseWriter, *http.Request) {
+func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		fmt.Println("RateCVHandler")
+		fmt.Println("ReviewCVHandler")
 
 		session := sessions.InitSession(r)
 
@@ -132,11 +132,11 @@ func (c *Controller) RateCVHandler() func(http.ResponseWriter, *http.Request) {
 		}
 
 		// Check that the user connected is an admin
-		_, err := u.QueryAdmin()
+		_, err := u.QueryVerifier()
 		if err != nil {
 			fmt.Println(err)
 			data.CurrentPage = "index"
-			data.MessageWarning = "You must be an admin user to rate a CV."
+			data.MessageWarning = "You must be a verifier user to review a CV."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
@@ -150,7 +150,7 @@ func (c *Controller) RateCVHandler() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		rating := model.CVRating{
+		rating := model.CVReview{
 			Name:    r.FormValue("name"),
 			Comment: r.FormValue("comment"),
 			Rating:  ratingInt,
@@ -177,6 +177,6 @@ func (c *Controller) RateCVHandler() func(http.ResponseWriter, *http.Request) {
 		}
 
 		//data.MessageSuccess = txid
-		renderTemplate(w, r, "rateCV.html", data)
+		renderTemplate(w, r, "reviewcv.html", data)
 	})
 }

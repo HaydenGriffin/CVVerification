@@ -98,12 +98,12 @@ func GetInReviewCVHash(s *sessions.Session) string {
 	return cvHash
 }
 
-func GetRatings(s *sessions.Session) []model.CVRating {
-	val := s.Values["CV"]
+func GetReviews(s *sessions.Session) []model.CVReview {
+	val := s.Values["Reviews"]
 
-	ratings, ok := val.([]model.CVRating)
+	reviews, ok := val.([]model.CVReview)
 	if !ok {
-		return []model.CVRating{}
+		return []model.CVReview{}
 	}
-	return ratings
+	return reviews
 }

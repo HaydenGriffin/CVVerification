@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="../assets/css/mycv.css">
     <div class="container-fluid content-padding">
     {{range $userID, $cv:=  .CVInfo.CVList}}
-        <form id="rate-cv" class="form-my-cv" action="/ratecv/{{$userID}}" method="post">
+        <form id="review-cv" class="form-my-cv" action="/reviewcv/{{$userID}}" method="post">
             <h4>Profile Hash</h4>
             <p> {{$userID}}</p>
             <h4>Applicant Name</h4>
@@ -15,7 +15,7 @@
             <td>{{$cv.CVDate}}</td>
             <h4>CV</h4>
             <p>{{$cv.CV}}</p>
-            <button class="btn btn-lg btn-link" type="submit">Rate CV</button>
+            <button class="btn btn-lg btn-link" type="submit">Review CV</button>
         </form>
     {{end}}
     </div>

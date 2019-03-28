@@ -42,14 +42,14 @@
           <p>{{.CVInfo.CV.CVDate}}</p>
           <h4>My CV</h4>
           <p>{{.CVInfo.CV.CV}}</p>
-          {{range $cvHash, $CVRating:=  .CVInfo.Ratings}}
+          {{range $cvHash, $CVReview:=  .CVInfo.Reviews}}
             <div class="form-my-cv">
-              <h4>Raters Name:</h4>
-              {{$CVRating.Name}}
+              <h4>Reviewer:</h4>
+              {{$CVReview.Name}}
               <h4>Comment:</h4>
-              {{$CVRating.Comment}}
+              {{$CVReview.Comment}}
               <h4>Rating:</h4>
-              {{$CVRating.Rating}}
+              {{$CVReview.Rating}}
             </div>
           {{end}}
           {{if .CVInfo.CurrentCVInReview}}

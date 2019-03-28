@@ -15,8 +15,8 @@ type TemplateData struct {
 type CVDisplayInfo struct {
 	CV *model.CVObject
 	CVHistory []model.CVHistoryInfo
-	Rating model.CVRating
-	Ratings []model.CVRating
+	Review model.CVReview
+	Reviews []model.CVReview
 	CurrentCVInReview bool
 	CurrentCVHash string
 	UserHasCVInReview bool

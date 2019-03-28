@@ -121,7 +121,7 @@ func (c *Controller) MyCVHandler() func(http.ResponseWriter, *http.Request) {
 		data.CurrentPage = "mycv"
 
 
-		ratings, err := u.QueryCVRatings(data.UserDetails.ProfileHash, cvToDisplayCVHash)
+		reviews, err := u.QueryCVReviews(data.UserDetails.ProfileHash, cvToDisplayCVHash)
 		if err != nil {
 			fmt.Println(err)
 			data.MessageWarning = "An error occurred whilst retrieving ratings for the CV."
@@ -129,12 +129,14 @@ func (c *Controller) MyCVHandler() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		data.CVInfo.Ratings = ratings
-		fmt.Println(ratings)
+		data.CVInfo.Reviews = reviews
+		fmt.Println(reviews)
 
-		gob.Register(data.CVInfo.CV)
-		session.Values["CV"] = data.CVInfo.CV
+		gob.Register(cv)
+		gob.Register(reviews)
+		session.Values["CV"] = cv
 		session.Values["CVHash"] = cvToDisplayCVHash
+		session.Values["Reviews"] = reviews
 
 		err = session.Save(r, w)
 		if err != nil {
@@ -144,61 +146,6 @@ func (c *Controller) MyCVHandler() func(http.ResponseWriter, *http.Request) {
 		}
 
 		renderTemplate(w, r, "mycv.html", data)
-
-		//_, cvHash, err := database.GetCVInfoFromID(data.UserDetails.Id)
-
-		/*	if err != nil {
-				fmt.Printf(err.Error())
-				data.MessageWarning = "Unable to find CV info in database."
-				renderTemplate(w, r, "index.html", data)
-				return
-			}
-
-			cv, err := u.QueryCV(cvHash)
-
-			if err != nil {
-				fmt.Printf(err.Error())
-				data.MessageWarning = "Unable to retrieve CV details from ledger."
-				renderTemplate(w, r, "index.html", data)
-				return
-			}*/
-
-		//Retrieve ratings
-		//b, err = app.Service.GetRatings(data.CurrentUser.ProfileHash, cvHash)
-
-		//fmt.Println(b)
-
-		// No ratings exist yet
-		/*if err != nil {
-			fmt.Printf(err.Error())
-		} else {
-			var ratings []service.CVRating
-			err = json.Unmarshal(b, &ratings)
-			if err != nil {
-				fmt.Printf(err.Error())
-				data.MessageWarning = "Unable to retrieve ratings from ledger"
-				renderTemplate(w, r, "index.html", data)
-			} else {
-				session.Values["Ratings"] = ratings
-				session.Save(r, w)
-				data.Ratings = ratings
-				fmt.Println("CV Ratings:")
-				fmt.Println(data.Ratings)
-			}
-		}*/
-
-		/*isRatable, err := database.IsCVInReview(cvHash)
-
-		if err != nil {
-			fmt.Printf(err.Error())
-			data.MessageWarning = "Unable to get status of CV."
-			renderTemplate(w, r, "index.html", data)
-			return
-		}
-		data.IsCVInReview = isRatable
-		data.CV = cv
-		gob.Register(cv)
-		renderTemplate(w, r, "mycv.html", data)*/
 	})
 }
 
@@ -222,6 +169,7 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 
 		cv := sessions.GetCV(session)
 		cvHash := sessions.GetCVHash(session)
+		reviews := sessions.GetReviews(session)
 		if cv == nil || cvHash == "" {
 			data.MessageWarning = "Unable to update status of CV."
 			renderTemplate(w, r, "index.html", data)
@@ -230,6 +178,7 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 
 		data.CVInfo.CV = cv
 		data.CVInfo.CurrentCVHash = cvHash
+		data.CVInfo.Reviews = reviews
 
 		data.CVInfo.UserHasCVInReview = database.UserHasCVInReview(data.UserDetails.Id)
 
@@ -286,6 +235,7 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 
 		cv := sessions.GetCV(session)
 		cvHash := sessions.GetCVHash(session)
+		reviews := sessions.GetReviews(session)
 		if cv == nil || cvHash == "" {
 			data.MessageWarning = "Unable to update status of CV."
 			renderTemplate(w, r, "index.html", data)
@@ -294,6 +244,7 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 
 		data.CVInfo.CV = cv
 		data.CVInfo.CurrentCVHash = cvHash
+		data.CVInfo.Reviews = reviews
 
 		err := database.UpdateCV(cvHash, 0)
 		if err != nil {
@@ -317,22 +268,5 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 		//data.Ratings = sessions.GetRatings(session)
 		renderTemplate(w, r, "mycv.html", data)
 
-		//cvHash, err := app.Service.GetCVHashFromProfile(data.CurrentUser.ProfileHash)
-		/*
-		if err != nil {
-			fmt.Println("Error GetCVHashFromProfile: " + err.Error())
-		}
-
-
-		err = database.UpdateCV(cvHash,0)
-		if err != nil {
-			fmt.Printf(err.Error())
-			data.MessageWarning = "Unable to update database."
-			renderTemplate(w, r, "mycv.html", data)
-		} else {
-			data.MessageSuccess = "Success! Your CV can now be edited."
-			data.IsCVInReview = false
-			data.CV = sessions.GetCV(session)
-			data.Ratings = sessions.GetRatings(session)*/
 	})
 }

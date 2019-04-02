@@ -35,7 +35,7 @@ func GetUserDetailsFromUsername(username string) (models.UserDetails, error) {
 		return user, err
 	}
 
-	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.email_address, u.profile_hash  FROM users u WHERE username = ?", username)
+	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.email_address, u.profile_hash FROM users u WHERE username = ?", username)
 	err = result.Scan(&user.Id, &user.Username, &user.FullName, &user.EmailAddress, &user.ProfileHash)
 
 	if err != nil {
@@ -77,12 +77,12 @@ func GetAllReviewableCVHashes() (map[int] string, error) {
 
 func GetUserCVDetails(user_id int) ([]model.CVHistoryInfo, error) {
 
-	var allCVHistoryInfo []model.CVHistoryInfo
+	var historicalCVHistoryInfo []model.CVHistoryInfo
 
 	db, err := InitDB(dataSourceName)
 
 	if err != nil {
-		return allCVHistoryInfo, err
+		return historicalCVHistoryInfo, err
 	}
 
 	rows, err := db.Query("SELECT uc.cv_hash, uc.cv_in_review, uc.timestamp FROM user_cvs uc WHERE uc.user_id = ? ORDER BY uc.timestamp ASC", user_id)
@@ -95,18 +95,18 @@ func GetUserCVDetails(user_id int) ([]model.CVHistoryInfo, error) {
 		if err != nil {
 			rows.Close()
 			fmt.Println(err.Error())
-			return allCVHistoryInfo, err
+			return historicalCVHistoryInfo, err
 		}
 		cvHistoryInfo.Index = index
-		allCVHistoryInfo = append(allCVHistoryInfo, cvHistoryInfo)
+		historicalCVHistoryInfo = append(historicalCVHistoryInfo, cvHistoryInfo)
 		index++
 	}
 	rows.Close()
 	err = rows.Err()
 	if err != nil {
-		return allCVHistoryInfo, err
+		return historicalCVHistoryInfo, err
 	}
-	return allCVHistoryInfo, nil
+	return historicalCVHistoryInfo, nil
 }
 
 func CreateNewUser(username, full_name, email_address, profile_hash string) (userDetails models.UserDetails, error error) {

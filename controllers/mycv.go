@@ -21,6 +21,7 @@ func (c *Controller) MyCVHandler() func(http.ResponseWriter, *http.Request) {
 			CurrentPage: "index",
 		}
 
+		// Retrieve user details
 		if sessions.IsLoggedIn(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
@@ -32,95 +33,93 @@ func (c *Controller) MyCVHandler() func(http.ResponseWriter, *http.Request) {
 		// Check that the user connected is an applicant
 		_, err := u.QueryApplicant()
 		if err != nil {
-			data.MessageWarning = "You must be an applicant user to upload a CV."
+			data.MessageWarning = "You must be an applicant user to view your CV."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-		fmt.Println("Query profile")
-		fmt.Println(u.QueryProfile(data.UserDetails.ProfileHash))
+		// Query profile information from ledger
+		profile, err := u.QueryProfile(data.UserDetails.ProfileHash)
+		if err != nil {
+			data.MessageWarning = "Unable to retrieve profile information from ledger."
+			renderTemplate(w,r, "index.html", data)
+			return
+		}
+		if len(profile.CVHistory) == 0 {
+			data.MessageWarning = "You have not uploaded a CV yet. Please fill in the following form and add your CV."
+			renderTemplate(w, r, "cvform.html", data)
+			return
+		}
 
-		result, success := mux.Vars(r)["cvToDisplayID"]
-		var cvToDisplayID int
+		// Check for URL parameter (corresponds to index of a CV)
+		// There may not be a passed URL parameter
+		result, success := mux.Vars(r)["requestedCVIndex"]
+		var requestedCVIndex int
 
-		if !success {
-			fmt.Println("No passed CV ID")
-		} else {
-			cvToDisplayID, err = strconv.Atoi(result)
+		if success {
+			// Convert string to int. If there is an error, set requestedCVIndex to 0 (default handling)
+			requestedCVIndex, err = strconv.Atoi(result)
 			if err != nil {
-				fmt.Println("Unable to convert CV to display ID to number")
-			} else {
-				fmt.Println(cvToDisplayID)
+				fmt.Println("Unable to convert requestedCVIndex to number")
+				requestedCVIndex = 0
 			}
 		}
 
-		allCVHistoryInfo, err := database.GetUserCVDetails(data.UserDetails.Id)
-
-		if err != nil || len(allCVHistoryInfo) == 0 {
-			fmt.Printf(err.Error())
+		// Retrieve historical CV information, including current version
+		// If there is an error or there is no CV history, exit
+		historicalCVHistoryInfo, err := database.GetUserCVDetails(data.UserDetails.Id)
+		if err != nil || len(historicalCVHistoryInfo) == 0 {
 			data.MessageWarning = "Unable to find CV info in database."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-		var foundCVInReview = false
 		var cvToDisplayCVHash string
 
-		if cvToDisplayID != 0 {
-			// Specific CV ID requested
-			for i := range allCVHistoryInfo {
-				fmt.Println("first info")
-				fmt.Println(allCVHistoryInfo[i])
-
-				if allCVHistoryInfo[i].Index == cvToDisplayID {
-					cvToDisplayCVHash = allCVHistoryInfo[i].CVHash
-					if allCVHistoryInfo[i].CVInReview == 1 {
-						fmt.Println("cv is in review")
-						foundCVInReview = true
+		if requestedCVIndex != 0 {
+			// User has requested a CV to display
+			for i := range historicalCVHistoryInfo {
+				if historicalCVHistoryInfo[i].Index == requestedCVIndex {
+					// Found match for requestedCVIndex
+					cvToDisplayCVHash = historicalCVHistoryInfo[i].CVHash
+					if historicalCVHistoryInfo[i].CVInReview == 1 {
 						data.CVInfo.CurrentCVInReview = true
 					}
-					data.CVInfo.CurrentCVHash = allCVHistoryInfo[i].CVHash
+					data.CVInfo.CurrentCVHash = historicalCVHistoryInfo[i].CVHash
 				}
 			}
 		} else {
-			// No CV ID requested - retrieve any CV in review
-			for i := range allCVHistoryInfo {
-				fmt.Println("first info")
-				fmt.Println(allCVHistoryInfo[i])
-
-				if allCVHistoryInfo[i].CVInReview == 1 {
-					cvToDisplayCVHash = allCVHistoryInfo[i].CVHash
-					fmt.Println("cv is in review")
-					foundCVInReview = true
+			// No CV to display requested. If the user has a CV in review, display this with priority
+			for i := range historicalCVHistoryInfo {
+				if historicalCVHistoryInfo[i].CVInReview == 1 {
+					data.CVInfo.UserHasCVInReview = true
+					cvToDisplayCVHash = historicalCVHistoryInfo[i].CVHash
 					data.CVInfo.CurrentCVInReview = true
-					data.CVInfo.CurrentCVHash = allCVHistoryInfo[i].CVHash
+					data.CVInfo.CurrentCVHash = historicalCVHistoryInfo[i].CVHash
 				}
 			}
 		}
 
-		// No CV in review - display the most recent CV version to the user
-		if cvToDisplayID == 0 && foundCVInReview == false {
-			cvToDisplayCVHash = allCVHistoryInfo[len(allCVHistoryInfo)-1].CVHash
-			data.CVInfo.CurrentCVHash = allCVHistoryInfo[len(allCVHistoryInfo)-1].CVHash
+		// No CV requested and no CV found in review - display the most recent version of the CV
+		if cvToDisplayCVHash == "" {
+			cvToDisplayCVHash = historicalCVHistoryInfo[len(historicalCVHistoryInfo)-1].CVHash
+			data.CVInfo.CurrentCVHash = historicalCVHistoryInfo[len(historicalCVHistoryInfo)-1].CVHash
 		}
 
-		// Retrieve CV from ledger
+		// Retrieve CV details from ledger
 		cv, err := u.QueryCV(cvToDisplayCVHash)
 		if err != nil {
 			fmt.Println(err)
-			data.MessageWarning = "Unable to retrieve CV detail from ledger."
+			data.MessageWarning = "Unable to retrieve CV details from ledger."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
+
 		data.CVInfo.CV = cv
-
-		data.CVInfo.UserHasCVInReview = database.UserHasCVInReview(data.UserDetails.Id)
-
-
-		data.CVInfo.CVHistory = allCVHistoryInfo
+		data.CVInfo.CVHistory = historicalCVHistoryInfo
 		data.CurrentPage = "mycv"
 
-
+		// Retrieve reviews for the CV that is to be displayed
 		reviews, err := u.QueryCVReviews(data.UserDetails.ProfileHash, cvToDisplayCVHash)
 		if err != nil {
 			fmt.Println(err)
@@ -130,7 +129,6 @@ func (c *Controller) MyCVHandler() func(http.ResponseWriter, *http.Request) {
 		}
 
 		data.CVInfo.Reviews = reviews
-		fmt.Println(reviews)
 
 		gob.Register(cv)
 		gob.Register(reviews)
@@ -199,16 +197,16 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 			data.CVInfo.UserHasCVInReview = true
 		}
 
-		allCVHistoryInfo, err := database.GetUserCVDetails(data.UserDetails.Id)
+		historicalCVHistoryInfo, err := database.GetUserCVDetails(data.UserDetails.Id)
 
-		if err != nil || len(allCVHistoryInfo) == 0 {
+		if err != nil || len(historicalCVHistoryInfo) == 0 {
 			fmt.Printf(err.Error())
 			data.MessageWarning = "Unable to find CV info in database."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-		data.CVInfo.CVHistory = allCVHistoryInfo
+		data.CVInfo.CVHistory = historicalCVHistoryInfo
 		//data.Ratings = sessions.GetRatings(session)
 		renderTemplate(w, r, "mycv.html", data)
 
@@ -253,16 +251,16 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 			renderTemplate(w, r, "index.html", data)
 		}
 
-		allCVHistoryInfo, err := database.GetUserCVDetails(data.UserDetails.Id)
+		historicalCVHistoryInfo, err := database.GetUserCVDetails(data.UserDetails.Id)
 
-		if err != nil || len(allCVHistoryInfo) == 0 {
+		if err != nil || len(historicalCVHistoryInfo) == 0 {
 			fmt.Printf(err.Error())
 			data.MessageWarning = "Unable to find CV info in database."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-		data.CVInfo.CVHistory = allCVHistoryInfo
+		data.CVInfo.CVHistory = historicalCVHistoryInfo
 		data.MessageSuccess = "Success! Your CV has been withdrawn from review."
 		data.CVInfo.CurrentCVInReview = false
 		//data.Ratings = sessions.GetRatings(session)

@@ -21,7 +21,7 @@ func Serve(app *controllers.Controller) {
 	r.HandleFunc("/updatecv", app.UpdateCVView)
 	r.HandleFunc("/updatecvprocess", app.UpdateCVHandler)
 	r.HandleFunc("/mycv", app.MyCVHandler())
-	r.HandleFunc("/mycv/{cvToDisplayID}", app.MyCVHandler())
+	r.HandleFunc("/mycv/{requestedCVIndex}", app.MyCVHandler())
 
 	r.HandleFunc("/submitcvforreview", app.SubmitForReviewHandler())
 	r.HandleFunc("/withdrawcvfromreview", app.WithdrawFromReviewHandler())

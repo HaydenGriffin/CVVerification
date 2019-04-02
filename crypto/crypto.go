@@ -14,7 +14,7 @@ func GenerateFromString(s string) (string, error) {
 		return "", err
 	}
 
-	return string(hash), err
+	return string(hash), nil
 }
 
 //Generate a salted hash for the input string
@@ -24,7 +24,7 @@ func GenerateFromByte(b []byte) (string, error) {
 		return "", err
 	}
 
-	return string(hash), err
+	return string(hash), nil
 }
 
 //Compare string to generated hash

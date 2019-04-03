@@ -2,11 +2,11 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/cvtracker/blockchain"
-	"github.com/cvtracker/chaincode/model"
-	"github.com/cvtracker/database"
-	"github.com/cvtracker/models"
-	"github.com/cvtracker/sessions"
+	"github.com/cvverification/blockchain"
+	"github.com/cvverification/chaincode/model"
+	"github.com/cvverification/database"
+	"github.com/cvverification/models"
+	"github.com/cvverification/sessions"
 	"net/http"
 )
 

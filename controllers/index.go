@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"github.com/cvtracker/blockchain"
-	"github.com/cvtracker/models"
-	"github.com/cvtracker/sessions"
+	"github.com/cvverification/blockchain"
+	"github.com/cvverification/models"
+	"github.com/cvverification/sessions"
 	"net/http"
 )
 

@@ -25,12 +25,12 @@ env-down:
 ##### RUN
 run:
 	@echo "Start app ..."
-	@./cvtracker
+	@./cvverification
 
 ##### CLEAN
 clean: env-down
 	@echo "Clean up ..."
-	@rm -rf /tmp/cvtracker-* cvtracker
-	@docker rm -f -v `docker ps -a --no-trunc | grep "cvtracker" | cut -d ' ' -f 1` 2>/dev/null || true
-	@docker rmi `docker images --no-trunc | grep "cvtracker" | cut -d ' ' -f 1` 2>/dev/null || true
+	@rm -rf /tmp/cvverification-* cvverification
+	@docker rm -f -v `docker ps -a --no-trunc | grep "cvverification" | cut -d ' ' -f 1` 2>/dev/null || true
+	@docker rmi `docker images --no-trunc | grep "cvverification" | cut -d ' ' -f 1` 2>/dev/null || true
 	@echo "Clean up done"

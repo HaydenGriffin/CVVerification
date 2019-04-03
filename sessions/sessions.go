@@ -1,8 +1,8 @@
 package sessions
 
 import (
-	"github.com/cvtracker/chaincode/model"
-	"github.com/cvtracker/models"
+	"github.com/cvverification/chaincode/model"
+	"github.com/cvverification/models"
 	"github.com/gorilla/securecookie"
 	"net/http"
 

@@ -1,4 +1,4 @@
-ignored = ["github.com/cvtracker/chaincode*"]
+ignored = ["github.com/cvverification/chaincode*"]
 
 [[constraint]]
   branch = "master"

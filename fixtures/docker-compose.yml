@@ -5,135 +5,258 @@ networks:
 
 services:
 
-  orderer.cvtracker.com:
+  orderer.cvverification.com:
     image: hyperledger/fabric-orderer:amd64-1.4.0
-    container_name: orderer.cvtracker.com
+    container_name: orderer.cvverification.com
     environment:
       - ORDERER_GENERAL_LOGLEVEL=debug
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
       - ORDERER_GENERAL_LISTENPORT=7050
-      - ORDERER_GENERAL_GENESISPROFILE=CVTracker
+      - ORDERER_GENERAL_GENESISPROFILE=OrdererGenesis
       - ORDERER_GENERAL_GENESISMETHOD=file
       - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
-      - ORDERER_GENERAL_LOCALMSPID=cvtracker.com
+      - ORDERER_GENERAL_LOCALMSPID=cvverification.com
       - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
       - ORDERER_GENERAL_TLS_ENABLED=false
       - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
       - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
       - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
-
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric
     command: orderer
     volumes:
       - ./artifacts/orderer.genesis.block:/var/hyperledger/orderer/orderer.genesis.block
-      - ./crypto-config/ordererOrganizations/cvtracker.com/orderers/orderer.cvtracker.com/msp:/var/hyperledger/orderer/msp
-      - ./crypto-config/ordererOrganizations/cvtracker.com/orderers/orderer.cvtracker.com/tls:/var/hyperledger/orderer/tls
+      - ./crypto-config/ordererOrganizations/cvverification.com/orderers/orderer.cvverification.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/cvverification.com/orderers/orderer.cvverification.com/tls:/var/hyperledger/orderer/tls
     ports:
       - 7050:7050
     networks:
       default:
         aliases:
-          - orderer.cvtracker.com
+          - orderer.cvverification.com
 
-  ca.org1.cvtracker.com:
+  ca.org1.cvverification.com:
     image: hyperledger/fabric-ca:amd64-1.4.0
-    container_name: ca.org1.cvtracker.com
+    container_name: ca.org1.cvverification.com
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
-      - FABRIC_CA_SERVER_CA_NAME=ca.org1.cvtracker.com
-      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org1.cvtracker.com-cert.pem
-      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/9f0eba9c3abf94bc45d2f9972ca6efdef0f9219eb5c132b47940067721ac762b_sk
+      - FABRIC_CA_SERVER_CA_NAME=ca.org1.cvverification.com
+      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org1.cvverification.com-cert.pem
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/8eddfc864fa8a8e0dc623a70b28c1b405a8ed22970a31d50bedceb013ed93095_sk
       - FABRIC_CA_SERVER_TLS_ENABLED=false
-      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org1.cvtracker.com-cert.pem
-      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/9f0eba9c3abf94bc45d2f9972ca6efdef0f9219eb5c132b47940067721ac762b_sk
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org1.cvverification.com-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/8eddfc864fa8a8e0dc623a70b28c1b405a8ed22970a31d50bedceb013ed93095_sk
     ports:
       - 7054:7054
     command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
     volumes:
-      - ./crypto-config/peerOrganizations/org1.cvtracker.com/ca/:/etc/hyperledger/fabric-ca-server-config
+      - ./crypto-config/peerOrganizations/org1.cvverification.com/ca/:/etc/hyperledger/fabric-ca-server-config
     networks:
       default:
         aliases:
-          - ca.org1.cvtracker.com
+          - ca.org1.cvverification.com
 
-  peer0.org1.cvtracker.com:
+  ca.org2.cvverification.com:
+    image: hyperledger/fabric-ca:amd64-1.4.0
+    container_name: ca.org2.cvverification.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.org2.cvverification.com
+      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org2.cvverification.com-cert.pem
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/e0403e588f151bd22b437f83fb3639a483773fe3327139478647e966fecfb240_sk
+      - FABRIC_CA_SERVER_TLS_ENABLED=false
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org2.cvverification.com-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/e0403e588f151bd22b437f83fb3639a483773fe3327139478647e966fecfb240_sk
+    ports:
+      - 8054:8054
+    command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
+    volumes:
+      - ./crypto-config/peerOrganizations/org2.cvverification.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    networks:
+      default:
+        aliases:
+          - ca.org2.cvverification.com
+
+  ca.org3.cvverification.com:
+    image: hyperledger/fabric-ca:amd64-1.4.0
+    container_name: ca.org3.cvverification.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.org3.cvverification.com
+      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org3.cvverification.com-cert.pem
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/ea8be7f767f184359808a71daa28724bcff4315c1d357cb7d4cfefae1a34ccf0_sk
+      - FABRIC_CA_SERVER_TLS_ENABLED=false
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org3.cvverification.com-cert.pem
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/ea8be7f767f184359808a71daa28724bcff4315c1d357cb7d4cfefae1a34ccf0_sk
+    ports:
+      - 9054:9054
+    command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
+    volumes:
+      - ./crypto-config/peerOrganizations/org3.cvverification.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    networks:
+      default:
+        aliases:
+          - ca.org3.cvverification.com
+
+  peer0.org1.cvverification.com:
     image: hyperledger/fabric-peer:amd64-1.4.0
-    container_name: peer0.org1.cvtracker.com
+    container_name: peer0.org1.cvverification.com
     environment:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_VM_DOCKER_ATTACHSTDOUT=true
       - CORE_LOGGING_LEVEL=DEBUG
-      - CORE_PEER_NETWORKID=cvtracker
+      - CORE_PEER_NETWORKID=cvverification
       - CORE_PEER_PROFILE_ENABLED=true
       - CORE_PEER_TLS_ENABLED=false
       - CORE_PEER_TLS_CERT_FILE=/var/hyperledger/tls/server.crt
       - CORE_PEER_TLS_KEY_FILE=/var/hyperledger/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/tls/ca.crt
-      - CORE_PEER_ID=peer0.org1.cvtracker.com
+      - CORE_PEER_ID=peer0.org1.cvverification.com
       - CORE_PEER_ADDRESSAUTODETECT=true
-      - CORE_PEER_ADDRESS=peer0.org1.cvtracker.com:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org1.cvtracker.com:7051
+      - CORE_PEER_ADDRESS=peer0.org1.cvverification.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org1.cvverification.com:7051
       - CORE_PEER_GOSSIP_USELEADERELECTION=true
       - CORE_PEER_GOSSIP_ORGLEADER=false
       - CORE_PEER_GOSSIP_SKIPHANDSHAKE=true
-      - CORE_PEER_LOCALMSPID=org1.cvtracker.com
+      - CORE_PEER_LOCALMSPID=org1.cvverification.com
       - CORE_PEER_MSPCONFIGPATH=/var/hyperledger/msp
-      - CORE_PEER_TLS_SERVERHOSTOVERRIDE=peer0.org1.cvtracker.com
+      - CORE_PEER_TLS_SERVERHOSTOVERRIDE=peer0.org1.cvverification.com
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     volumes:
       - /var/run/:/host/var/run/
-      - ./crypto-config/peerOrganizations/org1.cvtracker.com/peers/peer0.org1.cvtracker.com/msp:/var/hyperledger/msp
-      - ./crypto-config/peerOrganizations/org1.cvtracker.com/peers/peer0.org1.cvtracker.com/tls:/var/hyperledger/tls
+      - ./crypto-config/peerOrganizations/org1.cvverification.com/peers/peer0.org1.cvverification.com/msp:/var/hyperledger/msp
+      - ./crypto-config/peerOrganizations/org1.cvverification.com/peers/peer0.org1.cvverification.com/tls:/var/hyperledger/tls
     ports:
       - 7051:7051
       - 7053:7053
     depends_on:
-      - orderer.cvtracker.com
+      - orderer.cvverification.com
     links:
-      - orderer.cvtracker.com
+      - orderer.cvverification.com
     networks:
       default:
         aliases:
-          - peer0.org1.cvtracker.com
+          - peer0.org1.cvverification.com
 
-  peer1.org1.cvtracker.com:
+  peer1.org1.cvverification.com:
     image: hyperledger/fabric-peer:amd64-1.4.0
-    container_name: peer1.org1.cvtracker.com
+    container_name: peer1.org1.cvverification.com
     environment:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_VM_DOCKER_ATTACHSTDOUT=true
       - CORE_LOGGING_LEVEL=DEBUG
-      - CORE_PEER_NETWORKID=cvtracker
+      - CORE_PEER_NETWORKID=cvverification
       - CORE_PEER_PROFILE_ENABLED=true
       - CORE_PEER_TLS_ENABLED=false
       - CORE_PEER_TLS_CERT_FILE=/var/hyperledger/tls/server.crt
       - CORE_PEER_TLS_KEY_FILE=/var/hyperledger/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/tls/ca.crt
-      - CORE_PEER_ID=peer1.org1.cvtracker.com
+      - CORE_PEER_ID=peer1.org1.cvverification.com
       - CORE_PEER_ADDRESSAUTODETECT=true
-      - CORE_PEER_ADDRESS=peer1.org1.cvtracker.com:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org1.cvtracker.com:7051
+      - CORE_PEER_ADDRESS=peer1.org1.cvverification.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org1.cvverification.com:7051
       - CORE_PEER_GOSSIP_USELEADERELECTION=true
       - CORE_PEER_GOSSIP_ORGLEADER=false
       - CORE_PEER_GOSSIP_SKIPHANDSHAKE=true
-      - CORE_PEER_LOCALMSPID=org1.cvtracker.com
+      - CORE_PEER_LOCALMSPID=org1.cvverification.com
       - CORE_PEER_MSPCONFIGPATH=/var/hyperledger/msp
-      - CORE_PEER_TLS_SERVERHOSTOVERRIDE=peer1.org1.cvtracker.com
+      - CORE_PEER_TLS_SERVERHOSTOVERRIDE=peer1.org1.cvverification.com
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     volumes:
       - /var/run/:/host/var/run/
-      - ./crypto-config/peerOrganizations/org1.cvtracker.com/peers/peer1.org1.cvtracker.com/msp:/var/hyperledger/msp
-      - ./crypto-config/peerOrganizations/org1.cvtracker.com/peers/peer1.org1.cvtracker.com/tls:/var/hyperledger/tls
+      - ./crypto-config/peerOrganizations/org1.cvverification.com/peers/peer1.org1.cvverification.com/msp:/var/hyperledger/msp
+      - ./crypto-config/peerOrganizations/org1.cvverification.com/peers/peer1.org1.cvverification.com/tls:/var/hyperledger/tls
     ports:
       - 8051:7051
       - 8053:7053
     depends_on:
-      - orderer.cvtracker.com
+      - orderer.cvverification.com
     links:
-      - orderer.cvtracker.com
+      - orderer.cvverification.com
     networks:
       default:
         aliases:
-          - peer1.org1.cvtracker.com
+          - peer1.org1.cvverification.com
+
+  peer0.org2.cvverification.com:
+    image: hyperledger/fabric-peer:amd64-1.4.0
+    container_name: peer0.org2.cvverification.com
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_ATTACHSTDOUT=true
+      - CORE_LOGGING_LEVEL=DEBUG
+      - CORE_PEER_NETWORKID=cvverification
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_TLS_CERT_FILE=/var/hyperledger/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/var/hyperledger/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/tls/ca.crt
+      - CORE_PEER_ID=peer0.org2.cvverification.com
+      - CORE_PEER_ADDRESSAUTODETECT=true
+      - CORE_PEER_ADDRESS=peer0.org2.cvverification.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org2.cvverification.com:7051
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_GOSSIP_SKIPHANDSHAKE=true
+      - CORE_PEER_LOCALMSPID=org2.cvverification.com
+      - CORE_PEER_MSPCONFIGPATH=/var/hyperledger/msp
+      - CORE_PEER_TLS_SERVERHOSTOVERRIDE=peer0.org2.cvverification.com
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: peer node start
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./crypto-config/peerOrganizations/org2.cvverification.com/peers/peer0.org2.cvverification.com/msp:/var/hyperledger/msp
+      - ./crypto-config/peerOrganizations/org2.cvverification.com/peers/peer0.org2.cvverification.com/tls:/var/hyperledger/tls
+    ports:
+      - 9051:7051
+      - 9053:7053
+    depends_on:
+      - orderer.cvverification.com
+    links:
+      - orderer.cvverification.com
+    networks:
+      default:
+        aliases:
+          - peer0.org2.cvverification.com
+
+  peer0.org3.cvverification.com:
+    image: hyperledger/fabric-peer:amd64-1.4.0
+    container_name: peer0.org3.cvverification.com
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_ATTACHSTDOUT=true
+      - CORE_LOGGING_LEVEL=DEBUG
+      - CORE_PEER_NETWORKID=cvverification
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_TLS_CERT_FILE=/var/hyperledger/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/var/hyperledger/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/tls/ca.crt
+      - CORE_PEER_ID=peer0.org3.cvverification.com
+      - CORE_PEER_ADDRESSAUTODETECT=true
+      - CORE_PEER_ADDRESS=peer0.org3.cvverification.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org3.cvverification.com:7051
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_GOSSIP_SKIPHANDSHAKE=true
+      - CORE_PEER_LOCALMSPID=org3.cvverification.com
+      - CORE_PEER_MSPCONFIGPATH=/var/hyperledger/msp
+      - CORE_PEER_TLS_SERVERHOSTOVERRIDE=peer0.org2.cvverification.com
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: peer node start
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./crypto-config/peerOrganizations/org3.cvverification.com/peers/peer0.org3.cvverification.com/msp:/var/hyperledger/msp
+      - ./crypto-config/peerOrganizations/org3.cvverification.com/peers/peer0.org3.cvverification.com/tls:/var/hyperledger/tls
+    ports:
+      - 10051:7051
+      - 10053:7053
+    depends_on:
+      - orderer.cvverification.com
+    links:
+      - orderer.cvverification.com
+    networks:
+      default:
+        aliases:
+          - peer0.org2.cvverification.com

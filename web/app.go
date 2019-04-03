@@ -2,7 +2,7 @@ package web
 
 import (
 	"fmt"
-	"github.com/cvtracker/controllers"
+	"github.com/cvverification/controllers"
 	"log"
 	"net/http"
 	"github.com/gorilla/mux"

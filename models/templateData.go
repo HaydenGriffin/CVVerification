@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/cvtracker/chaincode/model"
+	"github.com/cvverification/chaincode/model"
 )
 
 type TemplateData struct {

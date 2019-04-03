@@ -1,0 +1,9 @@
+./bin/cryptogen generate --config=./crypto-config.yaml
+
+./bin/configtxgen -profile OrdererGenesis -outputBlock ./artifacts/orderer.genesis.block
+./bin/configtxgen -profile ChannelAll -outputCreateChannelTx ./artifacts/cvverification.channel.tx -channelID channelall
+./bin/configtxgen -profile ApplicantVerifierChannel -outputCreateChannelTx ./artifacts/applicantverifier.channel.tx -channelID applicantverifier
+
+./bin/configtxgen -profile ChannelAll -outputAnchorPeersUpdate ./artifacts/org1.cvverification.anchors.tx -channelID channelall -asOrg CVVerificationOrg1
+./bin/configtxgen -profile ChannelAll -outputAnchorPeersUpdate ./artifacts/org2.cvverification.anchors.tx -channelID channelall -asOrg CVVerificationOrg2
+./bin/configtxgen -profile ChannelAll -outputAnchorPeersUpdate ./artifacts/org3.cvverification.anchors.tx -channelID channelall -asOrg CVVerificationOrg3

@@ -3,14 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cvtracker/chaincode/model"
+	"github.com/cvverification/chaincode/model"
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
 
 // query function that handle every readonly in the ledger
-func (t *CVTrackerChaincode) update(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) update(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("Update functions")
 
 	// Check whether the number of arguments is sufficient
@@ -36,7 +36,7 @@ func (t *CVTrackerChaincode) update(stub shim.ChaincodeStubInterface, args []str
 	return shim.Error("Unknown query action, check the second argument.")
 }
 
-func (t *CVTrackerChaincode) register(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) register(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	fmt.Println("Register new user")
 
@@ -121,7 +121,7 @@ func (t *CVTrackerChaincode) register(stub shim.ChaincodeStubInterface, args []s
 	}
 }
 
-func (t *CVTrackerChaincode) saveCV(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) saveCV(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	fmt.Println("Add new CV")
 
@@ -169,7 +169,7 @@ func (t *CVTrackerChaincode) saveCV(stub shim.ChaincodeStubInterface, args []str
 // Add CV Chaincode
 // args: CV object
 // CV Hash is key, CVObject is the value
-func (t *CVTrackerChaincode) saveProfile(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) saveProfile(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	// Check whether the number of arguments is sufficient
 	if len(args) != 2 {
@@ -207,7 +207,7 @@ func (t *CVTrackerChaincode) saveProfile(stub shim.ChaincodeStubInterface, args 
 // Add CV Chaincode
 // args: CV object
 // CV Hash is key, CVObject is the value
-func (t *CVTrackerChaincode) saveProfileCV(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) saveProfileCV(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	// Check whether the number of arguments is sufficient
 	if len(args) != 2 {
@@ -254,7 +254,7 @@ func (t *CVTrackerChaincode) saveProfileCV(stub shim.ChaincodeStubInterface, arg
 // Add CV Chaincode
 // args: CV object
 // CV Hash is key, CVObject is the value
-func (t *CVTrackerChaincode) saveRating(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	// Check whether the number of arguments is sufficient
 	if len(args) != 3 {

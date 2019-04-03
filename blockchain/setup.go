@@ -68,27 +68,24 @@ func (setup *FabricSetup) Initialize() error {
 	}
 	setup.sdk = sdk
 
-
 	caClient, err := caMsp.New(sdk.Context())
 	if err != nil {
 		return fmt.Errorf("failed to create new CA client: %v", err)
 	}
-	setup.caClient = caClient
 
+	setup.caClient = caClient
 
 	fmt.Println("SDK created")
 
 	// The resource management client is responsible for managing channels (create/update channel)
 	resourceManagerClientContext := setup.sdk.Context(fabsdk.WithUser(setup.OrgAdmin), fabsdk.WithOrg(setup.OrgName))
-	if err != nil {
-		return errors.WithMessage(err, "failed to load Admin identity")
-	}
+
 	resMgmtClient, err := resmgmt.New(resourceManagerClientContext)
 	if err != nil {
 		return errors.WithMessage(err, "failed to create channel management client from Admin identity")
 	}
 	setup.admin = resMgmtClient
-	fmt.Println("Ressource management client created")
+	fmt.Println("Resource management client created")
 
 	// Create channel
 	err = setup.createChannel(resMgmtClient)
@@ -101,6 +98,7 @@ func (setup *FabricSetup) Initialize() error {
 	if err = setup.admin.JoinChannel(setup.ChannelID, resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithOrdererEndpoint(setup.OrdererID)); err != nil {
 		return errors.WithMessage(err, "failed to make admin join channel")
 	}
+
 	fmt.Println("Channel joined")
 
 	fmt.Println("Initialization Successful")
@@ -130,10 +128,11 @@ func (setup *FabricSetup) InstallAndInstantiateCC() (*channel.Client, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	fmt.Println("Chaincode installed")
 
 	// Set up chaincode policy
-	ccPolicy := cauthdsl.SignedByAnyMember([]string{"org1.cvtracker.com"})
+	ccPolicy := cauthdsl.SignedByAnyMember([]string{"org1.cvverification.com"})
 
 	resp, err := setup.admin.InstantiateCC(
 		setup.ChannelID,
@@ -150,10 +149,6 @@ func (setup *FabricSetup) InstallAndInstantiateCC() (*channel.Client, error) {
 		return nil, err
 	}
 
-
-	if err != nil {
-		return nil, err
-	}
 	fmt.Printf("Chaincode '%s' (version '%s') instantiated with transaction ID '%s'\n", setup.ChaincodeID, setup.ChaincodeVersion, resp.TransactionID)
 
 	return setup.client, nil

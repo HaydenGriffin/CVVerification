@@ -6,10 +6,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/cvtracker/blockchain"
-	"github.com/cvtracker/chaincode/model"
-	"github.com/cvtracker/controllers"
-	"github.com/cvtracker/web"
+	"github.com/cvverification/blockchain"
+	"github.com/cvverification/chaincode/model"
+	"github.com/cvverification/controllers"
+	"github.com/cvverification/web"
 	"os"
 )
 
@@ -17,23 +17,23 @@ func main() {
 	// Definition of the Fabric SDK properties
 	fSetup := blockchain.FabricSetup{
 		// Network parameters 
-		OrdererID: "orderer.cvtracker.com",
+		OrdererID: "orderer.cvverification.com",
 
 		// Channel parameters
-		ChannelID:     "cvtracker",
-		ChannelConfig: os.Getenv("GOPATH") + "/src/github.com/cvtracker/fixtures/artifacts/cvtracker.channel.tx",
+		ChannelID:     "channelall",
+		ChannelConfig: os.Getenv("GOPATH") + "/src/github.com/cvverification/fixtures/artifacts/cvverification.channel.tx",
 
 		// Chaincode parameters
-		ChaincodeID:     "cvtracker",
+		ChaincodeID:     "cvverification",
 		ChaincodeGoPath: os.Getenv("GOPATH"),
-		ChaincodePath:   "github.com/cvtracker/chaincode/",
+		ChaincodePath:   "github.com/cvverification/chaincode/",
 		ChaincodeVersion: "v1.0.0",
 		OrgAdmin:        "Admin",
 		OrdererOrgID:    "ordererorg",
-		OrgMspID:        "org1.cvtracker.com",
+		OrgMspID:        "org1.cvverification.com",
 		OrgName:         "org1",
 		ConfigFile:      "config.yaml",
-		CaID: 			 "ca.org1.cvtracker.com",
+		CaID: 			 "ca.org1.cvverification.com",
 
 		// User parameters
 		UserName: "User1",

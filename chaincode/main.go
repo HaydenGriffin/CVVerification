@@ -6,14 +6,14 @@ import (
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
 
-// CVTrackerChaincode implementation of Chaincode
-type CVTrackerChaincode struct {
+// CVVerificationChaincode implementation of Chaincode
+type CVVerificationChaincode struct {
 }
 
 // Init of the chaincode
 // Function is called to instantiate the chaincode
-func (t *CVTrackerChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
-	fmt.Println("CVTrackerChaincode Init")
+func (t *CVVerificationChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
+	fmt.Println("CVVerificationChaincode Init")
 
 	// Get the function and arguments from the request
 	function, _ := stub.GetFunctionAndParameters()
@@ -31,8 +31,8 @@ func (t *CVTrackerChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response 
 
 // Invoke chaincode
 // All future requests named invoke will arrive here.
-func (t *CVTrackerChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
-	fmt.Println("CVTrackerChaincode Invoke")
+func (t *CVVerificationChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
+	fmt.Println("CVVerificationChaincode Invoke")
 
 	// Get the function and arguments from the request
 	function, args := stub.GetFunctionAndParameters()
@@ -66,8 +66,8 @@ func (t *CVTrackerChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Respons
 
 func main() {
 	// Start the chaincode and make it ready for futures requests
-	err := shim.Start(new(CVTrackerChaincode))
+	err := shim.Start(new(CVVerificationChaincode))
 	if err != nil {
-		fmt.Printf("Error starting CVTracker chaincode: %s", err)
+		fmt.Printf("Error starting cvverification chaincode: %s", err)
 	}
 }

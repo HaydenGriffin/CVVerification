@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/cvtracker/models"
-	"github.com/cvtracker/sessions"
+	"github.com/cvverification/models"
+	"github.com/cvverification/sessions"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
 )

@@ -3,8 +3,8 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"github.com/cvtracker/chaincode/model"
-	"github.com/cvtracker/models"
+	"github.com/cvverification/chaincode/model"
+	"github.com/cvverification/models"
 )
 
 var dataSourceName = "root:password@tcp(localhost:3306)/verification?parseTime=true"

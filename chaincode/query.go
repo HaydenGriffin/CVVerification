@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/cvtracker/chaincode/model"
+	"github.com/cvverification/chaincode/model"
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
 
 // query function that handle every readonly in the ledger
-func (t *CVTrackerChaincode) query(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) query(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("Query functions")
 
 	// Check whether the number of arguments is sufficient
@@ -37,7 +37,7 @@ func (t *CVTrackerChaincode) query(stub shim.ChaincodeStubInterface, args []stri
 	return shim.Error("Unknown query action, check the second argument.")
 }
 
-func (t *CVTrackerChaincode) admin(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) admin(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	fmt.Println("# admin information")
 
@@ -63,7 +63,7 @@ func (t *CVTrackerChaincode) admin(stub shim.ChaincodeStubInterface, args []stri
 	return shim.Success(adminAsByte)
 }
 
-func (t *CVTrackerChaincode) applicant(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) applicant(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	fmt.Println("# applicant information")
 
@@ -89,7 +89,7 @@ func (t *CVTrackerChaincode) applicant(stub shim.ChaincodeStubInterface, args []
 	return shim.Success(applicantAsByte)
 }
 
-func (t *CVTrackerChaincode) verifier(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) verifier(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	fmt.Println("# verifier information")
 
@@ -115,7 +115,7 @@ func (t *CVTrackerChaincode) verifier(stub shim.ChaincodeStubInterface, args []s
 	return shim.Success(verifierAsByte)
 }
 
-func (t *CVTrackerChaincode) allowedtovote(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) allowedtovote(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	fmt.Println("# applicant information")
 
@@ -141,7 +141,7 @@ func (t *CVTrackerChaincode) allowedtovote(stub shim.ChaincodeStubInterface, arg
 	return shim.Success(applicantAsByte)
 }
 
-func (t *CVTrackerChaincode) profile(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) profile(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	fmt.Println("# profile detail")
 
@@ -169,7 +169,7 @@ func (t *CVTrackerChaincode) profile(stub shim.ChaincodeStubInterface, args []st
 	return shim.Success(cvAsByte)
 }
 
-func (t *CVTrackerChaincode) cv(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) cv(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	fmt.Println("# cv detail")
 
@@ -197,7 +197,7 @@ func (t *CVTrackerChaincode) cv(stub shim.ChaincodeStubInterface, args []string)
 	return shim.Success(cvAsByte)
 }
 
-func (t *CVTrackerChaincode) cvreviews(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) cvreviews(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	fmt.Println("# cv reviews")
 
@@ -242,7 +242,7 @@ func (t *CVTrackerChaincode) cvreviews(stub shim.ChaincodeStubInterface, args []
 	return shim.Success(reviewsAsByte)
 }
 
-func (t *CVTrackerChaincode) cvreviewable(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) cvreviewable(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	fmt.Println("# cv reviewable")
 

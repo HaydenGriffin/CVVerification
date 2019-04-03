@@ -7,19 +7,36 @@
 #
 ################################################################################
 Organizations:
-    - &CVTracker
-        Name: CVTracker
-        ID: cvtracker.com
-        AdminPrincipal: Role.ADMIN
-        MSPDir: crypto-config/ordererOrganizations/cvtracker.com/msp
+    - &OrdererOrg
+        Name: OrdererOrg
+        ID: cvverification.com
+        MSPDir: crypto-config/ordererOrganizations/cvverification.com/msp
 
-    - &Org1CVTracker
-        Name: CVTrackerOrganization1
-        ID: org1.cvtracker.com
+    - &Org1CVVerification
+        Name: CVVerificationOrg1
+        ID: org1.cvverification.com
         AdminPrincipal: Role.ADMIN
-        MSPDir: crypto-config/peerOrganizations/org1.cvtracker.com/msp
+        MSPDir: crypto-config/peerOrganizations/org1.cvverification.com/msp
         AnchorPeers:
-            - Host: peer0.org1.cvtracker.com
+            - Host: peer0.org1.cvverification.com
+              Port: 7051
+
+    - &Org2CVVerification
+        Name: CVVerificationOrg2
+        ID: org2.cvverification.com
+        AdminPrincipal: Role.ADMIN
+        MSPDir: crypto-config/peerOrganizations/org2.cvverification.com/msp
+        AnchorPeers:
+            - Host: peer0.org2.cvverification.com
+              Port: 7051
+
+    - &Org3CVVerification
+        Name: CVVerificationOrg3
+        ID: org3.cvverification.com
+        AdminPrincipal: Role.ADMIN
+        MSPDir: crypto-config/peerOrganizations/org3.cvverification.com/msp
+        AnchorPeers:
+            - Host: peer0.org3.cvverification.com
               Port: 7051
 
 ################################################################################
@@ -33,7 +50,7 @@ Organizations:
 Orderer: &OrdererDefaults
     OrdererType: solo
     Addresses:
-        - orderer.cvtracker.com:7050
+        - orderer.cvverification.com:7050
     BatchTimeout: 5s
     # Batch Size: Controls the number of messages batched into a block.
     BatchSize:
@@ -68,6 +85,16 @@ Orderer: &OrdererDefaults
 Application: &ApplicationDefaults
     Organizations:
 
+Capabilities:
+    Global: &ChannelCapabilities
+        V1_1: true
+
+    Orderer: &OrdererCapabilities
+        V1_1: true
+
+    Application: &ApplicationCapabilities
+        V1_1: true
+
 ################################################################################
 #
 #   SECTION : Profile
@@ -80,18 +107,29 @@ Application: &ApplicationDefaults
 #
 ################################################################################
 Profiles:
-    CVTracker:
+    OrdererGenesis:
+        Capabilities:
+            <<: *ChannelCapabilities
         Orderer:
             <<: *OrdererDefaults
             Organizations:
-                - *CVTracker
-        Application:
-            <<: *ApplicationDefaults
-            Organizations:
-                - *Org1CVTracker
-        Consortium: SampleConsortium
+                - *OrdererOrg
+            Capabilities:
+                <<: *OrdererCapabilities
         Consortiums:
             SampleConsortium:
                 Organizations:
-                    - *CVTracker
-                    - *Org1CVTracker
+                    - *Org1CVVerification
+                    - *Org2CVVerification
+                    - *Org3CVVerification
+
+    ChannelAll:
+        Consortium: SampleConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *Org1CVVerification
+                - *Org2CVVerification
+                - *Org3CVVerification
+            Capabilities:
+                <<: *ApplicationCapabilities

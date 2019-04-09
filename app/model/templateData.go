@@ -1,10 +1,10 @@
-package models
+package model
 
 import (
 	"github.com/cvverification/chaincode/model"
 )
 
-type TemplateData struct {
+type Data struct {
 	UserDetails UserDetails
 	CurrentPage string
 	MessageWarning string

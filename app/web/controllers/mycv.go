@@ -2,10 +2,10 @@ package controllers
 
 import (
 	"encoding/gob"
+	"github.com/cvverification/app/database"
+	templateModel "github.com/cvverification/app/model"
+	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/blockchain"
-	"github.com/cvverification/database"
-	"github.com/cvverification/models"
-	"github.com/cvverification/sessions"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
@@ -16,7 +16,7 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 
 		session := sessions.InitSession(r)
 
-		data := models.TemplateData{
+		data := templateModel.Data{
 			CurrentPage: "index",
 		}
 
@@ -138,7 +138,7 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 
 		session := sessions.InitSession(r)
 
-		data := models.TemplateData{
+		data := templateModel.Data{
 			CurrentPage: "index",
 		}
 
@@ -209,7 +209,7 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 
 		session := sessions.InitSession(r)
 
-		data := models.TemplateData{
+		data := templateModel.Data{
 			CurrentPage: "index",
 		}
 

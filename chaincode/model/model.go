@@ -77,12 +77,4 @@ const (
 	ObjectTypeApplicant        = "applicant"
 	ObjectTypeVerifier        = "verifier"
 	ObjectTypeCV         	   = "cv"
-	ObjectTypeRating           = "rating"
-)
-
-// List of available filter for query resources
-const (
-	ResourcesFilterAll             = "all"
-	ResourcesFilterOnlyAvailable   = "only-available"
-	ResourcesFilterOnlyUnavailable = "only-unavailable"
 )

@@ -6,22 +6,22 @@ package main
 
 import (
 	"fmt"
+	"github.com/cvverification/app/web"
+	"github.com/cvverification/app/web/controllers"
 	"github.com/cvverification/blockchain"
 	"github.com/cvverification/chaincode/model"
-	"github.com/cvverification/controllers"
-	"github.com/cvverification/web"
 	"os"
 )
 
 func main() {
 	// Definition of the Fabric SDK properties
 	fSetup := blockchain.FabricSetup{
-		// Network parameters 
+		// Network parameters
 		OrdererID: "orderer.cvverification.com",
 
 		// Channel parameters
 		ChannelID:     "channelall",
-		ChannelConfig: os.Getenv("GOPATH") + "/src/github.com/cvverification/fixtures/artifacts/cvverification.channel.tx",
+		ChannelConfig: os.Getenv("GOPATH") + "/src/github.com/cvverification/fabric-network/fixtures/artifacts/cvverification.channel.tx",
 
 		// Chaincode parameters
 		ChaincodeID:     "cvverification",
@@ -46,7 +46,7 @@ func main() {
 		return
 	}
 	// Close SDK
-	defer fSetup.CloseSDK()	
+	defer fSetup.CloseSDK()
 
 	// Install and instantiate the chaincode
 	_, err = fSetup.InstallAndInstantiateCC()

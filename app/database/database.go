@@ -3,31 +3,27 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/chaincode/model"
-	"github.com/cvverification/models"
 )
 
 var dataSourceName = "root:password@tcp(localhost:3306)/verification?parseTime=true"
 
 func InitDB(dataSourceName string) (*sql.DB, error) {
 	db, err := sql.Open("mysql", dataSourceName)
-	db.SetMaxOpenConns(1000)
-	db.SetMaxIdleConns(100)
-
 	if err != nil {
 		return nil, err
 	}
 
-	if err = db.Ping(); err != nil {
-		return nil, err
-	}
+	db.SetMaxOpenConns(1000)
+	db.SetMaxIdleConns(100)
 
 	return db, nil
 }
 
-func GetUserDetailsFromUsername(username string) (models.UserDetails, error) {
+func GetUserDetailsFromUsername(username string) (templateModel.UserDetails, error) {
 
-	user := models.UserDetails{}
+	user := templateModel.UserDetails{}
 
 	db, err := InitDB(dataSourceName)
 
@@ -109,7 +105,7 @@ func GetUserCVDetails(user_id int) ([]model.CVHistoryInfo, error) {
 	return historicalCVHistoryInfo, nil
 }
 
-func CreateNewUser(username, full_name, email_address, fabric_id string) (userDetails models.UserDetails, error error) {
+func CreateNewUser(username, full_name, email_address, fabric_id string) (userDetails templateModel.UserDetails, error error) {
 
 	db, err := InitDB(dataSourceName)
 
@@ -124,7 +120,7 @@ func CreateNewUser(username, full_name, email_address, fabric_id string) (userDe
 		return userDetails, err
 	}
 
-	var selectedUser models.UserDetails
+	var selectedUser templateModel.UserDetails
 
 	selectedUser, err = GetUserDetailsFromUsername(username)
 
@@ -137,7 +133,7 @@ func CreateNewUser(username, full_name, email_address, fabric_id string) (userDe
 	return userDetails, err
 }
 
-func UpdateUser(username, full_name, email_address string) (userDetails models.UserDetails, error error) {
+func UpdateUser(username, full_name, email_address string) (userDetails templateModel.UserDetails, error error) {
 
 	db, err := InitDB(dataSourceName)
 
@@ -148,13 +144,13 @@ func UpdateUser(username, full_name, email_address string) (userDetails models.U
 	user, err := GetUserDetailsFromUsername(username)
 
 	if err != nil {
-		return models.UserDetails{}, err
+		return templateModel.UserDetails{}, err
 	}
 
 	_, err = db.Exec("UPDATE users SET full_name = ?, email_address = ? WHERE id = ?", full_name, email_address, user.Id)
 
 	if err != nil {
-		return models.UserDetails{}, err
+		return templateModel.UserDetails{}, err
 	} else {
 		user.FullName = full_name
 		user.EmailAddress = email_address

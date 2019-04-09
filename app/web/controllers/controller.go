@@ -4,10 +4,10 @@ import (
 	"encoding/base64"
 	"encoding/gob"
 	"fmt"
+	"github.com/cvverification/app/database"
+	templateModel "github.com/cvverification/app/model"
+	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/blockchain"
-	"github.com/cvverification/database"
-	"github.com/cvverification/models"
-	"github.com/cvverification/sessions"
 	"html/template"
 	"net/http"
 	"os"
@@ -51,7 +51,6 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 		}
 
 		session := sessions.InitSession(r)
-		session.Values["LoggedInFlag"] = true
 
 		// Check that there is corresponding user details stored in DB
 		userDetails, err := database.GetUserDetailsFromUsername(pair[0])
@@ -81,14 +80,13 @@ func (c *Controller) LogoutHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 		session := sessions.InitSession(r)
 
-		data := models.TemplateData{
+		data := templateModel.Data{
 			CurrentPage: "index",
 		}
 		w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
 		w.WriteHeader(http.StatusUnauthorized)
 
-		session.Values["UserDetails"] = models.UserDetails{}
-		session.Values["LoggedInFlag"] = false
+		session.Values["UserDetails"] = templateModel.UserDetails{}
 		err := session.Save(r, w)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to save session values."
@@ -100,11 +98,10 @@ func (c *Controller) LogoutHandler() func(http.ResponseWriter, *http.Request) {
 	})
 }
 
-
 func renderTemplate(w http.ResponseWriter, r *http.Request, templateName string, data interface{}) {
-	lp := filepath.Join("web", "templates", "layout.html")
-	ap := filepath.Join("web", "templates", "alerts.html")
-	tp := filepath.Join("web", "templates", templateName)
+	lp := filepath.Join("app", "web", "templates", "layout.html")
+	ap := filepath.Join("app", "web", "templates", "alerts.html")
+	tp := filepath.Join("app", "web", "templates", templateName)
 
 	// Return a 404 if the template doesn't exist
 	info, err := os.Stat(tp)

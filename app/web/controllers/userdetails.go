@@ -2,10 +2,10 @@ package controllers
 
 import (
 	"encoding/gob"
+	"github.com/cvverification/app/database"
+	templateModel "github.com/cvverification/app/model"
+	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/blockchain"
-	"github.com/cvverification/database"
-	"github.com/cvverification/models"
-	"github.com/cvverification/sessions"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
 )
@@ -13,12 +13,11 @@ import (
 func (c *Controller) UpdateDetailsView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		data := models.TemplateData{
+		data := templateModel.Data{
 			CurrentPage:  "userdetails",
 		}
 
 		session := sessions.InitSession(r)
-
 
 		// Retrieve user details
 		if sessions.HasSavedUserDetails(session) {
@@ -34,7 +33,7 @@ func (c *Controller) UpdateDetailsView() func(http.ResponseWriter, *http.Request
 func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		data := models.TemplateData{
+		data := templateModel.Data{
 			CurrentPage:  "index",
 		}
 

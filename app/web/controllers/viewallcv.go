@@ -3,11 +3,11 @@ package controllers
 import (
 	"encoding/gob"
 	"fmt"
+	"github.com/cvverification/app/database"
+	templateModel "github.com/cvverification/app/model"
+	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/blockchain"
 	"github.com/cvverification/chaincode/model"
-	"github.com/cvverification/database"
-	"github.com/cvverification/models"
-	"github.com/cvverification/sessions"
 	"net/http"
 )
 
@@ -15,7 +15,7 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 		session := sessions.InitSession(r)
 
-		data := models.TemplateData{
+		data := templateModel.Data{
 			CurrentPage: "index",
 		}
 

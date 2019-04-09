@@ -1,11 +1,10 @@
 package sessions
 
 import (
+	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/chaincode/model"
-	"github.com/cvverification/models"
 	"github.com/gorilla/securecookie"
 	"net/http"
-
 	"github.com/gorilla/sessions"
 )
 
@@ -23,7 +22,6 @@ func InitSession(r *http.Request) *sessions.Session {
 		session.Options.MaxAge = 0
 		session.Options.HttpOnly = false
 		session.Options.Secure = false
-		session.Values["LoggedInFlag"] = false
 	}
 	return session
 }
@@ -38,12 +36,12 @@ func HasSavedUserDetails(s *sessions.Session) bool {
 	}
 }
 
-func GetUserDetails(s *sessions.Session) models.UserDetails {
+func GetUserDetails(s *sessions.Session) templateModel.UserDetails {
 	val := s.Values["UserDetails"]
 
-	userDetails, ok := val.(models.UserDetails)
+	userDetails, ok := val.(templateModel.UserDetails)
 	if !ok {
-		return models.UserDetails{}
+		return templateModel.UserDetails{}
 	}
 
 	userUploadedCV := GetUserUploadedCV(s)

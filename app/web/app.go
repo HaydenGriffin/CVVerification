@@ -2,7 +2,7 @@ package web
 
 import (
 	"fmt"
-	"github.com/cvverification/controllers"
+	"github.com/cvverification/app/web/controllers"
 	"log"
 	"net/http"
 	"github.com/gorilla/mux"

@@ -2,11 +2,11 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/cvverification/app/database"
+	templateModel "github.com/cvverification/app/model"
+	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/blockchain"
 	"github.com/cvverification/chaincode/model"
-	"github.com/cvverification/database"
-	"github.com/cvverification/models"
-	"github.com/cvverification/sessions"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -18,7 +18,7 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 
 		session := sessions.InitSession(r)
 
-		data := models.TemplateData{
+		data := templateModel.Data{
 			CurrentPage: "viewallcv",
 		}
 
@@ -103,7 +103,7 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 
 		session := sessions.InitSession(r)
 
-		data := models.TemplateData{
+		data := templateModel.Data{
 			CurrentPage: "index",
 		}
 

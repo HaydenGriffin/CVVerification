@@ -1,16 +1,16 @@
 package controllers
 
 import (
+	templateModel "github.com/cvverification/app/model"
+	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/blockchain"
-	"github.com/cvverification/models"
-	"github.com/cvverification/sessions"
 	"net/http"
 )
 
 func (c *Controller) IndexHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		data := models.TemplateData{
+		data := templateModel.Data{
 			CurrentPage:  "index",
 		}
 

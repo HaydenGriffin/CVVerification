@@ -75,6 +75,7 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
+		data.CurrentPage = "viewallcv"
 		renderTemplate(w, r, "viewallcv.html", data)
 	})
 }

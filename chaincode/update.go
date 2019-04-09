@@ -113,9 +113,29 @@ func (t *CVVerificationChaincode) register(stub shim.ChaincodeStubInterface, arg
 			return shim.Error(fmt.Sprintf("Unable convert the new verifier to byte: %v", err))
 		}
 
-		fmt.Printf("Applicant:\n  ID -> %s\n  Name -> %s\n", actorID, args[0])
+		fmt.Printf("Verifier:\n  ID -> %s\n  Name -> %s\n", actorID, args[0])
 
 		return shim.Success(newVerifierAsByte)
+	case model.ActorEmployer:
+		newEmployer := model.Employer{
+			Actor: model.Actor{
+				ID:   actorID,
+				Username: args[0],
+			},
+			Profile: model.EmployerProfile{},
+		}
+		err = updateInLedger(stub, model.ObjectTypeEmployer, actorID, newEmployer)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("Unable to register the new employer in the ledger: %v", err))
+		}
+		newEmployerAsByte, err := convertObjectToByte(newEmployer)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("Unable convert the new employer to byte: %v", err))
+		}
+
+		fmt.Printf("Employer:\n  ID -> %s\n  Name -> %s\n", actorID, args[0])
+
+		return shim.Success(newEmployerAsByte)
 	default:
 		return shim.Error("The type of the request owner is unknown")
 	}

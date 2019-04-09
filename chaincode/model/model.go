@@ -17,11 +17,6 @@ const (
 	ActorAdmin = "admin"
 )
 
-type Admin struct {
-	Actor
-	Profile AdminProfile
-}
-
 type Applicant struct {
 	Actor
 	Profile ApplicantProfile
@@ -32,21 +27,28 @@ type Verifier struct {
 	Profile VerifierProfile
 }
 
+type Employer struct {
+	Actor
+	Profile EmployerProfile
+}
+
+type Admin struct {
+	Actor
+	Profile AdminProfile
+}
+
 type ApplicantProfile struct {
 	CVHistory []string `json:"CVHistory"`
 	Reviews map[string] []CVReview
 }
 
 type VerifierProfile struct {
-	Username	string	`json:"Name"`
-	CVHistory []string `json:"CVHistory"`
-	Reviews map[string] CVReview
 }
 
 type AdminProfile struct {
-	Username	string	`json:"Name"`
-	CVHistory []string `json:"CVHistory"`
-	Reviews map[string] []CVReview
+}
+
+type EmployerProfile struct {
 }
 
 type CVObject struct {
@@ -73,8 +75,9 @@ type CVHistoryInfo struct {
 
 // List of object type stored in the ledger
 const (
-	ObjectTypeAdmin            = "admin"
-	ObjectTypeApplicant        = "applicant"
-	ObjectTypeVerifier        = "verifier"
-	ObjectTypeCV         	   = "cv"
+	ObjectTypeApplicant = "applicant"
+	ObjectTypeVerifier = "verifier"
+	ObjectTypeEmployer = "employer"
+	ObjectTypeAdmin = "admin"
+	ObjectTypeCV = "cv"
 )

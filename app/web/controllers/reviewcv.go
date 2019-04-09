@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/gob"
 	"encoding/json"
 	"github.com/cvverification/app/database"
 	templateModel "github.com/cvverification/app/model"
@@ -82,8 +83,9 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 		}
 
 		data.CVInfo.CV = cv
+		gob.Register(cv)
 		session.Values["ApplicantFabricID"] = applicantFabricID
-		session.Values["CVHash"] = cvHash
+		session.Values["CV"] = cv
 
 		err = session.Save(r, w)
 		if err != nil {
@@ -161,6 +163,8 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
+
+		data.CVInfo.CV = sessions.GetCV(session)
 
 		data.CurrentPage = "viewallcv"
 		data.MessageSuccess = "Success! Your review has been saved."

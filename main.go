@@ -79,6 +79,18 @@ func main() {
 		return
 	}
 
+	err = fSetup.RegisterUser("verifier2", "password", model.ActorVerifier)
+	if err != nil {
+		fmt.Printf("Unable to register the user 'verifier2': %v\n", err)
+		return
+	}
+
+	err = fSetup.RegisterUser("employer1", "password", model.ActorEmployer)
+	if err != nil {
+		fmt.Printf("Unable to register the user 'employer1': %v\n", err)
+		return
+	}
+
 	// Launch the web application listening
 	app := &controllers.Controller{
 		Fabric: &fSetup,

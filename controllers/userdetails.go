@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/gob"
-	"fmt"
 	"github.com/cvverification/blockchain"
 	"github.com/cvverification/database"
 	"github.com/cvverification/models"
@@ -19,14 +18,17 @@ func (c *Controller) UpdateDetailsView() func(http.ResponseWriter, *http.Request
 		}
 
 		session := sessions.InitSession(r)
+
+
+		// Retrieve user details
 		if sessions.HasSavedUserDetails(session) {
-			userDetails := sessions.GetUserDetails(session)
-			data.UserDetails = userDetails
+			data.UserDetails = sessions.GetUserDetails(session)
+			renderTemplate(w, r, "index.html", data)
 		} else {
 			data.CurrentPage = "userdetails"
 			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "userdetails.html", data)
 		}
-		renderTemplate(w, r, "userdetails.html", data)
 	})
 }
 func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Request) {
@@ -44,6 +46,7 @@ func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Requ
 		fullName := r.FormValue("fullName")
 		emailAddress := r.FormValue("emailAddress")
 
+		// Retrieve user details
 		if sessions.HasSavedUserDetails(session) {
 			// Logic to update a profile
 			userDetails, err := database.UpdateUser(username, fullName, emailAddress)
@@ -57,10 +60,6 @@ func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Requ
 				// Update the session values and save session
 				gob.Register(userDetails)
 				session.Values["UserDetails"] = userDetails
-				err = session.Save(r, w)
-				if err != nil {
-					fmt.Printf(err.Error())
-				}
 				data.UserDetails = userDetails
 				data.MessageSuccess = "Success! You details have been updated."
 				renderTemplate(w, r, "index.html", data)
@@ -68,13 +67,13 @@ func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Requ
 			}
 		} else {
 			// Profile details haven't been saved to DB yet
-			userID, err := u.QueryID()
+			fabricID, err := u.QueryID()
 			if err != nil {
 				data.MessageWarning = "Error! Unable to retrieve profile ID from ledger."
 			}
 
 			// Insert row into DB
-			userDetails, err := database.CreateNewUser(username, fullName, emailAddress, userID)
+			userDetails, err := database.CreateNewUser(username, fullName, emailAddress, fabricID)
 			if err != nil {
 				data.MessageWarning = "Error! Unable to save user details."
 				renderTemplate(w, r, "userdetails.html", data)
@@ -83,13 +82,17 @@ func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Requ
 			// Register the userDetails gob to be used as a session value
 			gob.Register(userDetails)
 			session.Values["UserDetails"] = userDetails
-			err = session.Save(r, w)
-			if err != nil {
-				fmt.Printf(err.Error())
-			}
 			data.UserDetails = userDetails
 			data.MessageSuccess = "Success! Your details have been saved. Welcome, " + userDetails.FullName
 			renderTemplate(w, r, "index.html", data)
 		}
+
+		err := session.Save(r, w)
+		if err != nil {
+			data.MessageWarning = "Error! Unable to save session values."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
+
 	})
 }

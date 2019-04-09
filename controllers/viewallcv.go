@@ -19,11 +19,14 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 			CurrentPage: "index",
 		}
 
-		if sessions.IsLoggedIn(session) {
+		// Retrieve user details
+		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
-			data.MessageWarning = "You must be logged in to view the CVs."
-			renderTemplate(w, r, "index.html", data)
+			data.CurrentPage = "userdetails"
+			data.MessageWarning = "Error! You must register your user details before using the system."
+			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "userdetails.html", data)
 			return
 		}
 
@@ -68,7 +71,9 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 		session.Values["AllCVList"] = data.CVInfo.CVList
 		err = session.Save(r, w)
 		if err != nil {
-			fmt.Println(err.Error())
+			data.MessageWarning = "Error! Unable to save session values."
+			renderTemplate(w, r, "index.html", data)
+			return
 		}
 		renderTemplate(w, r, "viewallcv.html", data)
 	})

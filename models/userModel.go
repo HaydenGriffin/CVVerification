@@ -5,5 +5,5 @@ type UserDetails struct {
 	Username string `json:"username"`
 	FullName string `json:"fullName"`
 	EmailAddress string `json:"emailAddress"`
-	ID string `json:"ID"`
+	UploadedCV bool `json:"uploadedCV"`
 }

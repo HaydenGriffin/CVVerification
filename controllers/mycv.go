@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/gob"
-	"fmt"
 	"github.com/cvverification/blockchain"
 	"github.com/cvverification/database"
 	"github.com/cvverification/models"
@@ -22,11 +21,13 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 		}
 
 		// Retrieve user details
-		if sessions.IsLoggedIn(session) {
+		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
-			data.MessageWarning = "Error! You must be logged in to view your CV."
-			renderTemplate(w, r, "index.html", data)
+			data.CurrentPage = "userdetails"
+			data.MessageWarning = "Error! You must register your user details before using the system."
+			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "userdetails.html", data)
 			return
 		}
 
@@ -121,8 +122,6 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 		session.Values["CVHash"] = cvToDisplayCVHash
 		session.Values["Reviews"] = reviews
 
-		fmt.Println(cv)
-
 		err = session.Save(r, w)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to save session values."
@@ -143,14 +142,24 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 			CurrentPage: "index",
 		}
 
-		if sessions.IsLoggedIn(session) {
+		// Retrieve user details
+		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
-			data.MessageWarning = "Error! You must be logged in to view your CV."
-			renderTemplate(w, r, "index.html", data)
+			data.CurrentPage = "userdetails"
+			data.MessageWarning = "Error! You must register your user details before using the system."
+			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "userdetails.html", data)
 			return
 		}
 
+		// Check that the user connected is an applicant
+		_, err := u.QueryApplicant()
+		if err != nil {
+			data.MessageWarning = "Error! You must be an applicant user to view your CV."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
 
 		cv := sessions.GetCV(session)
 		cvHash := sessions.GetCVHash(session)
@@ -178,8 +187,8 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 			}
 			data.MessageSuccess = "Success! Your CV can now be reviewed."
 			data.CVInfo.CurrentCVInReview = true
-			data.CurrentPage = "mycv"
 			data.CVInfo.UserHasCVInReview = true
+			data.CurrentPage = "mycv"
 		}
 
 		historicalCVHistoryInfo, err := database.GetUserCVDetails(data.UserDetails.Id)
@@ -191,12 +200,9 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 		}
 
 		data.CVInfo.CVHistory = historicalCVHistoryInfo
-		//data.Ratings = sessions.GetRatings(session)
 		renderTemplate(w, r, "mycv.html", data)
-
 	})
 }
-
 
 func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
@@ -207,10 +213,21 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 			CurrentPage: "index",
 		}
 
-		if sessions.IsLoggedIn(session) {
+		// Retrieve user details
+		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
-			data.MessageWarning = "Error! You must be logged in to view your CV."
+			data.CurrentPage = "userdetails"
+			data.MessageWarning = "Error! You must register your user details before using the system."
+			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "userdetails.html", data)
+			return
+		}
+
+		// Check that the user connected is an applicant
+		_, err := u.QueryApplicant()
+		if err != nil {
+			data.MessageWarning = "Error! You must be an applicant user to view your CV."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
@@ -228,9 +245,8 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 		data.CVInfo.CurrentCVHash = cvHash
 		data.CVInfo.Reviews = reviews
 
-		err := database.UpdateCV(cvHash, 0)
+		err = database.UpdateCV(cvHash, 0)
 		if err != nil {
-			fmt.Printf(err.Error())
 			data.MessageWarning = "Error! Unable to update CV info in database."
 			renderTemplate(w, r, "index.html", data)
 		}
@@ -238,7 +254,6 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 		historicalCVHistoryInfo, err := database.GetUserCVDetails(data.UserDetails.Id)
 
 		if err != nil || len(historicalCVHistoryInfo) == 0 {
-			fmt.Printf(err.Error())
 			data.MessageWarning = "Error! Unable to find CV info in database."
 			renderTemplate(w, r, "index.html", data)
 			return
@@ -247,8 +262,6 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 		data.CVInfo.CVHistory = historicalCVHistoryInfo
 		data.MessageSuccess = "Success! Your CV has been withdrawn from review."
 		data.CVInfo.CurrentCVInReview = false
-		//data.Ratings = sessions.GetRatings(session)
 		renderTemplate(w, r, "mycv.html", data)
-
 	})
 }

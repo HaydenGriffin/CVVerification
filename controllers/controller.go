@@ -58,6 +58,12 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 		if err != nil {
 			session.Values["SavedUserDetails"] = false
 		} else {
+			userCVInfo, err := database.GetUserCVDetails(userDetails.Id)
+			if err != nil || len(userCVInfo) == 0 {
+				session.Values["UserUploadedCV"] = false
+			} else {
+				session.Values["UserUploadedCV"] = true
+			}
 			gob.Register(userDetails)
 			session.Values["SavedUserDetails"] = true
 			session.Values["UserDetails"] = userDetails
@@ -85,9 +91,10 @@ func (c *Controller) LogoutHandler() func(http.ResponseWriter, *http.Request) {
 		session.Values["LoggedInFlag"] = false
 		err := session.Save(r, w)
 		if err != nil {
-			fmt.Println(err.Error())
+			data.MessageWarning = "Error! Unable to save session values."
+			renderTemplate(w, r, "index.html", data)
+			return
 		}
-
 		data.MessageSuccess = "Success! You have been logged out."
 		renderTemplate(w, r, "index.html", data)
 	})

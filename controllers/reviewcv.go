@@ -22,12 +22,14 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 			CurrentPage: "viewallcv",
 		}
 
-		if sessions.IsLoggedIn(session) {
+		// Retrieve user details
+		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
-			data.CurrentPage = "index"
-			data.MessageWarning = "You must be logged in to view the CVs."
-			renderTemplate(w, r, "index.html", data)
+			data.CurrentPage = "userdetails"
+			data.MessageWarning = "Error! You must register your user details before using the system."
+			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "userdetails.html", data)
 			return
 		}
 
@@ -56,14 +58,14 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		applicantID, cvHash, err := database.GetCVInfoFromID(userID)
+		applicantFabricID, cvHash, err := database.GetCVInfoFromID(userID)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to find CV info in database."
 			renderTemplate(w, r, "viewallcv.html", data)
 			return
 		}
 
-		verifierReview, err := u.QueryVerifierCVReview(applicantID, cvHash)
+		verifierReview, err := u.QueryVerifierCVReview(applicantFabricID, cvHash)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to find CV review information in ledger."
 			renderTemplate(w, r, "viewallcv.html", data)
@@ -80,7 +82,7 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 		}
 
 		data.CVInfo.CV = cv
-		session.Values["ApplicantID"] = applicantID
+		session.Values["ApplicantFabricID"] = applicantFabricID
 		session.Values["CVHash"] = cvHash
 
 		err = session.Save(r, w)
@@ -105,11 +107,14 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 			CurrentPage: "index",
 		}
 
-		if sessions.IsLoggedIn(session) {
+		// Retrieve user details
+		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
-			data.MessageWarning = "Error! You must be logged in to view the CVs."
-			renderTemplate(w, r, "index.html", data)
+			data.CurrentPage = "userdetails"
+			data.MessageWarning = "Error! You must register your user details before using the system."
+			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "userdetails.html", data)
 			return
 		}
 
@@ -134,7 +139,7 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 			Rating:  ratingInt,
 		}
 
-		applicantID := sessions.GetApplicantID(session)
+		applicantID := sessions.GetApplicantFabricID(session)
 		cvHash := sessions.GetCVHash(session)
 
 		if applicantID == "" || cvHash == "" {

@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/cvverification/blockchain"
 	"github.com/cvverification/chaincode/model"
 	"github.com/cvverification/crypto"
@@ -22,25 +21,26 @@ func (c *Controller) AddCVView() func(http.ResponseWriter, *http.Request) {
 			CurrentPage: "addcv",
 		}
 
+		// Retrieve user details
+		if sessions.HasSavedUserDetails(session) {
+			data.UserDetails = sessions.GetUserDetails(session)
+		} else {
+			data.CurrentPage = "userdetails"
+			data.MessageWarning = "Error! You must register your user details before using the system."
+			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "userdetails.html", data)
+			return
+		}
+
 		// Check that the user connected is an applicant
 		_, err := u.QueryApplicant()
 		if err != nil {
-			fmt.Println(err)
 			data.CurrentPage = "index"
 			data.MessageWarning = "Error! You must be an applicant user to upload a CV."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
-
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
-			renderTemplate(w, r, "addcv.html", data)
-		} else {
-			data.CurrentPage = "userdetails"
-			data.UserDetails.Username = u.Username
-			data.MessageWarning = "Error! You must register your user details before using the system."
-			renderTemplate(w, r, "userdetails.html", data)
-		}
+		renderTemplate(w, r, "addcv.html", data)
 	})
 }
 
@@ -50,29 +50,50 @@ func (c *Controller) UpdateCVView() func(http.ResponseWriter, *http.Request) {
 		session := sessions.InitSession(r)
 
 		data := models.TemplateData{
-			CurrentPage: "addcv",
+			CurrentPage: "index",
+		}
+
+		// Retrieve user details
+		if sessions.HasSavedUserDetails(session) {
+			data.UserDetails = sessions.GetUserDetails(session)
+		} else {
+			data.CurrentPage = "userdetails"
+			data.MessageWarning = "Error! You must register your user details before using the system."
+			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "userdetails.html", data)
+			return
 		}
 
 		// Check that the user connected is an applicant
-		_, err := u.QueryApplicant()
+		applicant, err := u.QueryApplicant()
 		if err != nil {
 			data.MessageWarning = "Error! You must be an applicant user to update your CV."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
-			data.CVInfo.CV = sessions.GetCV(session)
-			fmt.Println(data.CVInfo.CV)
-			renderTemplate(w, r, "updatecv.html", data)
-		} else {
-			data.CurrentPage = "userdetails"
-			data.UserDetails.Username = u.Username
-			data.MessageWarning = "Error! You must register your user details before using the system."
-			renderTemplate(w, r, "userdetails.html", data)
+		if data.UserDetails.UploadedCV == false {
+			data.CurrentPage = "addcv"
+			data.MessageWarning = "Error! You must add a CV before you can update it."
+			renderTemplate(w, r, "addcv.html", data)
+			return
 		}
 
+		cvToDisplay := sessions.GetCV(session)
+
+		if cvToDisplay == nil {
+			cvToDisplayCVHash := applicant.Profile.CVHistory[len(applicant.Profile.CVHistory)-1]
+			cvToDisplay, err = u.QueryCV(cvToDisplayCVHash)
+			if err != nil {
+				data.MessageWarning = "Error! Something went wrong whilst retrieving CV details from ledger."
+				renderTemplate(w, r, "index.html", data)
+				return
+			}
+		}
+
+		data.CVInfo.CV = cvToDisplay
+		data.CurrentPage = "updatecv"
+		renderTemplate(w, r, "updatecv.html", data)
 	})
 }
 
@@ -85,22 +106,23 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 			CurrentPage: "addcv",
 		}
 
+		// Retrieve user details
+		if sessions.HasSavedUserDetails(session) {
+			data.UserDetails = sessions.GetUserDetails(session)
+		} else {
+			data.CurrentPage = "userdetails"
+			data.MessageWarning = "Error! You must register your user details before using the system."
+			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "userdetails.html", data)
+			return
+		}
+
 		// Check that the user connected is an applicant
 		_, err := u.QueryApplicant()
 		if err != nil {
 			data.CurrentPage = "index"
 			data.MessageWarning = "Error! You must be an applicant user to upload a CV."
 			renderTemplate(w, r, "index.html", data)
-			return
-		}
-
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
-		} else {
-			data.CurrentPage = "userdetails"
-			data.UserDetails.Username = u.Username
-			data.MessageWarning = "Error! You must register your user details before using the system."
-			renderTemplate(w, r, "userdetails.html", data)
 			return
 		}
 
@@ -144,6 +166,14 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 			data.MessageWarning = "Error! Unable to save CV details to database."
 			renderTemplate(w, r, "addcv.html", data)
 		} else {
+			session.Values["UserUploadedCV"] = true
+			err = session.Save(r, w)
+			if err != nil {
+				data.MessageWarning = "Error! Unable to save session values."
+				renderTemplate(w, r, "index.html", data)
+				return
+			}
+			data.CurrentPage = "index"
 			data.MessageSuccess = "Success! Your CV has been saved to the ledger."
 			renderTemplate(w, r, "index.html", data)
 

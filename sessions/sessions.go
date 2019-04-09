@@ -28,16 +28,6 @@ func InitSession(r *http.Request) *sessions.Session {
 	return session
 }
 
-func IsLoggedIn(s *sessions.Session) bool {
-	loggedIn := s.Values["LoggedInFlag"]
-
-	if loggedIn != true {
-		return false
-	} else {
-		return true
-	}
-}
-
 func HasSavedUserDetails(s *sessions.Session) bool {
 	saved := s.Values["SavedUserDetails"]
 
@@ -55,7 +45,22 @@ func GetUserDetails(s *sessions.Session) models.UserDetails {
 	if !ok {
 		return models.UserDetails{}
 	}
+
+	userUploadedCV := GetUserUploadedCV(s)
+
+	userDetails.UploadedCV = userUploadedCV
+
 	return userDetails
+}
+
+func GetUserUploadedCV(s *sessions.Session) bool {
+	val := s.Values["UserUploadedCV"]
+
+	uploadedCV, ok := val.(bool)
+	if !ok {
+		return false
+	}
+	return uploadedCV
 }
 
 func GetCV(s *sessions.Session) *model.CVObject {
@@ -78,8 +83,8 @@ func GetCVHash(s *sessions.Session) string {
 	return cvHash
 }
 
-func GetApplicantID(s *sessions.Session) string {
-	val := s.Values["ApplicantID"]
+func GetApplicantFabricID(s *sessions.Session) string {
+	val := s.Values["ApplicantFabricID"]
 
 	ID, ok := val.(string)
 	if !ok {

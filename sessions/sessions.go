@@ -78,24 +78,24 @@ func GetCVHash(s *sessions.Session) string {
 	return cvHash
 }
 
-func GetProfileHash(s *sessions.Session) string {
-	val := s.Values["ProfileHash"]
+func GetApplicantID(s *sessions.Session) string {
+	val := s.Values["ApplicantID"]
 
-	profileHash, ok := val.(string)
+	ID, ok := val.(string)
 	if !ok {
 		return ""
 	}
-	return profileHash
+	return ID
 }
 
-func GetInReviewCVHash(s *sessions.Session) string {
-	val := s.Values["InReviewCVHash"]
+func GetAllCVList(s *sessions.Session) map[int] *model.CVObject {
+	val := s.Values["AllCVList"]
 
-	cvHash, ok := val.(string)
+	allCVList, ok := val.(map[int] *model.CVObject)
 	if !ok {
-		return ""
+		return nil
 	}
-	return cvHash
+	return allCVList
 }
 
 func GetReviews(s *sessions.Session) []model.CVReview {

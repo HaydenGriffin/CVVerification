@@ -2,11 +2,8 @@ package controllers
 
 import (
 	"encoding/gob"
-	"encoding/json"
 	"fmt"
 	"github.com/cvverification/blockchain"
-	"github.com/cvverification/chaincode/model"
-	"github.com/cvverification/crypto"
 	"github.com/cvverification/database"
 	"github.com/cvverification/models"
 	"github.com/cvverification/sessions"
@@ -51,8 +48,7 @@ func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Requ
 			// Logic to update a profile
 			userDetails, err := database.UpdateUser(username, fullName, emailAddress)
 			if err != nil {
-				fmt.Println(err)
-				data.MessageWarning = "An error occurred whilst trying to update your profile information."
+				data.MessageWarning = "Error! Unable to update profile information in database."
 				data.CurrentPage = "userdetails"
 				renderTemplate(w, r, "userdetails.html", data)
 				return
@@ -66,39 +62,21 @@ func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Requ
 					fmt.Printf(err.Error())
 				}
 				data.UserDetails = userDetails
-				data.MessageSuccess = "You have successfully updated your details!"
+				data.MessageSuccess = "Success! You details have been updated."
 				renderTemplate(w, r, "index.html", data)
 				return
 			}
 		} else {
-			fmt.Printf("Saving profile for first time")
 			// Profile details haven't been saved to DB yet
-			// Generate a unique profile hash. This is made up from the users signing identity + their chosen username
-			profileHash, err := crypto.GenerateFromString(u.SigningIdentity.Identifier().ID + u.Username)
+			userID, err := u.QueryID()
 			if err != nil {
-				fmt.Printf(err.Error())
-				data.MessageWarning = "Error! Something went wrong. Please try again"
-				renderTemplate(w, r, "userdetails.html", data)
-				return
-			}
-
-			profile := model.UserProfile{
-				Username:u.Username,
-			}
-
-			profileByte, err := json.Marshal(profile)
-
-			err = u.UpdateSaveProfile(profileByte, profileHash)
-
-			if err != nil {
-				fmt.Println("Unable to save profile to ledger")
+				data.MessageWarning = "Error! Unable to retrieve profile ID from ledger."
 			}
 
 			// Insert row into DB
-			userDetails, err := database.CreateNewUser(username, fullName, emailAddress, profileHash)
+			userDetails, err := database.CreateNewUser(username, fullName, emailAddress, userID)
 			if err != nil {
-				fmt.Printf(err.Error())
-				data.MessageWarning = "Error! Something went wrong whilst saving the user details. Please try again"
+				data.MessageWarning = "Error! Unable to save user details."
 				renderTemplate(w, r, "userdetails.html", data)
 				return
 			}
@@ -110,7 +88,7 @@ func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Requ
 				fmt.Printf(err.Error())
 			}
 			data.UserDetails = userDetails
-			data.MessageSuccess = "You have successfully registered your details! Welcome, " + userDetails.FullName
+			data.MessageSuccess = "Success! Your details have been saved. Welcome, " + userDetails.FullName
 			renderTemplate(w, r, "index.html", data)
 		}
 	})

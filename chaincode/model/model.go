@@ -5,7 +5,7 @@ import "time"
 // Actor metadata used for an admin and a consumer
 type Actor struct {
 	ID   string `json:"id"`
-	Name string `json:"name"`
+	Username string `json:"username"`
 }
 
 // Available actor type
@@ -19,17 +19,31 @@ const (
 
 type Admin struct {
 	Actor
+	Profile AdminProfile
 }
 
 type Applicant struct {
 	Actor
+	Profile ApplicantProfile
 }
 
 type Verifier struct {
 	Actor
+	Profile VerifierProfile
 }
 
-type UserProfile struct {
+type ApplicantProfile struct {
+	CVHistory []string `json:"CVHistory"`
+	Reviews map[string] []CVReview
+}
+
+type VerifierProfile struct {
+	Username	string	`json:"Name"`
+	CVHistory []string `json:"CVHistory"`
+	Reviews map[string] CVReview
+}
+
+type AdminProfile struct {
 	Username	string	`json:"Name"`
 	CVHistory []string `json:"CVHistory"`
 	Reviews map[string] []CVReview
@@ -44,7 +58,7 @@ type CVObject struct {
 }
 
 type CVReview struct {
-	Id string `json:"Id"`
+	VerifierID string `json:"Id"`
 	Name string `json:"Name"`
 	Comment string `json:"Comment"`
 	Rating int `json:"Rating"`
@@ -63,7 +77,6 @@ const (
 	ObjectTypeApplicant        = "applicant"
 	ObjectTypeVerifier        = "verifier"
 	ObjectTypeCV         	   = "cv"
-	ObjectTypeProfile          = "profile"
 	ObjectTypeRating           = "rating"
 )
 

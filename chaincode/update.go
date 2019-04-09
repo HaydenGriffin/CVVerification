@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/cvverification/chaincode/model"
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
@@ -24,8 +23,6 @@ func (t *CVVerificationChaincode) update(stub shim.ChaincodeStubInterface, args 
 		return t.register(stub, args[1:])
 	} else if function == "savecv" {
 		return t.saveCV(stub, args[1:])
-	} else if function == "saveprofile" {
-		return t.saveProfile(stub, args[1:])
 	} else if function == "saveprofilecv" {
 		return t.saveProfileCV(stub, args[1:])
 	} else if function == "saverating" {
@@ -62,8 +59,9 @@ func (t *CVVerificationChaincode) register(stub shim.ChaincodeStubInterface, arg
 		newAdmin := model.Admin{
 			Actor: model.Actor{
 				ID:   actorID,
-				Name: args[0],
+				Username: args[0],
 			},
+			Profile: model.AdminProfile{},
 		}
 		err = updateInLedger(stub, model.ObjectTypeAdmin, actorID, newAdmin)
 		if err != nil {
@@ -82,8 +80,9 @@ func (t *CVVerificationChaincode) register(stub shim.ChaincodeStubInterface, arg
 		newApplicant := model.Applicant{
 			Actor: model.Actor{
 				ID:   actorID,
-				Name: args[0],
+				Username: args[0],
 			},
+			Profile: model.ApplicantProfile{},
 		}
 		err = updateInLedger(stub, model.ObjectTypeApplicant, actorID, newApplicant)
 		if err != nil {
@@ -101,8 +100,9 @@ func (t *CVVerificationChaincode) register(stub shim.ChaincodeStubInterface, arg
 		newVerifier := model.Verifier{
 			Actor: model.Actor{
 				ID:   actorID,
-				Name: args[0],
+				Username: args[0],
 			},
+			Profile: model.VerifierProfile{},
 		}
 		err = updateInLedger(stub, model.ObjectTypeVerifier, actorID, newVerifier)
 		if err != nil {
@@ -156,52 +156,14 @@ func (t *CVVerificationChaincode) saveCV(stub shim.ChaincodeStubInterface, args 
 		return shim.Error(fmt.Sprintf("Unable to create the CV in the ledger: %v", err))
 	}
 
-	resourceAsByte, err := convertObjectToByte(cv)
+	cvAsByte, err := convertObjectToByte(cv)
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable convert the resource to byte: %v", err))
+		return shim.Error(fmt.Sprintf("Unable convert the CV to byte: %v", err))
 	}
 
-	fmt.Printf("Resource created:\n  ID -> %s\n  Description -> %s\n", model.ObjectTypeCV, cvHash)
+	fmt.Printf("CV created:\n  ID -> %s\n  Description -> %s\n", model.ObjectTypeCV, cvHash)
 
-	return shim.Success(resourceAsByte)
-}
-
-// Add CV Chaincode
-// args: CV object
-// CV Hash is key, CVObject is the value
-func (t *CVVerificationChaincode) saveProfile(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
-	// Check whether the number of arguments is sufficient
-	if len(args) != 2 {
-		return shim.Error("The number of arguments is invalid.")
-	}
-
-	var profile model.UserProfile
-
-	err := json.Unmarshal([]byte(args[0]), &profile)
-	if err != nil {
-		return shim.Error("An error occurred whilst deserialising the object")
-	}
-
-	profileHash := args[1]
-
-	if profileHash == "" {
-		return shim.Error("The profile hash is empty.")
-	}
-
-	err = updateInLedger(stub, model.ObjectTypeProfile, profileHash, profile)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable to create the CV in the ledger: %v", err))
-	}
-
-	resourceAsByte, err := convertObjectToByte(profile)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable convert the resource to byte: %v", err))
-	}
-
-	fmt.Printf("Resource created:\n  ID -> %s\n  Description -> %s\n", model.ObjectTypeCV, profileHash)
-
-	return shim.Success(resourceAsByte)
+	return shim.Success(cvAsByte)
 }
 
 // Add CV Chaincode
@@ -209,46 +171,52 @@ func (t *CVVerificationChaincode) saveProfile(stub shim.ChaincodeStubInterface, 
 // CV Hash is key, CVObject is the value
 func (t *CVVerificationChaincode) saveProfileCV(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
+	fmt.Println("Save profile CV")
+
+	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Only applicant users are allowed to add a CV: %v", err))
+	}
+
 	// Check whether the number of arguments is sufficient
-	if len(args) != 2 {
+	if len(args) != 1 {
 		return shim.Error("The number of arguments is invalid.")
 	}
 
-	profileHash := args[0]
-
-	if profileHash == "" {
-		return shim.Error("The profile hash is empty.")
-	}
-
-	cvHash := args[1]
+	cvHash := args[0]
 
 	if cvHash == "" {
 		return shim.Error("The cv hash is empty.")
 	}
 
-	var profile model.UserProfile
+	var applicant model.Applicant
 
-	err := getFromLedger(stub, model.ObjectTypeProfile, profileHash, &profile)
-
+	applicantID, err := cid.GetID(stub)
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable to retrieve profile from the ledger: %v", err))
+		return shim.Error(fmt.Sprintf("Unable to identify the ID of the request owner: %v", err))
 	}
 
-	profile.CVHistory = append(profile.CVHistory, cvHash)
+	err = getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
 
-	err = updateInLedger(stub, model.ObjectTypeProfile, profileHash, profile)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Unable to retrieve applicant profile from the ledger: %v", err))
+	}
+
+	applicant.Profile.CVHistory = append(applicant.Profile.CVHistory, cvHash)
+
+	err = updateInLedger(stub, model.ObjectTypeApplicant, applicantID, applicant)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable to create the CV in the ledger: %v", err))
 	}
 
-	profileAsByte, err := convertObjectToByte(profile)
+	applicantAsByte, err := convertObjectToByte(applicant)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable convert the profile to byte: %v", err))
 	}
 
-	fmt.Printf("Resource updated:\n  ID -> %s\n  Description -> %s\n", model.ObjectTypeProfile, profileHash)
+	fmt.Printf("Resource updated:\n  ID -> %s\n  Description -> %s\n", model.ObjectTypeApplicant, applicantID)
 
-	return shim.Success(profileAsByte)
+	return shim.Success(applicantAsByte)
 }
 
 // Add CV Chaincode
@@ -256,18 +224,25 @@ func (t *CVVerificationChaincode) saveProfileCV(stub shim.ChaincodeStubInterface
 // CV Hash is key, CVObject is the value
 func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
+	fmt.Println("Save rating")
+
+	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorVerifier)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Only verifier users are allowed to add a CV: %v", err))
+	}
+
 	// Check whether the number of arguments is sufficient
 	if len(args) != 3 {
 		return shim.Error("The number of arguments is invalid.")
 	}
 
-	profileHash := args[0]
+	ID := args[0]
 	cvHash := args[1]
 	ratingString := args[2]
 	var verifierRating model.CVReview
-	var profile model.UserProfile
+	var applicant model.Applicant
 
-	if profileHash == "" {
+	if ID == "" {
 		return shim.Error("The profile hash is empty.")
 	}
 
@@ -279,57 +254,55 @@ func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, a
 		return shim.Error("There is no rating to be saved.")
 	}
 
-	err := convertByteToObject([]byte(ratingString), &verifierRating)
+	err = convertByteToObject([]byte(ratingString), &verifierRating)
 	if err != nil {
 		fmt.Println(err)
 		return shim.Error("Unable to convert rating byte to object")
 	}
 
-	verifierRating.Id, err = cid.GetID(stub)
+	verifierRating.VerifierID, err = cid.GetID(stub)
 	if err != nil {
 		fmt.Println(err)
 		return shim.Error("Unable to get invoking chaincode identity")
 	}
 
-	err = getFromLedger(stub, model.ObjectTypeProfile, profileHash, &profile)
+	err = getFromLedger(stub, model.ObjectTypeApplicant, ID, &applicant)
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable to retrieve profile in the ledger: %v", err))
+		return shim.Error(fmt.Sprintf("Unable to retrieve applicant profile in the ledger: %v", err))
 	}
 
 	var reviews = make(map[string][]model.CVReview)
 	existingRatingFound := false
 
-	if profile.Reviews != nil {
-		fmt.Println("profile.Reviews not nil")
-		fmt.Println(profile.Reviews)
-		reviews = profile.Reviews
+	if applicant.Profile.Reviews != nil {
+		reviews = applicant.Profile.Reviews
 
-		for i, rating := range profile.Reviews[cvHash] {
+		for i, rating := range applicant.Profile.Reviews[cvHash] {
 
 			// If the verifier has already rated the CV
-			if rating.Id == verifierRating.Id {
+			if rating.VerifierID == verifierRating.VerifierID {
 				reviews[cvHash][i] = verifierRating
 				existingRatingFound = true
-				}
 			}
 		}
+	}
 
 	if existingRatingFound == false {
 		reviews[cvHash] = append(reviews[cvHash], verifierRating)
 	}
 
-	profile.Reviews = make(map[string][]model.CVReview)
+	applicant.Profile.Reviews = make(map[string][]model.CVReview)
 
 	for cvHash, cvReview := range reviews {
-		profile.Reviews[cvHash] = cvReview
+		applicant.Profile.Reviews[cvHash] = cvReview
 	}
 
-	fmt.Println(profile)
+	fmt.Println(applicant.Profile)
 
 	// put the updated profile back to the ledger
-	err = updateInLedger(stub, model.ObjectTypeProfile, profileHash, profile)
+	err = updateInLedger(stub, model.ObjectTypeApplicant, ID, applicant)
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable to create the CV in the ledger: %v", err))
+		return shim.Error(fmt.Sprintf("Unable to save the review in the ledger: %v", err))
 	}
 
 	return shim.Success([]byte("Successfully saved the rating"))

@@ -1,4 +1,4 @@
-{{define "title"}}Home{{end}}
+{{define "title"}}Review CV{{end}}
 
 {{define "body"}}
     <link rel="stylesheet" href="../assets/css/mycv.css">
@@ -21,13 +21,13 @@
                 </div>
                 <div class="form-group">
                     <label for="comment">Comment</label>
-                    <textarea class="form-control" id="comment" name="comment" rows="3" >{{if .CVInfo.Review.Comment}}{{.CVInfo.Review.Comment}}{{end}}</textarea>
+                    <textarea class="form-control" id="comment" name="comment" rows="3" required="" autofocus="">{{if .CVInfo.Review.Comment}}{{.CVInfo.Review.Comment}}{{end}}</textarea>
                 </div>
                 <div class="form-group">
                     <label for="rating">Rating</label>
                     <input type="number" class="form-control" name="rating" placeholder="Leave your rating here" min="1" max="10" required="" autofocus="" {{if .CVInfo.Review.Rating}}value="{{.CVInfo.Review.Rating}}"{{end}}/>
                 </div>
-                <button class="btn btn-lg btn-primary btn-block" type="submit">{{if .CVInfo.Review.Id}}Update Review{{else}}Review CV{{end}}</button>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">{{if .CVInfo.Review.VerifierID}}Update Review{{else}}Review CV{{end}}</button>
             </form>
         {{end}}
     </div>

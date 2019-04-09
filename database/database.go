@@ -35,8 +35,8 @@ func GetUserDetailsFromUsername(username string) (models.UserDetails, error) {
 		return user, err
 	}
 
-	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.email_address, u.profile_hash FROM users u WHERE username = ?", username)
-	err = result.Scan(&user.Id, &user.Username, &user.FullName, &user.EmailAddress, &user.ProfileHash)
+	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.email_address, u.profile_id FROM users u WHERE username = ?", username)
+	err = result.Scan(&user.Id, &user.Username, &user.FullName, &user.EmailAddress, &user.ID)
 
 	if err != nil {
 		return user, err
@@ -109,7 +109,7 @@ func GetUserCVDetails(user_id int) ([]model.CVHistoryInfo, error) {
 	return historicalCVHistoryInfo, nil
 }
 
-func CreateNewUser(username, full_name, email_address, profile_hash string) (userDetails models.UserDetails, error error) {
+func CreateNewUser(username, full_name, email_address, profile_id string) (userDetails models.UserDetails, error error) {
 
 	db, err := InitDB(dataSourceName)
 
@@ -117,7 +117,7 @@ func CreateNewUser(username, full_name, email_address, profile_hash string) (use
 		return userDetails, err
 	}
 
-	res, err := db.Exec("INSERT INTO users(username, full_name, email_address, profile_hash) VALUES (?, ?, ?, ?)", username, full_name, email_address, profile_hash)
+	res, err := db.Exec("INSERT INTO users(username, full_name, email_address, profile_id) VALUES (?, ?, ?, ?)", username, full_name, email_address, profile_id)
 	fmt.Println(res)
 
 	if err != nil {
@@ -170,17 +170,17 @@ func GetCVInfoFromID(user_id int) (string, string, error) {
 		return "", "", err
 	}
 
-	result := db.QueryRow("SELECT u.profile_hash, uc.cv_hash FROM users u JOIN user_cvs uc ON u.id = uc.user_id WHERE u.id = ? AND uc.cv_in_review = 1", user_id)
+	result := db.QueryRow("SELECT u.profile_id, uc.cv_hash FROM users u JOIN user_cvs uc ON u.id = uc.user_id WHERE u.id = ? AND uc.cv_in_review = 1", user_id)
 
-	var profileHash, cvHash string
+	var ID, cvHash string
 
-	err = result.Scan(&profileHash, &cvHash)
+	err = result.Scan(&ID, &cvHash)
 
 	if err != nil {
 		return "", "", err
 	}
 
-	return profileHash, cvHash, nil
+	return ID, cvHash, nil
 }
 
 func CreateNewCV(user_id int, cv_hash string) error {

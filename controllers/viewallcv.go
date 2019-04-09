@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/gob"
 	"fmt"
 	"github.com/cvverification/blockchain"
 	"github.com/cvverification/chaincode/model"
@@ -9,7 +10,6 @@ import (
 	"github.com/cvverification/sessions"
 	"net/http"
 )
-
 
 func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
@@ -40,10 +40,8 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 		reviewableCVs := make(map[int]string)
 
 		reviewableCVs, err = database.GetAllReviewableCVHashes()
-		fmt.Println(reviewableCVs)
-
 		if err != nil {
-			data.MessageWarning = err.Error()
+			data.MessageWarning = "An error occurred whilst retrieving CVs to review."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
@@ -51,17 +49,12 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 		data.CVInfo.CVList = make(map[int]*model.CVObject)
 
 		for userID, cvHash := range reviewableCVs {
-			fmt.Println("profileHash: " + string(userID))
-			fmt.Println("cvHash: " + cvHash)
 			cv, err := u.QueryCV(cvHash)
-
 			if err != nil {
-				fmt.Println(err)
 				data.MessageWarning = "Unable to retrieve CV detail from ledger."
 				renderTemplate(w, r, "index.html", data)
 				return
 			}
-
 			data.CVInfo.CVList[userID] = cv
 		}
 
@@ -71,6 +64,12 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
+		gob.Register(data.CVInfo.CVList)
+		session.Values["AllCVList"] = data.CVInfo.CVList
+		err = session.Save(r, w)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 		renderTemplate(w, r, "viewallcv.html", data)
 	})
 }

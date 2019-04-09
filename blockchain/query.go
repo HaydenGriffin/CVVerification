@@ -15,6 +15,7 @@ func (u *User) query(args [][]byte, responseObject interface{}) error {
 		channel.Request{ChaincodeID: u.Fabric.ChaincodeID, Fcn: "invoke", Args: append([][]byte{[]byte("query")}, args...)},
 		channel.WithRetry(retry.DefaultChannelOpts),
 	)
+
 	if err != nil {
 		return fmt.Errorf("unable to perform the query: %v", err)
 	}
@@ -27,6 +28,16 @@ func (u *User) query(args [][]byte, responseObject interface{}) error {
 	}
 
 	return nil
+}
+
+// QueryAdmin query the blockchain chaincode to retrieve information about the current admin user connected
+func (u *User) QueryID() (string, error) {
+	var actor *model.Actor
+	err := u.query([][]byte{[]byte("id")}, &actor)
+	if err != nil {
+		return "", err
+	}
+	return actor.ID, nil
 }
 
 // QueryAdmin query the blockchain chaincode to retrieve information about the current admin user connected
@@ -60,17 +71,6 @@ func (u *User) QueryVerifier() (*model.Verifier, error) {
 }
 
 // QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
-func (u *User) QueryProfile(profileHash string) (*model.UserProfile, error) {
-	var profile *model.UserProfile
-	err := u.query([][]byte{[]byte("profile"), []byte(profileHash)}, &profile)
-	if err != nil {
-		return nil, err
-	}
-	return profile, nil
-}
-
-
-// QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
 func (u *User) QueryCV(cvHash string) (*model.CVObject, error) {
 	var cv *model.CVObject
 	err := u.query([][]byte{[]byte("cv"), []byte(cvHash)}, &cv)
@@ -81,9 +81,9 @@ func (u *User) QueryCV(cvHash string) (*model.CVObject, error) {
 }
 
 // QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
-func (u *User) QueryCVReviews(profileHash, cvHash string) ([]model.CVReview, error) {
+func (u *User) QueryCVReviews(ID, cvHash string) ([]model.CVReview, error) {
 	var ratings []model.CVReview
-	err := u.query([][]byte{[]byte("cvreviews"), []byte(profileHash), []byte(cvHash)}, &ratings)
+	err := u.query([][]byte{[]byte("cvreviews"), []byte(ID), []byte(cvHash)}, &ratings)
 	if err != nil {
 		return nil, err
 	}
@@ -91,9 +91,9 @@ func (u *User) QueryCVReviews(profileHash, cvHash string) ([]model.CVReview, err
 }
 
 // QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
-func (u *User) QueryCVReviewable(profileHash, cvHash string) (model.CVReview, error) {
+func (u *User) QueryVerifierCVReview(ID, cvHash string) (model.CVReview, error) {
 	var rating model.CVReview
-	err := u.query([][]byte{[]byte("cvreviewable"), []byte(profileHash), []byte(cvHash)}, &rating)
+	err := u.query([][]byte{[]byte("verifiercvreview"), []byte(ID), []byte(cvHash)}, &rating)
 	if err != nil {
 		return model.CVReview{}, err
 	}

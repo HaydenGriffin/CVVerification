@@ -38,33 +38,12 @@ func (u *User) UpdateSaveCV(cvByte []byte, cvHash string) error {
 	return u.update([][]byte{[]byte("savecv"), cvByte, []byte(cvHash)}, nil)
 }
 
-// UpdateSaveProfile allow to add a resource into the blockchain
-func (u *User) UpdateSaveProfile(profileByte []byte, profileHash string) error {
-	return u.update([][]byte{[]byte("saveprofile"), profileByte, []byte(profileHash)}, nil)
+// UpdateSaveProfileCV allow to add a resource into the blockchain
+func (u *User) UpdateSaveProfileCV(cvHash string) error {
+	return u.update([][]byte{[]byte("saveprofilecv"), []byte(cvHash)}, nil)
 }
 
 // UpdateSaveProfileCV allow to add a resource into the blockchain
-func (u *User) UpdateSaveProfileCV(profileHash, cvHash string) error {
-	return u.update([][]byte{[]byte("saveprofilecv"), []byte(profileHash), []byte(cvHash)}, nil)
+func (u *User) UpdateSaveRating(ID, cvHash string, ratingByte []byte) error {
+	return u.update([][]byte{[]byte("saverating"), []byte(ID), []byte(cvHash), ratingByte}, nil)
 }
-
-// UpdateSaveProfileCV allow to add a resource into the blockchain
-func (u *User) UpdateSaveRating(profileHash, cvHash string, ratingByte []byte) error {
-	return u.update([][]byte{[]byte("saverating"), []byte(profileHash), []byte(cvHash), ratingByte}, nil)
-}
-/*
-// UpdateDelete allow to delete a resource into the blockchain
-func (u *User) UpdateDelete(resourceID string) error {
-	return u.update([][]byte{[]byte("delete"), []byte(resourceID)}, nil)
-}
-
-// UpdateAcquire allow to acquire a resource into the blockchain
-func (u *User) UpdateAcquire(resourceID string, mission string) error {
-	return u.update([][]byte{[]byte("acquire"), []byte(resourceID), []byte(mission)}, nil)
-}
-
-// UpdateRelease allow to release a resource into the blockchain
-func (u *User) UpdateRelease(resourceID string) error {
-	return u.update([][]byte{[]byte("release"), []byte(resourceID)}, nil)
-}
-*/

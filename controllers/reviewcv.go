@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/cvverification/blockchain"
 	"github.com/cvverification/chaincode/model"
 	"github.com/cvverification/database"
@@ -17,17 +16,16 @@ import (
 func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		fmt.Println("ReviewCVView")
-
 		session := sessions.InitSession(r)
 
 		data := models.TemplateData{
-			CurrentPage: "addcv",
+			CurrentPage: "viewallcv",
 		}
 
 		if sessions.IsLoggedIn(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
+			data.CurrentPage = "index"
 			data.MessageWarning = "You must be logged in to view the CVs."
 			renderTemplate(w, r, "index.html", data)
 			return
@@ -36,73 +34,59 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 		// Check that the user connected is an admin
 		_, err := u.QueryVerifier()
 		if err != nil {
-			fmt.Println(err)
 			data.CurrentPage = "index"
 			data.MessageWarning = "You must be a verifier user to rate a CV."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-		result, success := mux.Vars(r)["userID"]
+		data.CVInfo.CVList = sessions.GetAllCVList(session)
 
+		result, success := mux.Vars(r)["userID"]
 		if !success {
 			data.MessageWarning = "Error! No CV to be retrieved."
-			renderTemplate(w, r, "index.html", data)
+			renderTemplate(w, r, "viewallcv.html", data)
 			return
 		}
 
 		userID, err := strconv.Atoi(result)
-
 		if err != nil {
 			data.MessageWarning = "Error! Invalid CV ID."
-			renderTemplate(w, r, "index.html", data)
+			renderTemplate(w, r, "viewallcv.html", data)
 			return
 		}
 
-		profileHash, cvHash, err := database.GetCVInfoFromID(userID)
-
+		applicantID, cvHash, err := database.GetCVInfoFromID(userID)
 		if err != nil {
-			fmt.Printf(err.Error())
-			data.MessageWarning = "Unable to find CV info in database."
-			renderTemplate(w, r, "index.html", data)
+			data.MessageWarning = "Error! Unable to find CV info in database."
+			renderTemplate(w, r, "viewallcv.html", data)
 			return
 		}
 
-		verifierReview, err := u.QueryCVReviewable(profileHash, cvHash)
+		verifierReview, err := u.QueryVerifierCVReview(applicantID, cvHash)
 		if err != nil {
-			fmt.Printf(err.Error())
-			fmt.Printf("cuck")
-
+			data.MessageWarning = "Error! Unable to find CV review information in ledger."
+			renderTemplate(w, r, "viewallcv.html", data)
+			return
 		}
-
-		if (model.CVReview{}) == verifierReview {
-			fmt.Printf("Verifier hasn't reviewed yet")
-		} else {
-			fmt.Printf("Verifier has reviewed!!!")
-		}
-		fmt.Println(verifierReview)
 
 		data.CVInfo.Review = verifierReview
 
 		cv, err := u.QueryCV(cvHash)
-
 		if err != nil {
-			fmt.Printf(err.Error())
-			data.MessageWarning = "Unable to find CV from hash."
-			renderTemplate(w, r, "index.html", data)
+			data.MessageWarning = "Error! Unable to find CV from hash."
+			renderTemplate(w, r, "viewallcv.html", data)
 			return
 		}
 
 		data.CVInfo.CV = cv
-
-		session.Values["ProfileHash"] = profileHash
+		session.Values["ApplicantID"] = applicantID
 		session.Values["CVHash"] = cvHash
 
 		err = session.Save(r, w)
 		if err != nil {
-			data.MessageWarning = err.Error()
-			fmt.Println(err.Error())
-			renderTemplate(w, r, "index.html", data)
+			data.MessageWarning = "Error! Unable to save session variables."
+			renderTemplate(w, r, "viewallcv.html", data)
 			return
 		}
 
@@ -115,18 +99,16 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		fmt.Println("ReviewCVHandler")
-
 		session := sessions.InitSession(r)
 
 		data := models.TemplateData{
-			CurrentPage: "addcv",
+			CurrentPage: "index",
 		}
 
 		if sessions.IsLoggedIn(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
-			data.MessageWarning = "You must be logged in to view the CVs."
+			data.MessageWarning = "Error! You must be logged in to view the CVs."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
@@ -134,16 +116,12 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 		// Check that the user connected is an admin
 		_, err := u.QueryVerifier()
 		if err != nil {
-			fmt.Println(err)
-			data.CurrentPage = "index"
-			data.MessageWarning = "You must be a verifier user to review a CV."
+			data.MessageWarning = "Error! You must be a verifier user to review a CV."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-
 		ratingInt, err := strconv.Atoi(r.FormValue("rating"))
-
 		if err != nil {
 			data.MessageWarning = "Error! Rating must be a number."
 			renderTemplate(w, r, "index.html", data)
@@ -156,27 +134,32 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 			Rating:  ratingInt,
 		}
 
-		profileHash := sessions.GetProfileHash(session)
+		applicantID := sessions.GetApplicantID(session)
 		cvHash := sessions.GetCVHash(session)
 
-		if profileHash == "" || cvHash == "" {
-			data.MessageWarning = "Couldn't retrieve cv information"
+		if applicantID == "" || cvHash == "" {
+			data.MessageWarning = "Error! Unable to retrieve cv information"
 			renderTemplate(w, r, "index.html", data)
 			return
-
 		}
 
-		ratingByte, err := json.Marshal(rating)
-
-		err = u.UpdateSaveRating(profileHash, cvHash, ratingByte)
+		reviewByte, err := json.Marshal(rating)
 		if err != nil {
-			fmt.Println(err)
-			data.MessageWarning = "An error occurred whilst saving rating in ledger."
+			data.MessageWarning = "Error! Unable to save review in ledger."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-		//data.MessageSuccess = txid
-		renderTemplate(w, r, "reviewcv.html", data)
+		err = u.UpdateSaveRating(applicantID, cvHash, reviewByte)
+		if err != nil {
+			data.MessageWarning = "Error! Unable to save rating in ledger."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
+
+		data.CurrentPage = "viewallcv"
+		data.MessageSuccess = "Success! Your review has been saved."
+
+		renderTemplate(w, r, "viewallcv.html", data)
 	})
 }

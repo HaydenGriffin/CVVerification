@@ -27,20 +27,52 @@ func (c *Controller) AddCVView() func(http.ResponseWriter, *http.Request) {
 		if err != nil {
 			fmt.Println(err)
 			data.CurrentPage = "index"
-			data.MessageWarning = "You must be an applicant user to upload a CV."
+			data.MessageWarning = "Error! You must be an applicant user to upload a CV."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
-			renderTemplate(w, r, "cvform.html", data)
+			renderTemplate(w, r, "addcv.html", data)
 		} else {
 			data.CurrentPage = "userdetails"
 			data.UserDetails.Username = u.Username
-			data.MessageWarning = "You must register your user details before using the system."
+			data.MessageWarning = "Error! You must register your user details before using the system."
 			renderTemplate(w, r, "userdetails.html", data)
 		}
+	})
+}
+
+func (c *Controller) UpdateCVView() func(http.ResponseWriter, *http.Request) {
+	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
+
+		session := sessions.InitSession(r)
+
+		data := models.TemplateData{
+			CurrentPage: "addcv",
+		}
+
+		// Check that the user connected is an applicant
+		_, err := u.QueryApplicant()
+		if err != nil {
+			data.MessageWarning = "Error! You must be an applicant user to update your CV."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
+
+		if sessions.HasSavedUserDetails(session) {
+			data.UserDetails = sessions.GetUserDetails(session)
+			data.CVInfo.CV = sessions.GetCV(session)
+			fmt.Println(data.CVInfo.CV)
+			renderTemplate(w, r, "updatecv.html", data)
+		} else {
+			data.CurrentPage = "userdetails"
+			data.UserDetails.Username = u.Username
+			data.MessageWarning = "Error! You must register your user details before using the system."
+			renderTemplate(w, r, "userdetails.html", data)
+		}
+
 	})
 }
 
@@ -57,7 +89,7 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 		_, err := u.QueryApplicant()
 		if err != nil {
 			data.CurrentPage = "index"
-			data.MessageWarning = "You must be an applicant user to upload a CV."
+			data.MessageWarning = "Error! You must be an applicant user to upload a CV."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
@@ -67,7 +99,7 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 		} else {
 			data.CurrentPage = "userdetails"
 			data.UserDetails.Username = u.Username
-			data.MessageWarning = "You must register your user details before using the system."
+			data.MessageWarning = "Error! You must register your user details before using the system."
 			renderTemplate(w, r, "userdetails.html", data)
 			return
 		}
@@ -80,34 +112,39 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 		}
 
 		cvByte, err := json.Marshal(cv)
-
-		cvHash, err := crypto.GenerateFromByte(cvByte)
-
-		err = u.UpdateSaveCV(cvByte, cvHash)
-
 		if err != nil {
-			fmt.Println(err)
-			data.MessageWarning = "An error occurred whilst saving the CV to ledger."
+			data.MessageWarning = "Error! Failed to save CV to ledger."
 			renderTemplate(w, r, "addcv.html", data)
 			return
 		}
 
-		err = u.UpdateSaveProfileCV(data.UserDetails.ProfileHash, cvHash)
-
+		cvHash, err := crypto.GenerateFromByte(cvByte)
 		if err != nil {
-			fmt.Println(err)
-			data.MessageWarning = "An error occurred whilst updating profile information in ledger."
+			data.MessageWarning = "Error! Failed to save CV to ledger."
+			renderTemplate(w, r, "addcv.html", data)
+			return
+		}
+
+		err = u.UpdateSaveCV(cvByte, cvHash)
+		if err != nil {
+			data.MessageWarning = "Error! Unable to save CV to ledger."
+			renderTemplate(w, r, "addcv.html", data)
+			return
+		}
+
+		err = u.UpdateSaveProfileCV(cvHash)
+		if err != nil {
+			data.MessageWarning = "Error! Unable to update profile information in ledger."
 			renderTemplate(w, r, "addcv.html", data)
 			return
 		}
 
 		err = database.CreateNewCV(data.UserDetails.Id, cvHash)
-
 		if err != nil {
-			data.MessageWarning = "An error occurred whilst saving CV details to database."
+			data.MessageWarning = "Error! Unable to save CV details to database."
 			renderTemplate(w, r, "addcv.html", data)
 		} else {
-			data.MessageSuccess = "You have successfully saved your CV to the ledger."
+			data.MessageSuccess = "Success! Your CV has been saved to the ledger."
 			renderTemplate(w, r, "index.html", data)
 
 		}

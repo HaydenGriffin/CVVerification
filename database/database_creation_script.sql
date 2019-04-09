@@ -47,7 +47,7 @@ CREATE TABLE `users` (
   `username` varchar(45) DEFAULT NULL,
   `full_name` varchar(45) DEFAULT NULL,
   `email_address` varchar(45) DEFAULT NULL,
-  `profile_hash` char(128) DEFAULT NULL,
+  `profile_id` char(128) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=202 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

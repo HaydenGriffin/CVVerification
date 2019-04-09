@@ -1,4 +1,4 @@
-{{define "title"}}Home{{end}}
+{{define "title"}}My CV{{end}}
 
 {{define "body"}}
   <link rel="stylesheet" href="../assets/css/mycv.css">
@@ -32,7 +32,7 @@
           </tbody>
         </table>
       </div>
-      <form id="update-cv" action="/updateCV" method="post">
+      <form id="update-cv" action="/updatecv" method="post">
         <div class="form-my-cv">
           <h1>My CV</h1>
           <p> {{.CVInfo.CV.Name}}</p>

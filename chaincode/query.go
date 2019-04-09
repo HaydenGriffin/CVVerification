@@ -17,28 +17,45 @@ func (t *CVVerificationChaincode) query(stub shim.ChaincodeStubInterface, args [
 		return shim.Error("The number of arguments is invalid.")
 	}
 
-	if args[0] == "admin" {
+	if args[0] == "id" {
+		return t.id(stub, args[1:])
+	} else if args[0] == "admin" {
 		return t.admin(stub, args[1:])
 	} else if args[0] == "applicant" {
 		return t.applicant(stub, args[1:])
 	} else if args[0] == "verifier" {
 		return t.verifier(stub, args[1:])
-	} else if args[0] == "profile" {
-		return t.profile(stub, args[1:])
 	} else if args[0] == "cv" {
 		return t.cv(stub, args[1:])
-	} else if args[0] == "cvreviews" {
-		return t.cvreviews(stub, args[1:])
-	} else if args[0] == "cvreviewable" {
-		return t.cvreviewable(stub, args[1:])
+	} else if args[0] == "verifiercvreview" {
+		return t.verifiercvreview(stub, args[1:])
 	}
 
 	// If the arguments given don’t match any function, we return an error
 	return shim.Error("Unknown query action, check the second argument.")
 }
 
-func (t *CVVerificationChaincode) admin(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (t *CVVerificationChaincode) id(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	fmt.Println("# id information")
 
+	var actor model.Actor
+
+	actorID, err := cid.GetID(stub)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Unable to identify the ID of the request owner: %v", err))
+	}
+
+	actor.ID = actorID
+
+	actorAsByte, err := convertObjectToByte(actor)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Unable convert the actor to byte: %v", err))
+	}
+
+	return shim.Success(actorAsByte)
+}
+
+func (t *CVVerificationChaincode) admin(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("# admin information")
 
 	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorAdmin)
@@ -50,11 +67,14 @@ func (t *CVVerificationChaincode) admin(stub shim.ChaincodeStubInterface, args [
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable to identify the ID of the request owner: %v", err))
 	}
+
 	var admin model.Admin
+
 	err = getFromLedger(stub, model.ObjectTypeAdmin, adminID, &admin)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable to retrieve admin in the ledger: %v", err))
 	}
+
 	adminAsByte, err := convertObjectToByte(admin)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable convert the admin to byte: %v", err))
@@ -76,11 +96,14 @@ func (t *CVVerificationChaincode) applicant(stub shim.ChaincodeStubInterface, ar
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable to identify the ID of the request owner: %v", err))
 	}
+
 	var applicant model.Applicant
+
 	err = getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable to retrieve applicant in the ledger: %v", err))
 	}
+
 	applicantAsByte, err := convertObjectToByte(applicant)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable convert the admin to byte: %v", err))
@@ -90,7 +113,6 @@ func (t *CVVerificationChaincode) applicant(stub shim.ChaincodeStubInterface, ar
 }
 
 func (t *CVVerificationChaincode) verifier(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
 	fmt.Println("# verifier information")
 
 	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorVerifier)
@@ -102,11 +124,13 @@ func (t *CVVerificationChaincode) verifier(stub shim.ChaincodeStubInterface, arg
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable to identify the ID of the request owner: %v", err))
 	}
+
 	var verifier model.Verifier
 	err = getFromLedger(stub, model.ObjectTypeVerifier, verifierID, &verifier)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable to retrieve verifier in the ledger: %v", err))
 	}
+
 	verifierAsByte, err := convertObjectToByte(verifier)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable convert the verifier to byte: %v", err))
@@ -115,62 +139,7 @@ func (t *CVVerificationChaincode) verifier(stub shim.ChaincodeStubInterface, arg
 	return shim.Success(verifierAsByte)
 }
 
-func (t *CVVerificationChaincode) allowedtovote(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
-	fmt.Println("# applicant information")
-
-	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorAdmin)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("Only admin is allowed for the kind of request: %v", err))
-	}
-
-	applicantID, err := cid.GetID(stub)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable to identify the ID of the request owner: %v", err))
-	}
-	var applicant model.Applicant
-	err = getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable to retrieve applicant in the ledger: %v", err))
-	}
-	applicantAsByte, err := convertObjectToByte(applicant)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable convert the admin to byte: %v", err))
-	}
-
-	return shim.Success(applicantAsByte)
-}
-
-func (t *CVVerificationChaincode) profile(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
-	fmt.Println("# profile detail")
-
-	if len(args) != 1 {
-		return shim.Error("The number of arguments is invalid.")
-	}
-
-	profileHash := args[0]
-	if profileHash == "" {
-		return shim.Error("The profileHash is empty.")
-	}
-
-	var profile model.UserProfile
-
-	err := getFromLedger(stub, model.ObjectTypeProfile, profileHash, &profile)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable to retrieve profile in the ledger: %v", err))
-	}
-
-	cvAsByte, err := convertObjectToByte(profile)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable to convert the resource histories to byte: %v", err))
-	}
-
-	return shim.Success(cvAsByte)
-}
-
 func (t *CVVerificationChaincode) cv(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
 	fmt.Println("# cv detail")
 
 	if len(args) != 1 {
@@ -197,99 +166,53 @@ func (t *CVVerificationChaincode) cv(stub shim.ChaincodeStubInterface, args []st
 	return shim.Success(cvAsByte)
 }
 
-func (t *CVVerificationChaincode) cvreviews(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
-	fmt.Println("# cv reviews")
+func (t *CVVerificationChaincode) verifiercvreview(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	fmt.Println("# verifier cv review")
 
 	if len(args) != 2 {
 		return shim.Error("The number of arguments is invalid.")
 	}
 
-	profileHash := args[0]
+	var applicant model.Applicant
+	verifierReview := model.CVReview{}
+	applicantID := args[0]
 	cvHash := args[1]
-	var profile model.UserProfile
-	var reviews []model.CVReview
 
-	if profileHash == "" {
-		return shim.Error("The profile hash is empty.")
+	if applicantID == "" {
+		return shim.Error("The applicant ID is empty.")
 	}
 
 	if cvHash == "" {
 		return shim.Error("The cv hash is empty.")
 	}
 
-	err := getFromLedger(stub, model.ObjectTypeProfile, profileHash, &profile)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable to retrieve profile in the ledger: %v", err))
-	}
-
-	if profile.Reviews[cvHash] == nil {
-		fmt.Println("No ratings yet")
-	} else {
-		fmt.Println("ratings found")
-		fmt.Println(profile.Reviews[cvHash])
-	}
-
-	reviews = profile.Reviews[cvHash]
-
-	reviewsAsByte, err := convertObjectToByte(reviews)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable convert the ratings to byte: %v", err))
-	}
-
-	fmt.Println(reviewsAsByte)
-
-	return shim.Success(reviewsAsByte)
-}
-
-func (t *CVVerificationChaincode) cvreviewable(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
-	fmt.Println("# cv reviewable")
-
-	if len(args) != 2 {
-		return shim.Error("The number of arguments is invalid.")
-	}
-
-	var profile model.UserProfile
-	verifierRating := model.CVReview{}
-	profileHash := args[0]
-	cvHash := args[1]
-
-	if profileHash == "" {
-		return shim.Error("The profile hash is empty.")
-	}
-
-	if cvHash == "" {
-		return shim.Error("The cv hash is empty.")
-	}
-
-	id, err := cid.GetID(stub)
-
+	verifierID, err := cid.GetID(stub)
 	if err != nil {
 		return shim.Error("Unable to retrieve user identity.")
 	}
 
-	err = getFromLedger(stub, model.ObjectTypeProfile, profileHash, &profile)
+	err = getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable to retrieve profile in the ledger: %v", err))
+		return shim.Error(fmt.Sprintf("Unable to retrieve applicant profile in the ledger: %v", err))
 	}
 
-	if profile.Reviews[cvHash] == nil {
+	if applicant.Profile.Reviews[cvHash] == nil {
 		fmt.Println("No ratings yet")
 	} else {
-		for _, rating := range profile.Reviews[cvHash] {
-			if rating.Id == id {
-				verifierRating = rating
+		for _, review := range applicant.Profile.Reviews[cvHash] {
+			if review.VerifierID == verifierID {
+				fmt.Println("Verifier rating")
+				verifierReview = review
 			}
 		}
 	}
 
-	ratingAsByte, err := convertObjectToByte(verifierRating)
+	reviewAsByte, err := convertObjectToByte(verifierReview)
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable convert the rating to byte: %v", err))
+		return shim.Error(fmt.Sprintf("Unable to convert the review to byte: %v", err))
 	}
 
-	fmt.Println(ratingAsByte)
+	fmt.Println(reviewAsByte)
 
-	return shim.Success(ratingAsByte)
+	return shim.Success(reviewAsByte)
 }

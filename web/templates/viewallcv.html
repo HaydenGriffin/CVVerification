@@ -1,12 +1,10 @@
-{{define "title"}}Home{{end}}
+{{define "title"}}View All CVs{{end}}
 
 {{define "body"}}
     <link rel="stylesheet" href="../assets/css/mycv.css">
     <div class="container-fluid content-padding">
     {{range $userID, $cv:=  .CVInfo.CVList}}
         <form id="review-cv" class="form-my-cv" action="/reviewcv/{{$userID}}" method="post">
-            <h4>Profile Hash</h4>
-            <p> {{$userID}}</p>
             <h4>Applicant Name</h4>
             <p> {{$cv.Name}}</p>
             <h4>Speciality</h4>

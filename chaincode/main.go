@@ -27,8 +27,6 @@ func (t *CVVerificationChaincode) Init(stub shim.ChaincodeStubInterface) pb.Resp
 	return shim.Success(nil)
 }
 
-
-
 // Invoke chaincode
 // All future requests named invoke will arrive here.
 func (t *CVVerificationChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {

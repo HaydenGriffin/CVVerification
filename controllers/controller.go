@@ -57,21 +57,16 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 		userDetails, err := database.GetUserDetailsFromUsername(pair[0])
 		if err != nil {
 			session.Values["SavedUserDetails"] = false
-			err = session.Save(r, w)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
-			pass(w, r, u)
 		} else {
 			gob.Register(userDetails)
 			session.Values["SavedUserDetails"] = true
 			session.Values["UserDetails"] = userDetails
-			err = session.Save(r, w)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
-			pass(w, r, u)
 		}
+		err = session.Save(r, w)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		pass(w, r, u)
 	}
 }
 
@@ -93,7 +88,7 @@ func (c *Controller) LogoutHandler() func(http.ResponseWriter, *http.Request) {
 			fmt.Println(err.Error())
 		}
 
-		data.MessageSuccess = "You have been successfully logged out."
+		data.MessageSuccess = "Success! You have been logged out."
 		renderTemplate(w, r, "index.html", data)
 	})
 }

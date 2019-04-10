@@ -1,70 +1,82 @@
 {{define "title"}}My CV{{end}}
-
 {{define "body"}}
-  <link rel="stylesheet" href="../assets/css/mycv.css">
-  <div class="container-fluid content-padding">
-    {{if .CVInfo.CV}}
-      <div class="form-my-cv">
-        <table class="table">
-          <thead>
-          <tr>
-            <th scope="col">CV Version</th>
-            <th scope="col">Date</th>
-            <th scope="col">Status</th>
-            <th></th>
-          </tr>
-          </thead>
-          <tbody>
-          {{range $i, $cv := .CVInfo.CVHistory}}
-            <tr {{if eq $.CVInfo.CurrentCVHash $cv.CVHash}}class="active"{{end}}>
-              <td>{{$cv.Index}}</td>
-              <td>{{$cv.Timestamp.Format "Jan 02, 2006 15:04:05"}}</td>
-              <td>
-                {{if eq $cv.CVInReview 1}}
-                  In Review
-                {{else}}
-                  In Draft
-                {{end}}
-              </td>
-              <td><a href="/mycv/{{$cv.Index}}">View {{$cv.Index}}</a></td>
+  <div class="row">
+    <div class="col-lg-7 offset-lg-1">
+      <h3>CV History</h3>
+      <div class="card mb-5">
+          <table class="table table-hover shopping-cart-wrap">
+            <thead class="text-muted">
+            <tr>
+              <th scope="col">CV Version</th>
+              <th scope="col">Date</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="text-right">Action</th>
             </tr>
-          {{end}}
-          </tbody>
-        </table>
-      </div>
-      <form id="update-cv" action="/updatecv" method="post">
-        <div class="form-my-cv">
-          <h1>My CV</h1>
-          <p> {{.CVInfo.CV.Name}}</p>
-          <h4>Speciality</h4>
-          <p>{{.CVInfo.CV.Speciality}}</p>
-          <h4>Date of CV</h4>
-          <p>{{.CVInfo.CV.CVDate}}</p>
-          <h4>My CV</h4>
-          <p>{{.CVInfo.CV.CV}}</p>
-          {{range $cvHash, $CVReview:=  .CVInfo.Reviews}}
-            <div class="form-my-cv">
-              <h4>Reviewer:</h4>
-              {{$CVReview.Name}}
-              <h4>Comment:</h4>
-              {{$CVReview.Comment}}
-              <h4>Rating:</h4>
-              {{$CVReview.Rating}}
-            </div>
-          {{end}}
-          {{if .CVInfo.CurrentCVInReview}}
-            <button class="btn btn-link" type="submit" formaction="/withdrawcvfromreview">Withdraw CV from Review
-            </button>
-          {{else if .CVInfo.UserHasCVInReview}}
-            <button class="btn btn-link" type="submit" formaction="/submitcvforreview"
-                    title="You may only have one CV in review at a time." disabled> Submit CV for Review
-            </button>
-          {{else}}
-            <button class="btn btn-link" type="submit" formaction="/submitcvforreview"> Submit CV for Review</button>
-          {{end}}
-          <button class="btn btn-lg btn-primary btn-block" type="submit">Update your CV</button>
+            </thead>
+            <tbody>
+            {{range $i, $cv := .CVInfo.CVHistory}}
+              <tr {{if eq $.CVInfo.CurrentCVHash $cv.CVHash}}class="table-active"{{end}}>
+                <td>{{$cv.Index}}</td>
+                <td>{{$cv.Timestamp.Format "Jan 02, 2006 15:04:05"}}</td>
+                <td>
+                  {{if eq $cv.CVInReview 1}}
+                    In Review
+                  {{else}}
+                    In Draft
+                  {{end}}
+                </td>
+                <td class="text-right"><a href="/mycv/{{$cv.Index}}" class="btn btn-outline-primary">View {{$cv.Index}}</a></td>
+              </tr>
+            {{end}}
+            </tbody>
+          </table>
+        </div> <!-- card.// -->
+      <h3>Your CV</h3>
+      <div class="card mb-5">
+        <div class="card-body">
+          <h3 class="card-heading">My CV</h3>
+          <form id="update-cv" action="/updatecv" method="post">
+            <h4>Speciality</h4>
+            <p>{{.CVInfo.CV.Speciality}}</p>
+            <h4>Date of CV</h4>
+            <p>{{.CVInfo.CV.CVDate}}</p>
+            <h4>CV</h4>
+            <p>{{.CVInfo.CV.CV}}</p>
+            <button class="btn btn-lg btn-primary" type="submit">Update your CV</button>
+            {{if .CVInfo.CurrentCVInReview}}
+              <button class="btn btn-link" type="submit" formaction="/withdrawcvfromreview">Withdraw CV from Review
+              </button>
+            {{else if .CVInfo.UserHasCVInReview}}
+              <button class="btn btn-link" type="submit" formaction="/submitcvforreview"
+                      title="You may only have one CV in review at a time." disabled> Submit CV for Review
+              </button>
+            {{else}}
+              <button class="btn btn-link" type="submit" formaction="/submitcvforreview"> Submit CV for Review</button>
+            {{end}}
+          </form>
         </div>
-      </form>
-    {{end}}
+      </div>
+    </div>
+    <div class="col-lg-3">
+      <h3>Reviews</h3>
+      <div class="card">
+        <div class="card-body">
+          {{if not .CVInfo.Reviews}}
+            You have no reviews yet. Once you are happy with your CV, submit it to review
+            {{end}}
+          {{range $cvHash, $CVReview:=  .CVInfo.Reviews}}
+            <h4>Reviewer:</h4>
+            {{$CVReview.Name}}
+            <h4>Comment:</h4>
+            {{$CVReview.Comment}}
+            <h4>Rating:</h4>
+            {{$CVReview.Rating}}
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </div>
+  {{if .CVInfo.CV}}
+  {{end}}
   </div>
 {{end}}

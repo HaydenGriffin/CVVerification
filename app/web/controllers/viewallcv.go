@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/gob"
 	"fmt"
 	"github.com/cvverification/app/database"
 	templateModel "github.com/cvverification/app/model"
@@ -67,14 +66,15 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		gob.Register(data.CVInfo.CVList)
-		session.Values["AllCVList"] = data.CVInfo.CVList
-		err = session.Save(r, w)
+		/*gob.Register(data.CVInfo.CVList)
+		session.Values["AllCVList"] = data.CVInfo.CVList*/
+		/*err = session.Save(r, w)
 		if err != nil {
+			fmt.Println(err)
 			data.MessageWarning = "Error! Unable to save session values."
 			renderTemplate(w, r, "index.html", data)
 			return
-		}
+		}*/
 		data.CurrentPage = "viewallcv"
 		renderTemplate(w, r, "viewallcv.html", data)
 	})

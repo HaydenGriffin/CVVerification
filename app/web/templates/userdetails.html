@@ -1,25 +1,30 @@
 {{define "title"}}User Details{{end}}
-
 {{define "body"}}
-    <link rel="stylesheet" href="../assets/css/register.css">
-    <div class="container-fluid content-padding">
-        <div class="col-lg-6 col-lg-offset-3 col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-3 col-xs-12">
-            <form id="login-form" class="form-register" action="/updatedetailsprocess" method="post">
-                <h2>Update user details</h2>
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" class="form-control" id="username" name="username" required="" autofocus="" value="{{.UserDetails.Username}}" readonly/>
-                </div>
-                <div class="form-group">
-                    <label for="fullName">Full Name</label>
-                    <input type="text" class="form-control" id="fullName" name="fullName" required="" autofocus="" value="{{.UserDetails.FullName}}"/>
-                </div>
-                <div class="form-group">
-                    <label for="emailAddress">Email Address</label>
-                    <input type="email" class="form-control" id="emailAddress" name="emailAddress" required="" autofocus="" value="{{.UserDetails.EmailAddress}}"/>
-                </div>
-                <button class="btn btn-lg btn-primary btn-block" type="submit">Update User Details</button>
-            </form>
+  <div class="container-fluid">
+    <div class="col-lg-4 offset-lg-4 col-md-6 offset-md-3 col-sm-6 offset-sm-3 col-xs-12">
+      <h3>Update User Details</h3>
+      <div class="card border-top">
+        <div class="card-body">
+          <form id="login-form" action="/updatedetailsprocess" method="post">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input type="text" class="form-control" id="username" name="username" required=""
+                     value="{{.UserDetails.Username}}" readonly/>
+            </div>
+            <div class="form-group">
+              <label for="fullName">Full Name</label>
+              <input type="text" class="form-control" id="fullName" name="fullName" required="" autofocus=""
+                     value="{{.UserDetails.FullName}}"/>
+            </div>
+            <div class="form-group">
+              <label for="emailAddress">Email Address</label>
+              <input type="email" class="form-control" id="emailAddress" name="emailAddress" required="" autofocus=""
+                     value="{{.UserDetails.EmailAddress}}"/>
+            </div>
+            <button class="btn btn-lg btn-primary" type="submit">Update User Details</button>
+          </form>
         </div>
+      </div>
     </div>
+  </div>
 {{end}}

@@ -1,20 +1,21 @@
 {{define "title"}}Review CV{{end}}
-
 {{define "body"}}
-    <link rel="stylesheet" href="../assets/css/mycv.css">
-    <div class="container-fluid content-padding">
+    <div class="container">
         {{if .CVInfo.CV}}
-            <form id="update-cv" class="form-my-cv">
-                <h1>Review CV</h1>
-                <p> {{.CVInfo.CV.Name}}</p>
+        <div class="card">
+            <div class="card-body">
+            <form>
+                <h3>{{.CVInfo.CV.Name}}</h3>
                 <h4>Speciality</h4>
                 <p>{{.CVInfo.CV.Speciality}}</p>
                 <h4>Date of CV</h4>
                 <p>{{.CVInfo.CV.CVDate}}</p>
-                <h4>My CV</h4>
+                <h4>CV</h4>
                 <p>{{.CVInfo.CV.CV}}</p>
             </form>
-            <form id="review-cv" class="form-my-cv" action="/reviewcvprocess" method="post">
+                <hr>
+                <h3>Review</h3>
+            <form id="review-cv" action="/reviewcvprocess" method="post">
                 <div class="form-group">
                     <label for="fullName">Reviewers Name</label>
                     <input type="text" class="form-control" id="name" name="name" value="{{.UserDetails.FullName}}" readonly/>
@@ -27,8 +28,10 @@
                     <label for="rating">Rating</label>
                     <input type="number" class="form-control" name="rating" placeholder="Leave your rating here" min="1" max="10" required="" autofocus="" {{if .CVInfo.Review.Rating}}value="{{.CVInfo.Review.Rating}}"{{end}}/>
                 </div>
-                <button class="btn btn-lg btn-primary btn-block" type="submit">{{if .CVInfo.Review.VerifierID}}Update Review{{else}}Review CV{{end}}</button>
+                <button class="btn btn-lg btn-primary" type="submit">{{if .CVInfo.Review.VerifierID}}Update Review{{else}}Review CV{{end}}</button>
             </form>
+            </div>
+        </div>
         {{end}}
     </div>
 {{end}}

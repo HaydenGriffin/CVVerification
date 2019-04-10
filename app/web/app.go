@@ -3,13 +3,13 @@ package web
 import (
 	"fmt"
 	"github.com/cvverification/app/web/controllers"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"github.com/gorilla/mux"
 )
 
 func Serve(app *controllers.Controller) {
-	fs := http.FileServer(http.Dir("web/assets"))
+	fs := http.FileServer(http.Dir("app/web/assets/"))
 
 	r := mux.NewRouter()
 

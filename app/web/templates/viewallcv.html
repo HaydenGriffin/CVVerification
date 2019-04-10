@@ -1,20 +1,23 @@
 {{define "title"}}View All CVs{{end}}
-
 {{define "body"}}
-    <link rel="stylesheet" href="../assets/css/mycv.css">
-    <div class="container-fluid content-padding">
-    {{range $userID, $cv:=  .CVInfo.CVList}}
-        <form id="review-cv" class="form-my-cv" action="/reviewcv/{{$userID}}" method="post">
-            <h4>Applicant Name</h4>
-            <p> {{$cv.Name}}</p>
-            <h4>Speciality</h4>
-            <p>{{$cv.Speciality}}</p>
-            <h4>Date of CV</h4>
-            <td>{{$cv.CVDate}}</td>
-            <h4>CV</h4>
-            <p>{{$cv.CV}}</p>
-            <button class="btn btn-lg btn-link" type="submit">Review CV</button>
-        </form>
-    {{end}}
+  <div class="container">
+    <h3>View All CVs</h3>
+    <div class="card-columns">
+      {{range $userID, $cv:=  .CVInfo.CVList}}
+        <div class="card">
+          <div class="card-body">
+            <form id="review-cv" action="/reviewcv/{{$userID}}" method="post">
+              <h4>Applicant Name</h4>
+              <p> {{$cv.Name}}</p>
+              <h4>Speciality</h4>
+              <p>{{$cv.Speciality}}</p>
+              <h4>Date of CV</h4>
+              <p>{{$cv.CVDate}}</p>
+              <button class="btn btn-lg btn-primary" type="submit">View full CV</button>
+            </form>
+          </div>
+        </div>
+      {{end}}
     </div>
+  </div>
 {{end}}

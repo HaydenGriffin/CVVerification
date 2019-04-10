@@ -1,29 +1,35 @@
 {{define "title"}}Update CV{{end}}
-
 {{define "body"}}
-    <link rel="stylesheet" href="../assets/css/addcv.css">
-    <div class="container-fluid content-padding">
-        <div class="col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-12">
-            <form id="upload-cv-form" class="form-upload-cv" action="/updatecvprocess" method="post">
-                <h2>Update your CV</h2>
-                <div class="form-group">
-                    <label for="applicantName">Applicant Name</label>
-                    <input type="text" class="form-control" id="name" name="name" value="{{.UserDetails.FullName}}" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="applicantSpeciality">Field of Work</label>
-                    <input type="text" class="form-control" id="speciality" name="speciality" placeholder="Computer Science" autofocus="" {{if .CVInfo.CV.Speciality}}value="{{.CVInfo.CV.Speciality}}"{{end}}>
-                </div>
-                <div class="form-group">
-                    <label for="cv">CV</label>
-                    <textarea class="form-control" id="cv" name="cv" rows="5" autofocus="">{{if .CVInfo.CV.CV}}{{.CVInfo.CV.CV}}{{end}}</textarea>
-                </div>
-                <div class="form-group">
-                    <label for="cvDate">CV Revision Date</label>
-                    <input type="date" class="form-control" id="cvDate" name="cvDate" autofocus="" {{if .CVInfo.CV.CVDate}}value="{{.CVInfo.CV.CVDate}}"{{end}}>
-                </div>
-                <button class="btn btn-lg btn-primary btn-block" type="submit">Update your CV</button>
-            </form>
+  <div class="row">
+    <div class="col-lg-8 offset-lg-2 col-md-10 offset-md-1 col-sm-12">
+      <h3>Update your CV</h3>
+      <div class="card">
+        <div class="card-body">
+          <form id="upload-cv-form" action="/updatecvprocess" method="post">
+            <div class="form-group">
+              <label for="applicantName">Applicant Name</label>
+              <input type="text" class="form-control" id="name" name="name" value="{{.UserDetails.FullName}}"
+                     readonly>
+            </div>
+            <div class="form-group">
+              <label for="applicantSpeciality">Field of Work</label>
+              <input type="text" class="form-control" id="speciality" name="speciality" placeholder="Computer Science"
+                     autofocus="" {{if .CVInfo.CV.Speciality}}value="{{.CVInfo.CV.Speciality}}"{{end}}>
+            </div>
+            <div class="form-group">
+              <label for="cv">CV</label>
+              <textarea class="form-control" id="cv" name="cv" rows="5"
+                        autofocus="">{{if .CVInfo.CV.CV}}{{.CVInfo.CV.CV}}{{end}}</textarea>
+            </div>
+            <div class="form-group">
+              <label for="cvDate">CV Revision Date</label>
+              <input type="date" class="form-control" id="cvDate" name="cvDate" autofocus=""
+                     {{if .CVInfo.CV.CVDate}}value="{{.CVInfo.CV.CVDate}}"{{end}}>
+            </div>
+            <button class="btn btn-lg btn-primary" type="submit">Update your CV</button>
+          </form>
         </div>
+      </div>
     </div>
+  </div>
 {{end}}

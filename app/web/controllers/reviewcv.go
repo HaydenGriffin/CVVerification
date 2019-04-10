@@ -43,7 +43,7 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		data.CVInfo.CVList = sessions.GetAllCVList(session)
+		//data.CVInfo.CVList = sessions.GetAllCVList(session)
 
 		result, success := mux.Vars(r)["userID"]
 		if !success {
@@ -89,7 +89,7 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 
 		err = session.Save(r, w)
 		if err != nil {
-			data.MessageWarning = "Error! Unable to save session variables."
+			data.MessageWarning = "Error! Unable to save session values."
 			renderTemplate(w, r, "viewallcv.html", data)
 			return
 		}

@@ -1,14 +1,22 @@
 {{define "alerts"}}
-    <div class="container-fluid content-padding">
+    <div class="row">
+        <div class="col-lg-10 offset-lg-1 col-md-10 offset-md-1 col-sm-12">
         {{if .MessageSuccess}}
-            <div class ="alert alert-success">
+            <div class ="alert alert-success alert-dismissable fade show" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
                 {{.MessageSuccess}}
             </div>
         {{end}}
         {{if .MessageWarning}}
-            <div class ="alert alert-warning">
+            <div class ="alert alert-warning alert-dismissable fade show" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
                 {{.MessageWarning}}
             </div>
         {{end}}
+        </div>
     </div>
 {{end}}

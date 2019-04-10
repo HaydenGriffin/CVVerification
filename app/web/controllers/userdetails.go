@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/gob"
+	"fmt"
 	"github.com/cvverification/app/database"
 	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/app/sessions"
@@ -22,12 +23,11 @@ func (c *Controller) UpdateDetailsView() func(http.ResponseWriter, *http.Request
 		// Retrieve user details
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
-			renderTemplate(w, r, "index.html", data)
 		} else {
 			data.CurrentPage = "userdetails"
 			data.UserDetails.Username = u.Username
-			renderTemplate(w, r, "userdetails.html", data)
 		}
+		renderTemplate(w, r, "userdetails.html", data)
 	})
 }
 func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Request) {
@@ -74,6 +74,7 @@ func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Requ
 			// Insert row into DB
 			userDetails, err := database.CreateNewUser(username, fullName, emailAddress, fabricID)
 			if err != nil {
+				fmt.Println(err)
 				data.MessageWarning = "Error! Unable to save user details."
 				renderTemplate(w, r, "userdetails.html", data)
 				return

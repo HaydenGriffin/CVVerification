@@ -6,6 +6,10 @@ body {
   margin-bottom: 30px;
 }
 
+.display-new-line {
+  white-space: pre-line;
+}
+
 @media (min-width: 992px) {
   .animate {
     animation-duration: 0.3s;

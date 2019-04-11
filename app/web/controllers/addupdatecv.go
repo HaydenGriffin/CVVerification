@@ -86,13 +86,20 @@ func (c *Controller) UpdateCVView() func(http.ResponseWriter, *http.Request) {
 
 		// User is able to update a selected CV if specified. Otherwise update latest
 		if cvToDisplay == nil {
-			cvToDisplayCVHash := applicant.Profile.CVHistory[len(applicant.Profile.CVHistory)-1]
-			cvToDisplay, err = u.QueryCV(cvToDisplayCVHash)
-			if err != nil {
-				data.MessageWarning = "Error! Something went wrong whilst retrieving CV details from ledger."
+			if len(applicant.Profile.CVHistory) != 0 {
+				cvToDisplayCVHash := applicant.Profile.CVHistory[len(applicant.Profile.CVHistory)-1]
+				cvToDisplay, err = u.QueryCV(cvToDisplayCVHash)
+				if err != nil {
+					data.MessageWarning = "Error! Something went wrong whilst retrieving CV details from ledger."
+					renderTemplate(w, r, "index.html", data)
+					return
+				}
+			} else {
+				data.MessageWarning = "Error! Unable to retrieve CV from ledger."
 				renderTemplate(w, r, "index.html", data)
 				return
 			}
+
 		}
 
 		data.CVInfo.CV = cvToDisplay

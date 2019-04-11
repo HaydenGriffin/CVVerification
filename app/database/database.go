@@ -7,32 +7,34 @@ import (
 	"github.com/cvverification/chaincode/model"
 )
 
-var dataSourceName = "root:password@tcp(localhost:3306)/verification?parseTime=true"
+var DataSourceName = "root:password@tcp(localhost:3306)/verification?parseTime=true"
 
-func InitDB(dataSourceName string) (*sql.DB, error) {
-	db, err := sql.Open("mysql", dataSourceName)
+type MySQL struct {
+
+}
+
+var db *sql.DB
+
+func InitDB(dataSourceName string) error {
+	var err error
+	db, err = sql.Open("mysql", dataSourceName)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	db.SetMaxOpenConns(1000)
+	db.SetMaxOpenConns(200)
 	db.SetMaxIdleConns(100)
 
-	return db, nil
+	return nil
 }
 
 func GetUserDetailsFromUsername(username string) (templateModel.UserDetails, error) {
 
 	user := templateModel.UserDetails{}
 
-	db, err := InitDB(dataSourceName)
-
-	if err != nil {
-		return user, err
-	}
 
 	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.email_address FROM users u WHERE username = ?", username)
-	err = result.Scan(&user.Id, &user.Username, &user.FullName, &user.EmailAddress)
+	err := result.Scan(&user.Id, &user.Username, &user.FullName, &user.EmailAddress)
 
 	if err != nil {
 		return user, err
@@ -44,12 +46,6 @@ func GetUserDetailsFromUsername(username string) (templateModel.UserDetails, err
 func GetAllReviewableCVHashes() (map[int] string, error) {
 
 	ratableCVs := make(map[int] string)
-
-	db, err := InitDB(dataSourceName)
-
-	if err != nil {
-		return ratableCVs, err
-	}
 
 	rows, err := db.Query("SELECT u.id, uc.cv_hash FROM user_cvs uc JOIN users u ON uc.user_id = u.id WHERE uc.cv_in_review = 1")
 
@@ -74,12 +70,6 @@ func GetAllReviewableCVHashes() (map[int] string, error) {
 func GetUserCVDetails(user_id int) ([]model.CVHistoryInfo, error) {
 
 	var historicalCVHistoryInfo []model.CVHistoryInfo
-
-	db, err := InitDB(dataSourceName)
-
-	if err != nil {
-		return historicalCVHistoryInfo, err
-	}
 
 	rows, err := db.Query("SELECT uc.cv_hash, uc.cv_in_review, uc.timestamp FROM user_cvs uc WHERE uc.user_id = ? ORDER BY uc.timestamp ASC", user_id)
 
@@ -107,12 +97,6 @@ func GetUserCVDetails(user_id int) ([]model.CVHistoryInfo, error) {
 
 func CreateNewUser(username, full_name, email_address, fabric_id string) (userDetails templateModel.UserDetails, error error) {
 
-	db, err := InitDB(dataSourceName)
-
-	if err != nil {
-		return userDetails, err
-	}
-
 	res, err := db.Exec("INSERT INTO users(username, full_name, email_address, fabric_id) VALUES (?, ?, ?, ?)", username, full_name, email_address, fabric_id)
 	fmt.Println(res)
 
@@ -135,12 +119,6 @@ func CreateNewUser(username, full_name, email_address, fabric_id string) (userDe
 
 func UpdateUser(username, full_name, email_address string) (userDetails templateModel.UserDetails, error error) {
 
-	db, err := InitDB(dataSourceName)
-
-	if err != nil {
-		return userDetails, err
-	}
-
 	user, err := GetUserDetailsFromUsername(username)
 
 	if err != nil {
@@ -160,17 +138,12 @@ func UpdateUser(username, full_name, email_address string) (userDetails template
 }
 
 func GetCVInfoFromID(user_id int) (string, string, error) {
-	db, err := InitDB(dataSourceName)
-
-	if err != nil {
-		return "", "", err
-	}
 
 	result := db.QueryRow("SELECT u.fabric_id, uc.cv_hash FROM users u JOIN user_cvs uc ON u.id = uc.user_id WHERE u.id = ? AND uc.cv_in_review = 1", user_id)
 
 	var fabricID, cvHash string
 
-	err = result.Scan(&fabricID, &cvHash)
+	err := result.Scan(&fabricID, &cvHash)
 
 	if err != nil {
 		return "", "", err
@@ -180,41 +153,26 @@ func GetCVInfoFromID(user_id int) (string, string, error) {
 }
 
 func CreateNewCV(user_id int, cv_hash string) error {
-	db, err := InitDB(dataSourceName)
 
-	if err != nil {
-		return err
-	}
-
-	_, err = db.Exec("INSERT INTO user_cvs(user_id, timestamp, cv_hash, cv_in_review) VALUES (?, CURRENT_TIMESTAMP, ?, 0)", user_id, cv_hash)
+	_, err := db.Exec("INSERT INTO user_cvs(user_id, timestamp, cv_hash, cv_in_review) VALUES (?, CURRENT_TIMESTAMP, ?, 0)", user_id, cv_hash)
 
 	return err
 }
 
 func UpdateCV(cv_hash string, ratable int) error {
-	db, err := InitDB(dataSourceName)
 
-	if err != nil {
-		return err
-	}
-
-	_, err = db.Exec("UPDATE user_cvs SET cv_in_review = ? WHERE cv_hash = ?", ratable, cv_hash)
+	_, err := db.Exec("UPDATE user_cvs SET cv_in_review = ? WHERE cv_hash = ?", ratable, cv_hash)
 
 	return err
 }
 
 func UserHasCVInReview(user_id int) bool {
-	db, err := InitDB(dataSourceName)
-
-	if err != nil {
-		return false
-	}
 
 	result := db.QueryRow("SELECT cv_in_review FROM user_cvs WHERE user_id = ? AND cv_in_review = 1", user_id)
 
 	var cv_ratable int
 
-	err = result.Scan(&cv_ratable)
+	err := result.Scan(&cv_ratable)
 
 	if err != nil {
 		return false

@@ -49,7 +49,7 @@
             <div class="card mb-2">
               <div class="card-body">
                 <h4>Main CV</h4>
-                <p>{{.CVInfo.CV.CV}}</p>
+                <div class="display-new-line">{{.CVInfo.CV.CV}}</div>
               </div>
             </div>
             <div class="row">
@@ -58,12 +58,13 @@
                   <div class="card mb-2">
                     <div class="card-body">
                       <h4>{{$subject}}</h4>
-                      <p>{{$value}}</p>
+                      <div class="display-new-line">{{$value}}</div>
                     </div>
                   </div>
                 </div>
               {{end}}
             </div>
+            <hr>
             <button class="btn btn-lg btn-primary" type="submit">Update your CV</button>
             {{if .CVInfo.CurrentCVInReview}}
               <button class="btn btn-link" type="submit" formaction="/withdrawcvfromreview">Withdraw CV from Review
@@ -97,8 +98,5 @@
         </div>
       </div>
     </div>
-  </div>
-  {{if .CVInfo.CV}}
-  {{end}}
   </div>
 {{end}}

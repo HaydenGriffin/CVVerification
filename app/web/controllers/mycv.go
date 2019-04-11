@@ -77,6 +77,7 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 					// Found match for requestedCVIndex
 					cvToDisplayCVHash = historicalCVHistoryInfo[i].CVHash
 					if historicalCVHistoryInfo[i].CVInReview == 1 {
+						data.CVInfo.UserHasCVInReview = true
 						data.CVInfo.CurrentCVInReview = true
 					}
 					data.CVInfo.CurrentCVHash = historicalCVHistoryInfo[i].CVHash

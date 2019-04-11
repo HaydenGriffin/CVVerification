@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/cvverification/app/database"
 	"github.com/cvverification/app/web"
 	"github.com/cvverification/app/web/controllers"
 	"github.com/cvverification/blockchain"
@@ -94,6 +95,10 @@ func main() {
 	// Launch the web application listening
 	app := &controllers.Controller{
 		Fabric: &fSetup,
+	}
+	err = database.InitDB(database.DataSourceName)
+	if err != nil {
+		fmt.Printf("Unable to initialise the DB: %v\n", err)
 	}
 	web.Serve(app)
 }

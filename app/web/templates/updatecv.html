@@ -1,31 +1,70 @@
 {{define "title"}}Update CV{{end}}
 {{define "body"}}
+  <script src="../assets/js/cvaction.js"></script>
   <div class="row">
     <div class="col-lg-8 offset-lg-2 col-md-10 offset-md-1 col-sm-12">
       <h3>Update your CV</h3>
       <div class="card">
         <div class="card-body">
           <form id="upload-cv-form" action="/updatecvprocess" method="post">
-            <div class="form-group">
-              <label for="applicantName">Applicant Name</label>
-              <input type="text" class="form-control" id="name" name="name" value="{{.UserDetails.FullName}}"
-                     readonly>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="applicantName">Applicant Name</label>
+                <input type="text" class="form-control" id="applicantName" name="name" value="{{.UserDetails.FullName}}"
+                       readonly>
+              </div>
+              <div class="form-group col-md-6">
+                <label for="applicantSpeciality">Field of Work</label>
+                <input type="text" class="form-control" id="applicantSpeciality" name="speciality"
+                       placeholder="Computer Science"
+                       autofocus="" {{if .CVInfo.CV.Speciality}}value="{{.CVInfo.CV.Speciality}}"{{end}}>
+              </div>
+              <div class="form-group col-md-6">
+                <label for="cvDate">CV Revision Date</label>
+                <input type="date" class="form-control" id="cvDate" name="cvDate" autofocus=""
+                       {{if .CVInfo.CV.CVDate}}value="{{.CVInfo.CV.CVDate}}"{{end}}>
+              </div>
             </div>
-            <div class="form-group">
-              <label for="applicantSpeciality">Field of Work</label>
-              <input type="text" class="form-control" id="speciality" name="speciality" placeholder="Computer Science"
-                     autofocus="" {{if .CVInfo.CV.Speciality}}value="{{.CVInfo.CV.Speciality}}"{{end}}>
+            <div class="mainSection">
+              <div class="card mb-2">
+                <div class="card-body">
+                  <div class="form-group">
+                    <label for="mainCVSectionValue">Main CV</label>
+                    <textarea class="form-control" id="mainCVSectionValue" name="mainCVSectionValue" rows="5"
+                              autofocus="">{{if .CVInfo.CV.CV}}{{.CVInfo.CV.CV}}{{end}}</textarea>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="form-group">
-              <label for="cv">CV</label>
-              <textarea class="form-control" id="cv" name="cv" rows="5"
-                        autofocus="">{{if .CVInfo.CV.CV}}{{.CVInfo.CV.CV}}{{end}}</textarea>
+            <div id="additionalSections">
+              {{range $subject, $value := .CVInfo.CV.CVSections}}
+                <div class="card mb-2">
+                  <div class="card-body">
+                    <div class="form-group">
+                      <label for="additionalCVSectionSubject">Subject</label>
+                      <select class="form-control" id="additionalCVSectionSubject" name="additionalCVSectionSubject">
+                        <option {{if eq $subject "Education"}}selected{{end}}>Education</option>
+                        <option {{if eq $subject "Experience"}}selected{{end}}>Experience</option>
+                        <option {{if eq $subject "Skills"}}selected{{end}}>Skills</option>
+                        <option {{if eq $subject "Certifications"}}selected{{end}}>Certifications</option>
+                        <option {{if eq $subject "Traits"}}selected{{end}}>Traits</option>
+                        <option {{if eq $subject "Interests"}}selected{{end}}>Interests</option>
+                        <option {{if eq $subject "Other"}}selected{{end}}>Other</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label for="additionalCVSectionValue">Details</label>
+                      <textarea class="form-control" id="additionalCVSectionValue" rows="3" name="additionalCVSectionValue">{{$value}}</textarea>
+                    </div>
+                    <button class="btn btn-danger" type="button" id="removeSection"><span class="fa fa-trash" aria-hidden="true"></span> Remove</button>
+                  </div>
+                </div>
+              {{end}}
             </div>
-            <div class="form-group">
-              <label for="cvDate">CV Revision Date</label>
-              <input type="date" class="form-control" id="cvDate" name="cvDate" autofocus=""
-                     {{if .CVInfo.CV.CVDate}}value="{{.CVInfo.CV.CVDate}}"{{end}}>
-            </div>
+            <button type="button" class="btn btn-success" id="addSection"><span class="fa fa-plus"
+                                                                                aria-hidden="true"></span> Add Section
+            </button>
+            <hr>
             <button class="btn btn-lg btn-primary" type="submit">Update your CV</button>
           </form>
         </div>

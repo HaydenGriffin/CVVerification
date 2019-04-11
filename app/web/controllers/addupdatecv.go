@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/cvverification/app/crypto"
 	"github.com/cvverification/app/database"
 	templateModel "github.com/cvverification/app/model"
@@ -10,6 +11,7 @@ import (
 	"github.com/cvverification/chaincode/model"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
+	"strings"
 )
 
 func (c *Controller) AddCVView() func(http.ResponseWriter, *http.Request) {
@@ -72,6 +74,7 @@ func (c *Controller) UpdateCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
+		// If the user hasn't uploaded a CV then take them to addcv page
 		if data.UserDetails.UploadedCV == false {
 			data.CurrentPage = "addcv"
 			data.MessageWarning = "Error! You must add a CV before you can update it."
@@ -81,6 +84,7 @@ func (c *Controller) UpdateCVView() func(http.ResponseWriter, *http.Request) {
 
 		cvToDisplay := sessions.GetCV(session)
 
+		// User is able to update a selected CV if specified. Otherwise update latest
 		if cvToDisplay == nil {
 			cvToDisplayCVHash := applicant.Profile.CVHistory[len(applicant.Profile.CVHistory)-1]
 			cvToDisplay, err = u.QueryCV(cvToDisplayCVHash)
@@ -126,13 +130,50 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
+		// Extract form values and create new object
 		cv := model.CVObject{
 			Name:       r.FormValue("name"),
 			Speciality: r.FormValue("speciality"),
-			CV:         r.FormValue("cv"),
 			CVDate:     r.FormValue("cvDate"),
+			CV: r.FormValue("mainCVSectionValue"),
 		}
 
+		// Additional sections are stored in a map
+		cv.CVSections = make(map[string]string)
+
+		// Parse the form to retreive all the form data
+		if err := r.ParseForm(); err != nil {
+			fmt.Println(err)
+			data.MessageWarning = "Error! Something went wrong whilst processing the request."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
+
+		var listOfIndexes []string
+
+		// Additional sections can be added and deleted dynamically
+		// The key here is the name of the form field
+		for key, _ := range r.PostForm {
+			// Retrieve all additional section form fields
+			if strings.Contains(key, "additionalCVSectionSubject") {
+				// Extract the last character in the string (this is a number set by jQuery)
+				index := key[len(key)-1:]
+				// Add the number to the list of indexes
+				listOfIndexes = append(listOfIndexes, index)
+			}
+		}
+
+		// For each number in the list of indexes, there is a form value
+		// for the subject and the value
+		for _, index := range listOfIndexes {
+			// Extract the additional section subject and values
+			key := r.PostForm.Get("additionalCVSectionSubject"+index)
+			value := r.PostForm.Get("additionalCVSectionValue"+index)
+			// Add the key and value to the CVSections map
+			cv.CVSections[key] = value
+		}
+
+		// Convert the CV object to byte (for storage on ledger)
 		cvByte, err := json.Marshal(cv)
 		if err != nil {
 			data.MessageWarning = "Error! Failed to save CV to ledger."
@@ -140,6 +181,8 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
+		// Generate hash for the CV object
+		// The hash is used as the key to access the object on the ledger
 		cvHash, err := crypto.GenerateFromByte(cvByte)
 		if err != nil {
 			data.MessageWarning = "Error! Failed to save CV to ledger."
@@ -147,6 +190,7 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
+		// Save the CV object to ledger
 		err = u.UpdateSaveCV(cvByte, cvHash)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to save CV to ledger."
@@ -154,6 +198,7 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
+		// Update the users profile CV history to include the latest CV hash
 		err = u.UpdateSaveProfileCV(cvHash)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to update profile information in ledger."
@@ -161,11 +206,13 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
+		// Create a new DB table row with info about the CV saved
 		err = database.CreateNewCV(data.UserDetails.Id, cvHash)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to save CV details to database."
 			renderTemplate(w, r, "addcv.html", data)
 		} else {
+			// Set session values
 			session.Values["UserUploadedCV"] = true
 			err = session.Save(r, w)
 			if err != nil {

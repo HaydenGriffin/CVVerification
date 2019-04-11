@@ -169,6 +169,6 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 		data.CurrentPage = "viewallcv"
 		data.MessageSuccess = "Success! Your review has been saved."
 
-		renderTemplate(w, r, "viewallcv.html", data)
+		renderTemplate(w, r, "index.html", data)
 	})
 }

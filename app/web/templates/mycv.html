@@ -4,44 +4,66 @@
     <div class="col-lg-7 offset-lg-1">
       <h3>CV History</h3>
       <div class="card mb-5">
-          <table class="table table-hover shopping-cart-wrap">
-            <thead class="text-muted">
-            <tr>
-              <th scope="col">CV Version</th>
-              <th scope="col">Date</th>
-              <th scope="col">Status</th>
-              <th scope="col" class="text-right">Action</th>
+        <table class="table table-hover shopping-cart-wrap">
+          <thead class="text-muted">
+          <tr>
+            <th scope="col">CV Version</th>
+            <th scope="col">Date</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="text-right">Action</th>
+          </tr>
+          </thead>
+          <tbody>
+          {{range $i, $cv := .CVInfo.CVHistory}}
+            <tr {{if eq $.CVInfo.CurrentCVHash $cv.CVHash}}class="table-active"{{end}}>
+              <td>{{$cv.Index}}</td>
+              <td>{{$cv.Timestamp.Format "Jan 02, 2006 15:04:05"}}</td>
+              <td>
+                {{if eq $cv.CVInReview 1}}
+                  In Review
+                {{else}}
+                  In Draft
+                {{end}}
+              </td>
+              <td class="text-right"><a href="/mycv/{{$cv.Index}}"
+                                        class="btn btn-outline-primary">View {{$cv.Index}}</a></td>
             </tr>
-            </thead>
-            <tbody>
-            {{range $i, $cv := .CVInfo.CVHistory}}
-              <tr {{if eq $.CVInfo.CurrentCVHash $cv.CVHash}}class="table-active"{{end}}>
-                <td>{{$cv.Index}}</td>
-                <td>{{$cv.Timestamp.Format "Jan 02, 2006 15:04:05"}}</td>
-                <td>
-                  {{if eq $cv.CVInReview 1}}
-                    In Review
-                  {{else}}
-                    In Draft
-                  {{end}}
-                </td>
-                <td class="text-right"><a href="/mycv/{{$cv.Index}}" class="btn btn-outline-primary">View {{$cv.Index}}</a></td>
-              </tr>
-            {{end}}
-            </tbody>
-          </table>
-        </div> <!-- card.// -->
+          {{end}}
+          </tbody>
+        </table>
+      </div> <!-- card.// -->
       <h3>Your CV</h3>
       <div class="card mb-5">
         <div class="card-body">
-          <h3 class="card-heading">My CV</h3>
           <form id="update-cv" action="/updatecv" method="post">
-            <h4>Speciality</h4>
-            <p>{{.CVInfo.CV.Speciality}}</p>
-            <h4>Date of CV</h4>
-            <p>{{.CVInfo.CV.CVDate}}</p>
-            <h4>CV</h4>
-            <p>{{.CVInfo.CV.CV}}</p>
+            <div class="row">
+              <div class="col-md-6">
+                <h4>Speciality</h4>
+                <p>{{.CVInfo.CV.Speciality}}</p>
+              </div>
+              <div class="col-md-6">
+                <h4>Date of CV</h4>
+                <p>{{.CVInfo.CV.CVDate}}</p>
+              </div>
+            </div>
+            <div class="card mb-2">
+              <div class="card-body">
+                <h4>Main CV</h4>
+                <p>{{.CVInfo.CV.CV}}</p>
+              </div>
+            </div>
+            <div class="row">
+              {{range $subject, $value := .CVInfo.CV.CVSections}}
+                <div class="col-md-6">
+                  <div class="card mb-2">
+                    <div class="card-body">
+                      <h4>{{$subject}}</h4>
+                      <p>{{$value}}</p>
+                    </div>
+                  </div>
+                </div>
+              {{end}}
+            </div>
             <button class="btn btn-lg btn-primary" type="submit">Update your CV</button>
             {{if .CVInfo.CurrentCVInReview}}
               <button class="btn btn-link" type="submit" formaction="/withdrawcvfromreview">Withdraw CV from Review
@@ -63,7 +85,7 @@
         <div class="card-body">
           {{if not .CVInfo.Reviews}}
             You have no reviews yet. Once you are happy with your CV, submit it to review
-            {{end}}
+          {{end}}
           {{range $cvHash, $CVReview:=  .CVInfo.Reviews}}
             <h4>Reviewer:</h4>
             {{$CVReview.Name}}

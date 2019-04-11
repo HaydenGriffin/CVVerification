@@ -55,7 +55,8 @@ type CVObject struct {
 	ObjectType	string	`json:"docType"`
 	Name	string	`json:"Name"`
 	Speciality	string	`json:"Speciality"`
-	CV	string	`json:"CV"`
+	CV string	`json:"CV"`
+	CVSections map[string] string `json:"CVSections"`
 	CVDate	string	`json:"CVDate"`
 }
 

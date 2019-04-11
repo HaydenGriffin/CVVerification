@@ -12,6 +12,18 @@
                 <p>{{.CVInfo.CV.CVDate}}</p>
                 <h4>CV</h4>
                 <p>{{.CVInfo.CV.CV}}</p>
+                <div class="row">
+                    {{range $subject, $value := .CVInfo.CV.CVSections}}
+                        <div class="col-md-6">
+                            <div class="card mb-2">
+                                <div class="card-body">
+                                    <h4>{{$subject}}</h4>
+                                    <p>{{$value}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {{end}}
+                </div>
             </form>
                 <hr>
                 <h3>Review</h3>

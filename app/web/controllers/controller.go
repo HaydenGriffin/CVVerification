@@ -19,7 +19,8 @@ type Controller struct {
 	Fabric *blockchain.FabricSetup
 }
 
-// basicAuth used to check the authentication (using basic auth) and retrieve the blockchain user
+// Middleware that runs every time a request to access a page is received
+// basicAuth is used to provide log in credentials to authenticate and retrieve blockchain user
 func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *blockchain.User)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -57,6 +58,7 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 		if err != nil {
 			session.Values["SavedUserDetails"] = false
 		} else {
+			// User details found - check to see if they have uploaded CV
 			userCVInfo, err := database.GetUserCVDetails(userDetails.Id)
 			if err != nil || len(userCVInfo) == 0 {
 				session.Values["UserUploadedCV"] = false

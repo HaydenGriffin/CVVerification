@@ -1,5 +1,6 @@
 {{define "title"}}Add CV{{end}}
 {{define "body"}}
+  <script src="../assets/js/cvaction.js"></script>
   <div class="container">
     <div class="row">
       <div class="col-lg-8 offset-lg-2 col-md-10 offset-md-1 col-sm-12">
@@ -7,24 +8,40 @@
         <div class="card">
           <div class="card-body">
             <form id="upload-cv-form" action="/addcvprocess" method="post">
-              <div class="form-group">
-                <label for="applicantName">Applicant Name</label>
-                <input type="text" class="form-control" id="name" name="name" value="{{.UserDetails.FullName}}"
-                       readonly>
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="applicantName">Applicant Name</label>
+                  <input type="text" class="form-control" id="applicantName" name="name"
+                         value="{{.UserDetails.FullName}}"
+                         readonly>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="applicantSpeciality">Field of Work</label>
+                  <input type="text" class="form-control" id="applicantSpeciality" name="speciality"
+                         placeholder="Computer Science"
+                         autofocus="">
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="cvDate">CV Revision Date</label>
+                  <input type="date" class="form-control" id="cvDate" name="cvDate" autofocus="">
+                </div>
               </div>
-              <div class="form-group">
-                <label for="applicantSpeciality">Field of Work</label>
-                <input type="text" class="form-control" id="speciality" name="speciality" placeholder="Computer Science"
-                       autofocus="">
+              <div class="mainSection">
+                <div class="card mb-2">
+                  <div class="card-body">
+                    <div class="form-group">
+                      <label for="mainCVSectionValue">Main CV</label>
+                      <textarea class="form-control" id="mainCVSectionValue" name="mainCVSectionValue" rows="5"
+                                autofocus=""></textarea>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="form-group">
-                <label for="cv">CV</label>
-                <textarea class="form-control" id="cv" name="cv" rows="5" autofocus=""></textarea>
-              </div>
-              <div class="form-group">
-                <label for="cvDate">CV Revision Date</label>
-                <input type="date" class="form-control" id="cvDate" name="cvDate" autofocus="">
-              </div>
+              <div id="additionalSections"></div>
+              <button type="button" class="btn btn-success" id="addSection"><span class="fa fa-plus"
+                                                                                  aria-hidden="true"></span> Add Section
+              </button>
+              <hr>
               <button class="btn btn-lg btn-primary" type="submit">Add your CV</button>
             </form>
           </div>

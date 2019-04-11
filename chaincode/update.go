@@ -34,15 +34,14 @@ func (t *CVVerificationChaincode) update(stub shim.ChaincodeStubInterface, args 
 }
 
 func (t *CVVerificationChaincode) register(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
 	fmt.Println("Register new user")
 
 	actorType, found, err := cid.GetAttributeValue(stub, model.ActorAttribute)
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable to identify the type of the request owner: %v", err))
+		return shim.Error(fmt.Sprintf("Unable to identify the account type to register: %v", err))
 	}
 	if !found {
-		return shim.Error("The type of the request owner is not present")
+		return shim.Error("The account type to register could not be found")
 	}
 
 	if len(args) < 1 {
@@ -142,7 +141,6 @@ func (t *CVVerificationChaincode) register(stub shim.ChaincodeStubInterface, arg
 }
 
 func (t *CVVerificationChaincode) saveCV(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
 	fmt.Println("Add new CV")
 
 	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
@@ -163,7 +161,7 @@ func (t *CVVerificationChaincode) saveCV(stub shim.ChaincodeStubInterface, args 
 
 	err = convertByteToObject([]byte(cvByte), &cv)
 	if err != nil {
-		return shim.Error("Unable to convert cv byte to object")
+		return shim.Error(fmt.Sprintf("Unable to convert cv byte to object: %v", err))
 	}
 
 	cvHash := args[1]
@@ -222,6 +220,10 @@ func (t *CVVerificationChaincode) saveProfileCV(stub shim.ChaincodeStubInterface
 		return shim.Error(fmt.Sprintf("Unable to retrieve applicant profile from the ledger: %v", err))
 	}
 
+	if applicant.ID != applicantID {
+		return shim.Error("Unable to update profile as applicantID differs from profile ID")
+	}
+
 	applicant.Profile.CVHistory = append(applicant.Profile.CVHistory, cvHash)
 
 	err = updateInLedger(stub, model.ObjectTypeApplicant, applicantID, applicant)
@@ -243,7 +245,6 @@ func (t *CVVerificationChaincode) saveProfileCV(stub shim.ChaincodeStubInterface
 // args: CV object
 // CV Hash is key, CVObject is the value
 func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
 	fmt.Println("Save rating")
 
 	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorVerifier)
@@ -256,13 +257,13 @@ func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, a
 		return shim.Error("The number of arguments is invalid.")
 	}
 
-	ID := args[0]
+	applicantID := args[0]
 	cvHash := args[1]
 	ratingString := args[2]
 	var verifierRating model.CVReview
 	var applicant model.Applicant
 
-	if ID == "" {
+	if applicantID == "" {
 		return shim.Error("The profile hash is empty.")
 	}
 
@@ -276,17 +277,15 @@ func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, a
 
 	err = convertByteToObject([]byte(ratingString), &verifierRating)
 	if err != nil {
-		fmt.Println(err)
-		return shim.Error("Unable to convert rating byte to object")
+		return shim.Error(fmt.Sprintf("Unable to convert rating byte to object: %v", err))
 	}
 
 	verifierRating.VerifierID, err = cid.GetID(stub)
 	if err != nil {
-		fmt.Println(err)
-		return shim.Error("Unable to get invoking chaincode identity")
+		return shim.Error(fmt.Sprintf("Unable to get invoking chaincode identity: %v", err))
 	}
 
-	err = getFromLedger(stub, model.ObjectTypeApplicant, ID, &applicant)
+	err = getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable to retrieve applicant profile in the ledger: %v", err))
 	}
@@ -298,7 +297,6 @@ func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, a
 		reviews = applicant.Profile.Reviews
 
 		for i, rating := range applicant.Profile.Reviews[cvHash] {
-
 			// If the verifier has already rated the CV
 			if rating.VerifierID == verifierRating.VerifierID {
 				reviews[cvHash][i] = verifierRating
@@ -307,6 +305,7 @@ func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, a
 		}
 	}
 
+	// No existing rating from verifier - append new review
 	if existingRatingFound == false {
 		reviews[cvHash] = append(reviews[cvHash], verifierRating)
 	}
@@ -317,10 +316,8 @@ func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, a
 		applicant.Profile.Reviews[cvHash] = cvReview
 	}
 
-	fmt.Println(applicant.Profile)
-
-	// put the updated profile back to the ledger
-	err = updateInLedger(stub, model.ObjectTypeApplicant, ID, applicant)
+	// Put the updated profile back to the ledger
+	err = updateInLedger(stub, model.ObjectTypeApplicant, applicantID, applicant)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Unable to save the review in the ledger: %v", err))
 	}

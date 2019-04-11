@@ -155,7 +155,7 @@ func (t *CVVerificationChaincode) cv(stub shim.ChaincodeStubInterface, args []st
 
 	err := getFromLedger(stub, model.ObjectTypeCV, cvHash, &cv)
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Unable to retrieve cv in the ledger: %v", err))
+		return shim.Error(fmt.Sprintf("Unable to retrieve CV in the ledger: %v", err))
 	}
 
 	cvAsByte, err := convertObjectToByte(cv)

@@ -53,7 +53,7 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 		for userID, cvHash := range reviewableCVs {
 			cv, err := u.QueryCV(cvHash)
 			if err != nil {
-				data.MessageWarning = "Unable to retrieve CV detail from ledger."
+				data.MessageWarning = "Unable to retrieve CV details from ledger."
 				renderTemplate(w, r, "index.html", data)
 				return
 			}

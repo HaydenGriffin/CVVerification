@@ -52,13 +52,15 @@ type EmployerProfile struct {
 }
 
 type CVObject struct {
-	ObjectType	string	`json:"docType"`
-	Name	string	`json:"Name"`
-	Speciality	string	`json:"Speciality"`
-	CV string	`json:"CV"`
+	ApplicantID string `json:"docType"`
+	Name string `json:"Name"`
+	Speciality string `json:"Speciality"`
+	CV string `json:"CV"`
 	CVSections map[string] string `json:"CVSections"`
-	CVDate	string	`json:"CVDate"`
+	CVDate	string `json:"CVDate"`
 }
+
+type CVsInReview []CVObject
 
 type CVReview struct {
 	VerifierID string `json:"Id"`
@@ -69,9 +71,9 @@ type CVReview struct {
 
 type CVHistoryInfo struct {
 	Index int `json:"index"`
-	CVHash string    `json:"cvhash"`
-	Timestamp        time.Time `json:"timestamp"`
-	CVInReview     int      `json:"cvinreview"`
+	CVHash string `json:"cvhash"`
+	Timestamp time.Time `json:"timestamp"`
+	CVInReview int `json:"cvinreview"`
 }
 
 // List of object type stored in the ledger

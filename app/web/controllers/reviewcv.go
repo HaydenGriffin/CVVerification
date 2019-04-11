@@ -145,7 +145,7 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 		cvHash := sessions.GetCVHash(session)
 
 		if applicantID == "" || cvHash == "" {
-			data.MessageWarning = "Error! Unable to retrieve cv information"
+			data.MessageWarning = "Error! Unable to retrieve CV information"
 			renderTemplate(w, r, "index.html", data)
 			return
 		}

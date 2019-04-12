@@ -71,9 +71,9 @@ func (u *User) QueryVerifier() (*model.Verifier, error) {
 }
 
 // QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
-func (u *User) QueryCV(cvHash string) (*model.CVObject, error) {
+func (u *User) QueryCV(cvID string) (*model.CVObject, error) {
 	var cv *model.CVObject
-	err := u.query([][]byte{[]byte("cv"), []byte(cvHash)}, &cv)
+	err := u.query([][]byte{[]byte("cv"), []byte(cvID)}, &cv)
 	if err != nil {
 		return nil, err
 	}
@@ -81,9 +81,19 @@ func (u *User) QueryCV(cvHash string) (*model.CVObject, error) {
 }
 
 // QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
-func (u *User) QueryCVReviews(ID, cvHash string) ([]model.CVReview, error) {
+func (u *User) QueryCVs(status, filter string) (map[string]model.CVObject, error) {
+	cvList := make(map[string]model.CVObject)
+	err := u.query([][]byte{[]byte("cvs"), []byte(status), []byte(filter)}, &cvList)
+	if err != nil {
+		return nil, err
+	}
+	return cvList, nil
+}
+
+// QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
+func (u *User) QueryCVReviews(ID, cvID string) ([]model.CVReview, error) {
 	var ratings []model.CVReview
-	err := u.query([][]byte{[]byte("cvreviews"), []byte(ID), []byte(cvHash)}, &ratings)
+	err := u.query([][]byte{[]byte("cvreviews"), []byte(ID), []byte(cvID)}, &ratings)
 	if err != nil {
 		return nil, err
 	}
@@ -91,9 +101,9 @@ func (u *User) QueryCVReviews(ID, cvHash string) ([]model.CVReview, error) {
 }
 
 // QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
-func (u *User) QueryVerifierCVReview(ID, cvHash string) (model.CVReview, error) {
+func (u *User) QueryVerifierCVReview(ID, cvID string) (model.CVReview, error) {
 	var rating model.CVReview
-	err := u.query([][]byte{[]byte("verifiercvreview"), []byte(ID), []byte(cvHash)}, &rating)
+	err := u.query([][]byte{[]byte("verifiercvreview"), []byte(ID), []byte(cvID)}, &rating)
 	if err != nil {
 		return model.CVReview{}, err
 	}

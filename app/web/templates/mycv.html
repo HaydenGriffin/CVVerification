@@ -15,14 +15,14 @@
           </thead>
           <tbody>
           {{range $i, $cv := .CVInfo.CVHistory}}
-            <tr {{if eq $.CVInfo.CurrentCVHash $cv.CVHash}}class="table-active"{{end}}>
+            <tr {{if eq $.CVInfo.CurrentCVID $cv.CVID}}class="table-active"{{end}}>
               <td>{{$cv.Index}}</td>
-              <td>{{$cv.Timestamp.Format "Jan 02, 2006 15:04:05"}}</td>
+              <td>{{$cv.CVObject.CVDate}}</td>
               <td>
-                {{if eq $cv.CVInReview 1}}
-                  In Review
-                {{else}}
+                {{if eq $cv.CVObject.Status "draft"}}
                   In Draft
+                {{else if eq $cv.CVObject.Status "in-review"}}
+                  In Review
                 {{end}}
               </td>
               <td class="text-right"><a href="/mycv/{{$cv.Index}}"
@@ -66,14 +66,10 @@
             </div>
             <hr>
             <button class="btn btn-lg btn-primary" type="submit">Update your CV</button>
-            {{if .CVInfo.CurrentCVInReview}}
+            {{if eq .CVInfo.CV.Status "in-review"}}
               <button class="btn btn-link" type="submit" formaction="/withdrawcvfromreview">Withdraw CV from Review
               </button>
-            {{else if .CVInfo.UserHasCVInReview}}
-              <button class="btn btn-link" type="submit" formaction="/submitcvforreview"
-                      title="You may only have one CV in review at a time." disabled> Submit CV for Review
-              </button>
-            {{else}}
+            {{else if eq .CVInfo.CV.Status "draft"}}
               <button class="btn btn-link" type="submit" formaction="/submitcvforreview"> Submit CV for Review</button>
             {{end}}
           </form>
@@ -87,7 +83,7 @@
           {{if not .CVInfo.Reviews}}
             You have no reviews yet. Once you are happy with your CV, submit it to review
           {{end}}
-          {{range $cvHash, $CVReview:=  .CVInfo.Reviews}}
+          {{range $cvID, $CVReview:=  .CVInfo.Reviews}}
             <h4>Reviewer:</h4>
             {{$CVReview.Name}}
             <h4>Comment:</h4>

@@ -1,7 +1,5 @@
 package model
 
-import "time"
-
 // Actor metadata used for an admin and a consumer
 type Actor struct {
 	ID   string `json:"id"`
@@ -52,28 +50,20 @@ type EmployerProfile struct {
 }
 
 type CVObject struct {
-	ApplicantID string `json:"docType"`
+	DocType string `json:"DocType"`
 	Name string `json:"Name"`
 	Speciality string `json:"Speciality"`
 	CV string `json:"CV"`
 	CVSections map[string] string `json:"CVSections"`
 	CVDate	string `json:"CVDate"`
+	Status string `json:"CVStatus"`
 }
-
-type CVsInReview []CVObject
 
 type CVReview struct {
 	VerifierID string `json:"Id"`
 	Name string `json:"Name"`
 	Comment string `json:"Comment"`
 	Rating int `json:"Rating"`
-}
-
-type CVHistoryInfo struct {
-	Index int `json:"index"`
-	CVHash string `json:"cvhash"`
-	Timestamp time.Time `json:"timestamp"`
-	CVInReview int `json:"cvinreview"`
 }
 
 // List of object type stored in the ledger
@@ -83,4 +73,13 @@ const (
 	ObjectTypeEmployer = "employer"
 	ObjectTypeAdmin = "admin"
 	ObjectTypeCV = "cv"
+)
+
+const (
+	CVInDraft = "draft"
+	CVInReview = "in-review"
+	CVReviewed = "reviewed"
+	CVFinalised = "finalised"
+	CVSubmitted = "submitted"
+	CVSubmittedRated = "submitted-rated"
 )

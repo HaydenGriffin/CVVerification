@@ -2,22 +2,36 @@
 {{define "body"}}
   <div class="container">
     <h3>View All CVs</h3>
-    <div class="card-columns">
-      {{range $userID, $cv:=  .CVInfo.CVList}}
-        <div class="card">
-          <div class="card-body">
-            <form id="review-cv" action="/reviewcv/{{$userID}}" method="post">
-              <h4>Applicant Name</h4>
-              <p> {{$cv.Name}}</p>
-              <h4>Speciality</h4>
-              <p>{{$cv.Speciality}}</p>
-              <h4>Date of CV</h4>
-              <p>{{$cv.CVDate}}</p>
-              <button class="btn btn-lg btn-primary" type="submit">View full CV</button>
-            </form>
+    <div class="row">
+      <div class="col-md-4">
+        <form id="filter-cv" action="/viewallcv" method="post">
+          <label for="applicantSpeciality">Query CV By Speciality:</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="applicantSpeciality" name="speciality"
+                   autofocus="">
+            <span class="input-group-btn">
+            <button class="btn btn-success" formaction="/viewallcv" type="submit">Search</button>
+          </span>
           </div>
+        </form>
         </div>
-      {{end}}
+      </div>
+      <div class="card-columns">
+        {{range $cvID, $cv:=  .CVInfo.CVList}}
+          <div class="card">
+            <div class="card-body">
+              <form id="review-cv" action="/reviewcv/{{$cvID}}" method="post">
+                <h4>Applicant Name</h4>
+                <p> {{$cv.Name}}</p>
+                <h4>Speciality</h4>
+                <p>{{$cv.Speciality}}</p>
+                <h4>Date of CV</h4>
+                <p>{{$cv.CVDate}}</p>
+                <button class="btn btn-lg btn-primary" type="submit">View full CV</button>
+              </form>
+            </div>
+          </div>
+        {{end}}
+      </div>
     </div>
-  </div>
 {{end}}

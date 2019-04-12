@@ -13,10 +13,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"github.com/teris-io/shortid"
 )
 
 type Controller struct {
 	Fabric *blockchain.FabricSetup
+	ShortID *shortid.Shortid
 }
 
 // Middleware that runs every time a request to access a page is received
@@ -55,17 +57,10 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 
 		// Check that there is corresponding user details stored in DB
 		userDetails, err := database.GetUserDetailsFromUsername(pair[0])
+		gob.Register(userDetails)
 		if err != nil {
 			session.Values["SavedUserDetails"] = false
 		} else {
-			// User details found - check to see if they have uploaded CV
-			userCVInfo, err := database.GetUserCVDetails(userDetails.Id)
-			if err != nil || len(userCVInfo) == 0 {
-				session.Values["UserUploadedCV"] = false
-			} else {
-				session.Values["UserUploadedCV"] = true
-			}
-			gob.Register(userDetails)
 			session.Values["SavedUserDetails"] = true
 			session.Values["UserDetails"] = userDetails
 		}

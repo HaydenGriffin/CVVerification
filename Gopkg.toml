@@ -4,6 +4,10 @@ ignored = ["github.com/cvverification/chaincode*"]
   branch = "master"
   name = "github.com/hyperledger/fabric-sdk-go"
 
+[[constraint]]
+  branch = "master"
+  name = "github.com/teris-io/shortid"
+
 [prune]
   go-tests = true
   unused-packages = true

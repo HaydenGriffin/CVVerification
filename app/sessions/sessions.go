@@ -71,14 +71,24 @@ func GetCV(s *sessions.Session) *model.CVObject {
 	return cv
 }
 
-func GetCVHash(s *sessions.Session) string {
-	val := s.Values["CVHash"]
+func GetCVHistory(s *sessions.Session) []templateModel.CVHistoryInfo {
+	val := s.Values["CVHistory"]
 
-	cvHash, ok := val.(string)
+	cv, ok := val.([]templateModel.CVHistoryInfo)
+	if !ok {
+		return nil
+	}
+	return cv
+}
+
+func GetCVID(s *sessions.Session) string {
+	val := s.Values["CVID"]
+
+	cvID, ok := val.(string)
 	if !ok {
 		return ""
 	}
-	return cvHash
+	return cvID
 }
 
 func GetApplicantFabricID(s *sessions.Session) string {
@@ -89,16 +99,6 @@ func GetApplicantFabricID(s *sessions.Session) string {
 		return ""
 	}
 	return ID
-}
-
-func GetAllCVList(s *sessions.Session) map[int] *model.CVObject {
-	val := s.Values["AllCVList"]
-
-	allCVList, ok := val.(map[int] *model.CVObject)
-	if !ok {
-		return nil
-	}
-	return allCVList
 }
 
 func GetReviews(s *sessions.Session) []model.CVReview {

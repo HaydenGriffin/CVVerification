@@ -16,10 +16,14 @@ func Serve(app *controllers.Controller) {
 	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", fs))
 
 	r.HandleFunc("/", app.IndexHandler())
+	r.HandleFunc("/logout", app.LogoutHandler())
+
 	r.HandleFunc("/addcv", app.AddCVView())
 	r.HandleFunc("/addcvprocess", app.AddCVHandler())
+
 	r.HandleFunc("/updatecv", app.UpdateCVView())
 	r.HandleFunc("/updatecvprocess", app.AddCVHandler())
+
 	r.HandleFunc("/mycv", app.MyCVView())
 	r.HandleFunc("/mycv/{requestedCVIndex}", app.MyCVView())
 
@@ -27,11 +31,11 @@ func Serve(app *controllers.Controller) {
 	r.HandleFunc("/withdrawcvfromreview", app.WithdrawFromReviewHandler())
 
 	r.HandleFunc("/viewallcv", app.ViewAllCVView())
+	r.HandleFunc("/viewallcv/{speciality}", app.ViewAllCVView())
 
-	r.HandleFunc("/reviewcv/{userID}", app.ReviewCVView())
+	r.HandleFunc("/reviewcv/{cvID}", app.ReviewCVView())
 	r.HandleFunc("/reviewcvprocess", app.ReviewCVHandler())
 
-	r.HandleFunc("/logout", app.LogoutHandler())
 	r.HandleFunc("/userdetails", app.UpdateDetailsView())
 	r.HandleFunc("/updatedetailsprocess", app.UpdateDetailsHandler())
 

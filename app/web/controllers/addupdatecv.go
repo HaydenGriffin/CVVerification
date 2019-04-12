@@ -2,8 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/cvverification/app/crypto"
 	"github.com/cvverification/app/database"
 	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/app/sessions"
@@ -87,8 +85,8 @@ func (c *Controller) UpdateCVView() func(http.ResponseWriter, *http.Request) {
 		// User is able to update a selected CV if specified. Otherwise update latest
 		if cvToDisplay == nil {
 			if len(applicant.Profile.CVHistory) != 0 {
-				cvToDisplayCVHash := applicant.Profile.CVHistory[len(applicant.Profile.CVHistory)-1]
-				cvToDisplay, err = u.QueryCV(cvToDisplayCVHash)
+				cvToDisplayCVID := applicant.Profile.CVHistory[len(applicant.Profile.CVHistory)-1]
+				cvToDisplay, err = u.QueryCV(cvToDisplayCVID)
 				if err != nil {
 					data.MessageWarning = "Error! Something went wrong whilst retrieving CV details from ledger."
 					renderTemplate(w, r, "index.html", data)
@@ -139,9 +137,10 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 
 		// Extract form values and create new object
 		cv := model.CVObject{
-			Name:       r.FormValue("name"),
+			DocType: "cv",
+			Name: r.FormValue("name"),
 			Speciality: r.FormValue("speciality"),
-			CVDate:     r.FormValue("cvDate"),
+			CVDate: r.FormValue("cvDate"),
 			CV: r.FormValue("mainCVSectionValue"),
 		}
 
@@ -150,7 +149,6 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 
 		// Parse the form to retreive all the form data
 		if err := r.ParseForm(); err != nil {
-			fmt.Println(err)
 			data.MessageWarning = "Error! Something went wrong whilst processing the request."
 			renderTemplate(w, r, "index.html", data)
 			return
@@ -190,7 +188,7 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 
 		// Generate hash for the CV object
 		// The hash is used as the key to access the object on the ledger
-		cvHash, err := crypto.GenerateFromByte(cvByte)
+		cvID, err := c.ShortID.Generate()
 		if err != nil {
 			data.MessageWarning = "Error! Failed to save CV to ledger."
 			renderTemplate(w, r, "addcv.html", data)
@@ -198,15 +196,15 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 		}
 
 		// Save the CV object to ledger
-		err = u.UpdateSaveCV(cvByte, cvHash)
+		err = u.UpdateSaveCV(cvByte, cvID)
 		if err != nil {
-			data.MessageWarning = "Error! Unable to save CV to ledger."
+			data.MessageWarning = "Error! Failed to save CV to ledger."
 			renderTemplate(w, r, "addcv.html", data)
 			return
 		}
 
-		// Update the users profile CV history to include the latest CV hash
-		err = u.UpdateSaveProfileCV(cvHash)
+		// Update the users profile CV history to include the latest CV ID
+		err = u.UpdateSaveProfileCV(cvID)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to update profile information in ledger."
 			renderTemplate(w, r, "addcv.html", data)
@@ -214,7 +212,7 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 		}
 
 		// Create a new DB table row with info about the CV saved
-		err = database.CreateNewCV(data.UserDetails.Id, cvHash)
+		err = database.CreateNewCV(data.UserDetails.Id, cvID)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to save CV details to database."
 			renderTemplate(w, r, "addcv.html", data)

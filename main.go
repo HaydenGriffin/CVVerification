@@ -11,6 +11,7 @@ import (
 	"github.com/cvverification/app/web/controllers"
 	"github.com/cvverification/blockchain"
 	"github.com/cvverification/chaincode/model"
+	"github.com/teris-io/shortid"
 	"os"
 )
 
@@ -92,9 +93,12 @@ func main() {
 		return
 	}
 
+	sid, err := shortid.New(1, shortid.DefaultABC, 2342)
+
 	// Launch the web application listening
 	app := &controllers.Controller{
 		Fabric: &fSetup,
+		ShortID: sid,
 	}
 	err = database.InitDB(database.DataSourceName)
 	if err != nil {

@@ -10,6 +10,10 @@ body {
   white-space: pre-line;
 }
 
+.card-columns {
+  margin-top: 15px;
+}
+
 @media (min-width: 992px) {
   .animate {
     animation-duration: 0.3s;

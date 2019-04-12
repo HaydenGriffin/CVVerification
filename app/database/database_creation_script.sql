@@ -9,7 +9,7 @@ USE `verification`;
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
- SET NAMES utf8 ;
+SET NAMES utf8 ;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -23,16 +23,15 @@ USE `verification`;
 
 DROP TABLE IF EXISTS `user_cvs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+SET character_set_client = utf8mb4 ;
 CREATE TABLE `user_cvs` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) DEFAULT NULL,
-  `timestamp` datetime DEFAULT NULL,
-  `cv_hash` char(128) DEFAULT NULL,
-  `cv_in_review` tinyint(1) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `user_id_fk_idx` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=256 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+                          `id` int(11) NOT NULL AUTO_INCREMENT,
+                          `user_id` int(11) DEFAULT NULL,
+                          `timestamp` datetime DEFAULT NULL,
+                          `cv_id` char(128) DEFAULT NULL,
+                          PRIMARY KEY (`id`),
+                          KEY `user_id_fk_idx` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=382 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -41,15 +40,15 @@ CREATE TABLE `user_cvs` (
 
 DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+SET character_set_client = utf8mb4 ;
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(45) DEFAULT NULL,
-  `full_name` varchar(45) DEFAULT NULL,
-  `email_address` varchar(45) DEFAULT NULL,
-  `profile_id` char(128) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=202 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+                       `id` int(11) NOT NULL AUTO_INCREMENT,
+                       `username` varchar(45) DEFAULT NULL,
+                       `full_name` varchar(45) DEFAULT NULL,
+                       `email_address` varchar(45) DEFAULT NULL,
+                       `fabric_id` char(255) DEFAULT NULL,
+                       PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=296 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -61,4 +60,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-03-28 12:48:44
+-- Dump completed on 2019-04-12 20:16:21

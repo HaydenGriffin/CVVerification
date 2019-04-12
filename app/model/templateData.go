@@ -13,12 +13,16 @@ type Data struct {
 }
 
 type CVDisplayInfo struct {
+	CurrentCVID string
 	CV *model.CVObject
-	CVHistory []model.CVHistoryInfo
-	Review model.CVReview
+	CVHistory []CVHistoryInfo
+	VerifierReview model.CVReview
 	Reviews []model.CVReview
-	CurrentCVInReview bool
-	CurrentCVHash string
-	UserHasCVInReview bool
-	CVList map[int] *model.CVObject
+	CVList map[string]model.CVObject
+}
+
+type CVHistoryInfo struct {
+	Index int
+	CVID string
+	CVObject *model.CVObject
 }

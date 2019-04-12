@@ -43,39 +43,30 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		//data.CVInfo.CVList = sessions.GetAllCVList(session)
-
-		result, success := mux.Vars(r)["userID"]
+		cvID, success := mux.Vars(r)["cvID"]
 		if !success {
 			data.MessageWarning = "Error! No CV to be retrieved."
 			renderTemplate(w, r, "viewallcv.html", data)
 			return
 		}
 
-		userID, err := strconv.Atoi(result)
-		if err != nil {
-			data.MessageWarning = "Error! Invalid CV ID."
-			renderTemplate(w, r, "viewallcv.html", data)
-			return
-		}
-
-		applicantFabricID, cvHash, err := database.GetCVInfoFromID(userID)
+		applicantFabricID, err := database.GetFabricIDFromCVID(cvID)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to find CV info in database."
 			renderTemplate(w, r, "viewallcv.html", data)
 			return
 		}
 
-		verifierReview, err := u.QueryVerifierCVReview(applicantFabricID, cvHash)
+		verifierReview, err := u.QueryVerifierCVReview(applicantFabricID, cvID)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to find CV review information in ledger."
 			renderTemplate(w, r, "viewallcv.html", data)
 			return
 		}
 
-		data.CVInfo.Review = verifierReview
+		data.CVInfo.VerifierReview = verifierReview
 
-		cv, err := u.QueryCV(cvHash)
+		cv, err := u.QueryCV(cvID)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to find CV from hash."
 			renderTemplate(w, r, "viewallcv.html", data)
@@ -97,8 +88,6 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 		renderTemplate(w, r, "reviewcv.html", data)
 	})
 }
-
-
 
 func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
@@ -142,9 +131,9 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 		}
 
 		applicantID := sessions.GetApplicantFabricID(session)
-		cvHash := sessions.GetCVHash(session)
+		cvID := sessions.GetCVID(session)
 
-		if applicantID == "" || cvHash == "" {
+		if applicantID == "" || cvID == "" {
 			data.MessageWarning = "Error! Unable to retrieve CV information"
 			renderTemplate(w, r, "index.html", data)
 			return
@@ -157,7 +146,7 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 			return
 		}
 
-		err = u.UpdateSaveRating(applicantID, cvHash, reviewByte)
+		err = u.UpdateSaveRating(applicantID, cvID, reviewByte)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to save rating in ledger."
 			renderTemplate(w, r, "index.html", data)

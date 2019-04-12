@@ -34,16 +34,21 @@ func (u *User) UpdateRegister() error {
 }
 
 // UpdateSaveCV allow to add a resource into the blockchain
-func (u *User) UpdateSaveCV(cvByte []byte, cvHash string) error {
-	return u.update([][]byte{[]byte("savecv"), cvByte, []byte(cvHash)}, nil)
+func (u *User) UpdateSaveCV(cvByte []byte, cvID string) error {
+	return u.update([][]byte{[]byte("savecv"), cvByte, []byte(cvID)}, nil)
+}
+
+// UpdateSaveCV allow to add a resource into the blockchain
+func (u *User) UpdateTransitionCV(cvID, newStatus string) error {
+	return u.update([][]byte{[]byte("transitioncv"), []byte(cvID), []byte(newStatus)}, nil)
 }
 
 // UpdateSaveProfileCV allow to add a resource into the blockchain
-func (u *User) UpdateSaveProfileCV(cvHash string) error {
-	return u.update([][]byte{[]byte("saveprofilecv"), []byte(cvHash)}, nil)
+func (u *User) UpdateSaveProfileCV(cvID string) error {
+	return u.update([][]byte{[]byte("saveprofilecv"), []byte(cvID)}, nil)
 }
 
 // UpdateSaveProfileCV allow to add a resource into the blockchain
-func (u *User) UpdateSaveRating(ID, cvHash string, ratingByte []byte) error {
-	return u.update([][]byte{[]byte("saverating"), []byte(ID), []byte(cvHash), ratingByte}, nil)
+func (u *User) UpdateSaveRating(ID, cvID string, ratingByte []byte) error {
+	return u.update([][]byte{[]byte("saverating"), []byte(ID), []byte(cvID), ratingByte}, nil)
 }

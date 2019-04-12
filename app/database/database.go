@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	templateModel "github.com/cvverification/app/model"
-	"github.com/cvverification/chaincode/model"
 )
 
 var DataSourceName = "root:password@tcp(localhost:3306)/verification?parseTime=true"
@@ -41,58 +40,6 @@ func GetUserDetailsFromUsername(username string) (templateModel.UserDetails, err
 	} else {
 		return user, nil
 	}
-}
-
-func GetAllReviewableCVHashes() (map[int] string, error) {
-
-	ratableCVs := make(map[int] string)
-
-	rows, err := db.Query("SELECT u.id, uc.cv_hash FROM user_cvs uc JOIN users u ON uc.user_id = u.id WHERE uc.cv_in_review = 1")
-
-	for rows.Next() {
-		var cvHash string
-		var userID int
-		err = rows.Scan(&userID, &cvHash)
-		if err != nil {
-			rows.Close()
-			return ratableCVs, err
-		}
-		ratableCVs[userID] = cvHash
-	}
-	err = rows.Err()
-	rows.Close()
-	if err != nil {
-		return ratableCVs, err
-	}
-	return ratableCVs, nil
-}
-
-func GetUserCVDetails(user_id int) ([]model.CVHistoryInfo, error) {
-
-	var historicalCVHistoryInfo []model.CVHistoryInfo
-
-	rows, err := db.Query("SELECT uc.cv_hash, uc.cv_in_review, uc.timestamp FROM user_cvs uc WHERE uc.user_id = ? ORDER BY uc.timestamp ASC", user_id)
-
-	var index = 1
-
-	for rows.Next() {
-		var cvHistoryInfo model.CVHistoryInfo
-		err = rows.Scan(&cvHistoryInfo.CVHash, &cvHistoryInfo.CVInReview, &cvHistoryInfo.Timestamp)
-		if err != nil {
-			rows.Close()
-			fmt.Println(err.Error())
-			return historicalCVHistoryInfo, err
-		}
-		cvHistoryInfo.Index = index
-		historicalCVHistoryInfo = append(historicalCVHistoryInfo, cvHistoryInfo)
-		index++
-	}
-	rows.Close()
-	err = rows.Err()
-	if err != nil {
-		return historicalCVHistoryInfo, err
-	}
-	return historicalCVHistoryInfo, nil
 }
 
 func CreateNewUser(username, full_name, email_address, fabric_id string) (userDetails templateModel.UserDetails, error error) {
@@ -137,50 +84,24 @@ func UpdateUser(username, full_name, email_address string) (userDetails template
 	return userDetails, err
 }
 
-func GetCVInfoFromID(user_id int) (string, string, error) {
+func GetFabricIDFromCVID(cvID string) (string, error) {
 
-	result := db.QueryRow("SELECT u.fabric_id, uc.cv_hash FROM users u JOIN user_cvs uc ON u.id = uc.user_id WHERE u.id = ? AND uc.cv_in_review = 1", user_id)
+	result := db.QueryRow("SELECT u.fabric_id FROM users u JOIN user_cvs uc ON u.id = uc.user_id WHERE uc.cv_id = ?", cvID)
 
-	var fabricID, cvHash string
+	var fabricID string
 
-	err := result.Scan(&fabricID, &cvHash)
-
-	if err != nil {
-		return "", "", err
-	}
-
-	return fabricID, cvHash, nil
-}
-
-func CreateNewCV(user_id int, cv_hash string) error {
-
-	_, err := db.Exec("INSERT INTO user_cvs(user_id, timestamp, cv_hash, cv_in_review) VALUES (?, CURRENT_TIMESTAMP, ?, 0)", user_id, cv_hash)
-
-	return err
-}
-
-func UpdateCV(cv_hash string, ratable int) error {
-
-	_, err := db.Exec("UPDATE user_cvs SET cv_in_review = ? WHERE cv_hash = ?", ratable, cv_hash)
-
-	return err
-}
-
-func UserHasCVInReview(user_id int) bool {
-
-	result := db.QueryRow("SELECT cv_in_review FROM user_cvs WHERE user_id = ? AND cv_in_review = 1", user_id)
-
-	var cv_ratable int
-
-	err := result.Scan(&cv_ratable)
+	err := result.Scan(&fabricID)
 
 	if err != nil {
-		return false
+		return "", err
 	}
 
-	if cv_ratable != 1 {
-		return false
-	} else {
-		return true
-	}
+	return fabricID, nil
+}
+
+func CreateNewCV(user_id int, cv_id string) error {
+
+	_, err := db.Exec("INSERT INTO user_cvs(user_id, timestamp, cv_id, cv_in_review) VALUES (?, CURRENT_TIMESTAMP, ?, 0)", user_id, cv_id)
+
+	return err
 }

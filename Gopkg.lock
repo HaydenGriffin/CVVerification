@@ -492,6 +492,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:2da42ab2c4996c844599461d1f821624af401b350180e2cb852bcfb887cb0b5f"
+  name = "github.com/teris-io/shortid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "771a37caa5cf0c81f585d7b6df4dfc77e0615b5c"
+
+[[projects]]
+  branch = "master"
   digest = "1:514827184306bf3d464c252caae9e0c8bba337f6e813eebce7cdeb669f4e7907"
   name = "golang.org/x/crypto"
   packages = [
@@ -642,6 +650,7 @@
     "github.com/hyperledger/fabric-sdk-go/pkg/fabsdk",
     "github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/common/cauthdsl",
     "github.com/pkg/errors",
+    "github.com/teris-io/shortid",
     "golang.org/x/crypto/bcrypt",
   ]
   solver-name = "gps-cdcl"

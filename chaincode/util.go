@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cvverification/chaincode/model"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"strings"
 )
 
 // convertObjectToByte
@@ -60,4 +62,54 @@ func updateInLedger(stub shim.ChaincodeStubInterface, objectType string, id stri
 		return fmt.Errorf("unable to put the object in the ledger: %v", err)
 	}
 	return nil
+}
+
+// canCVBeTransitioned contains logic to ensure that a CV can be transitioned
+func canCVBeTransitioned(actorType, transitionTo string, cv model.CVObject) error {
+	// Can't transition case to status it currently is
+	if transitionTo == cv.Status {
+		return fmt.Errorf("unable to transition to empty status")
+	}
+
+	switch transitionTo {
+	case model.CVInDraft:
+		if cv.Status == model.CVInReview && actorType == model.ActorApplicant {
+			return nil
+		}
+	case model.CVInReview:
+		if (cv.Status == model.CVInDraft && actorType == model.ActorApplicant) || (cv.Status == model.CVSubmitted) || (cv.Status == model.CVSubmittedRated) {
+			return nil
+		}
+		/*	case model.CVFinalised:
+
+			case model.CVSubmitted, model.CVSubmittedRated:*/
+	default:
+		return fmt.Errorf("unable to transition CV object from: %v to: %v", cv.Status, transitionTo)
+	}
+
+	return fmt.Errorf("unable to transition CV object from: %v to: %v", cv.Status, transitionTo)
+}
+
+// returnCV checks whether the CV is in the correct state for the user calling the function
+func returnCV(actorType, filter string, cv model.CVObject) bool {
+
+	// If the user specifies a filter - check this first
+	if filter != "" {
+		filter = strings.ToLower(filter)
+		// Check to see if the speciality contains the filter
+		if !strings.Contains(strings.ToLower(cv.Speciality), filter) {
+			return false
+		}
+	}
+
+	switch actorType {
+	// Verifier users are able to view all CVs that are in review
+	case model.ActorVerifier:
+		if cv.Status == model.CVInReview {
+			return true
+		}
+	default:
+		return false
+	}
+	return false
 }

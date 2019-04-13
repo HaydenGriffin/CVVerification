@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/gob"
+	"fmt"
 	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/blockchain"
@@ -27,7 +28,7 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 			data.CurrentPage = "userdetails"
 			data.MessageWarning = "Error! You must register your user details before using the system."
 			data.UserDetails.Username = u.Username
-			renderTemplate(w, r, "userdetails.html", data)
+			renderTemplate(w, r, "registerdetails.html", data)
 			return
 		}
 
@@ -70,17 +71,17 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 			}
 			cvHistory.Index = index + 1
 			cvHistory.CVID = cvID
-			cvHistory.CVObject = cv
+			cvHistory.CV = cv
 			allCVHistory = append(allCVHistory, cvHistory)
 		}
 
 		var cvIDToDisplay string
 
 		if requestedCVIndex != 0 {
-			data.CVInfo.CV = allCVHistory[requestedCVIndex-1].CVObject
+			data.CVInfo.CV = allCVHistory[requestedCVIndex-1].CV
 			cvIDToDisplay = allCVHistory[requestedCVIndex-1].CVID
 		} else {
-			data.CVInfo.CV = allCVHistory[len(allCVHistory)-1].CVObject
+			data.CVInfo.CV = allCVHistory[len(allCVHistory)-1].CV
 			cvIDToDisplay = allCVHistory[len(allCVHistory)-1].CVID
 		}
 
@@ -91,12 +92,18 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 		gob.Register(reviews)
 		gob.Register(allCVHistory)
 
+
 		session.Values["CVHistory"] = allCVHistory
+		fmt.Println(allCVHistory)
 		session.Values["CV"] = data.CVInfo.CV
+		fmt.Println(data.CVInfo.CV)
 		session.Values["CVID"] = cvIDToDisplay
+		fmt.Println(cvIDToDisplay)
 		session.Values["Reviews"] = reviews
+		fmt.Println(reviews)
 		err = session.Save(r, w)
 		if err != nil {
+			fmt.Println(err)
 			data.MessageWarning = "Error! Unable to save session values."
 			renderTemplate(w, r, "index.html", data)
 			return
@@ -126,7 +133,7 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 			data.CurrentPage = "userdetails"
 			data.MessageWarning = "Error! You must register your user details before using the system."
 			data.UserDetails.Username = u.Username
-			renderTemplate(w, r, "userdetails.html", data)
+			renderTemplate(w, r, "registerdetails.html", data)
 			return
 		}
 
@@ -158,7 +165,7 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 		cv.Status = model.CVInReview
 		for index, cvHistory := range allCVHistory {
 			if cvHistory.CVID == cvIDToUpdate {
-				allCVHistory[index].CVObject = cv
+				allCVHistory[index].CV = cv
 			}
 		}
 
@@ -197,7 +204,7 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 			data.CurrentPage = "userdetails"
 			data.MessageWarning = "Error! You must register your user details before using the system."
 			data.UserDetails.Username = u.Username
-			renderTemplate(w, r, "userdetails.html", data)
+			renderTemplate(w, r, "registerdetails.html", data)
 			return
 		}
 
@@ -229,7 +236,7 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 		cv.Status = model.CVInDraft
 		for index, cvHistory := range allCVHistory {
 			if cvHistory.CVID == cvID {
-				allCVHistory[index].CVObject = cv
+				allCVHistory[index].CV = cv
 			}
 		}
 

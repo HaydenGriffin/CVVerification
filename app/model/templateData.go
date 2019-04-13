@@ -10,6 +10,7 @@ type Data struct {
 	MessageWarning string
 	MessageSuccess string
 	CVInfo CVDisplayInfo
+	PrivateKey string
 }
 
 type CVDisplayInfo struct {
@@ -24,5 +25,5 @@ type CVDisplayInfo struct {
 type CVHistoryInfo struct {
 	Index int
 	CVID string
-	CVObject *model.CVObject
+	CV *model.CVObject
 }

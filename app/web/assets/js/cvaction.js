@@ -71,8 +71,8 @@ $(document).ready(function () {
 
         // List of the values in the select dropdown. To add new values, update this
         var selectValues = {
-            "Education": "Education",
             "Experience": "Experience",
+            "Education": "Education",
             "Skills": "Skills",
             "Certifications": "Certifications",
             "Traits": "Traits",

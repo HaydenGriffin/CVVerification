@@ -500,11 +500,9 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:514827184306bf3d464c252caae9e0c8bba337f6e813eebce7cdeb669f4e7907"
+  digest = "1:f0c67f6c72f705f3e27862682986132dc68bd8956595c3ba7460a0e087000263"
   name = "golang.org/x/crypto"
   packages = [
-    "bcrypt",
-    "blowfish",
     "cryptobyte",
     "cryptobyte/asn1",
     "ed25519",
@@ -651,7 +649,6 @@
     "github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/common/cauthdsl",
     "github.com/pkg/errors",
     "github.com/teris-io/shortid",
-    "golang.org/x/crypto/bcrypt",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

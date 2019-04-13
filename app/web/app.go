@@ -36,7 +36,15 @@ func Serve(app *controllers.Controller) {
 	r.HandleFunc("/reviewcv/{cvID}", app.ReviewCVView())
 	r.HandleFunc("/reviewcvprocess", app.ReviewCVHandler())
 
-	r.HandleFunc("/userdetails", app.UpdateDetailsView())
+	r.HandleFunc("/registerdetails", app.RegisterDetailsView())
+	r.HandleFunc("/registerdetailsprocess", app.RegisterDetailsHandler())
+
+	r.HandleFunc("/managekeys",app.ApplicantKeyView())
+	r.HandleFunc("/uploadprivatekey", app.UploadPrivateKeyHandler())
+	r.HandleFunc("/downloadprivatekey", app.DownloadPrivateKeyHandler())
+	r.HandleFunc("/generateprivatekey", app.GenerateNewKeysHandler())
+
+	r.HandleFunc("/updatedetails", app.UpdateDetailsView())
 	r.HandleFunc("/updatedetailsprocess", app.UpdateDetailsHandler())
 
 

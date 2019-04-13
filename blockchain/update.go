@@ -44,6 +44,11 @@ func (u *User) UpdateTransitionCV(cvID, newStatus string) error {
 }
 
 // UpdateSaveProfileCV allow to add a resource into the blockchain
+func (u *User) UpdateSaveProfileKey(publicKey string) error {
+	return u.update([][]byte{[]byte("saveprofilekey"), []byte(publicKey)}, nil)
+}
+
+// UpdateSaveProfileCV allow to add a resource into the blockchain
 func (u *User) UpdateSaveProfileCV(cvID string) error {
 	return u.update([][]byte{[]byte("saveprofilecv"), []byte(cvID)}, nil)
 }

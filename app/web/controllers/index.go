@@ -21,7 +21,7 @@ func (c *Controller) IndexHandler() func(http.ResponseWriter, *http.Request) {
 		} else {
 			data.CurrentPage = "userdetails"
 			data.UserDetails.Username = u.Username
-			renderTemplate(w, r, "userdetails.html", data)
+			renderTemplate(w, r, "registerdetails.html", data)
 		}
 	})
 }

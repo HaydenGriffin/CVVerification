@@ -101,7 +101,7 @@ func GetFabricIDFromCVID(cvID string) (string, error) {
 
 func CreateNewCV(user_id int, cv_id string) error {
 
-	_, err := db.Exec("INSERT INTO user_cvs(user_id, timestamp, cv_id, cv_in_review) VALUES (?, CURRENT_TIMESTAMP, ?, 0)", user_id, cv_id)
+	_, err := db.Exec("INSERT INTO user_cvs(user_id, timestamp, cv_id) VALUES (?, CURRENT_TIMESTAMP, ?)", user_id, cv_id)
 
 	return err
 }

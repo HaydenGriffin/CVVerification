@@ -38,6 +38,7 @@ type Admin struct {
 type ApplicantProfile struct {
 	CVHistory []string `json:"CVHistory"`
 	Reviews map[string] []CVReview
+	PublicKey string
 }
 
 type VerifierProfile struct {

@@ -51,6 +51,16 @@ func GetUserDetails(s *sessions.Session) templateModel.UserDetails {
 	return userDetails
 }
 
+func GetPrivateKey(s *sessions.Session) string {
+	val := s.Values["PrivateKey"]
+
+	privateKey, ok := val.(string)
+	if !ok {
+		return ""
+	}
+	return privateKey
+}
+
 func GetUserUploadedCV(s *sessions.Session) bool {
 	val := s.Values["UserUploadedCV"]
 

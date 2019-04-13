@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"encoding/gob"
+	"fmt"
+	"github.com/cvverification/app/crypto"
 	"github.com/cvverification/app/database"
 	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/app/sessions"
@@ -10,86 +12,159 @@ import (
 	"net/http"
 )
 
-func (c *Controller) UpdateDetailsView() func(http.ResponseWriter, *http.Request) {
+func (c *Controller) RegisterDetailsView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
-
-		data := templateModel.Data{
-			CurrentPage:  "userdetails",
-		}
 
 		session := sessions.InitSession(r)
 
-		// Retrieve user details
+		data := templateModel.Data{
+			CurrentPage: "userdetails",
+		}
+
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
+			renderTemplate(w, r, "updatedetails.html", data)
 		} else {
-			data.CurrentPage = "userdetails"
 			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "registerdetails.html", data)
 		}
-		renderTemplate(w, r, "userdetails.html", data)
 	})
 }
-func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Request) {
-	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		data := templateModel.Data{
-			CurrentPage:  "index",
-		}
+func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Request) {
+	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
 		session := sessions.InitSession(r)
 
+		data := templateModel.Data{
+			CurrentPage: "userdetails",
+		}
+
+		if sessions.HasSavedUserDetails(session) {
+			data.UserDetails = sessions.GetUserDetails(session)
+			data.MessageWarning = "Error! Unable to register - user already registered."
+			renderTemplate(w, r, "updatedetails.html", data)
+			return
+		}
 
 		// Form values to insert into DB
 		username := r.FormValue("username")
 		fullName := r.FormValue("fullName")
 		emailAddress := r.FormValue("emailAddress")
 
-		// Retrieve user details
-		if sessions.HasSavedUserDetails(session) {
-			// Logic to update a profile
-			userDetails, err := database.UpdateUser(username, fullName, emailAddress)
-			if err != nil {
-				data.MessageWarning = "Error! Unable to update profile information in database."
-				data.CurrentPage = "userdetails"
-				renderTemplate(w, r, "userdetails.html", data)
-				return
-			} else {
-				// Successfully updated user
-				// Update the session values and save session
-				gob.Register(userDetails)
-				session.Values["UserDetails"] = userDetails
-				data.UserDetails = userDetails
-				data.MessageSuccess = "Success! You details have been updated."
-				renderTemplate(w, r, "index.html", data)
-				return
-			}
-		} else {
-			// Profile details haven't been saved to DB yet
-			fabricID, err := u.QueryID()
-			if err != nil {
-				data.MessageWarning = "Error! Unable to retrieve profile ID from ledger."
-			}
-
-			// Insert row into DB
-			userDetails, err := database.CreateNewUser(username, fullName, emailAddress, fabricID)
-			if err != nil {
-				data.MessageWarning = "Error! Unable to save user details."
-				renderTemplate(w, r, "userdetails.html", data)
-				return
-			}
-			// Register the userDetails gob to be used as a session value
-			gob.Register(userDetails)
-			session.Values["UserDetails"] = userDetails
-			data.UserDetails = userDetails
-			data.MessageSuccess = "Success! Your details have been saved. Welcome, " + userDetails.FullName
-			renderTemplate(w, r, "index.html", data)
+		fabricID, err := u.QueryID()
+		if err != nil {
+			data.MessageWarning = "Error! Unable to retrieve profile ID from ledger."
 		}
 
-		err := session.Save(r, w)
+		applicant, applicantErr := u.QueryApplicant()
+		if applicantErr == nil {
+			privateKey, publicKey := crypto.GenerateKeyPair(2048)
+			privateKeyBytes := crypto.PrivateKeyToBytes(privateKey)
+			privateKeyString := string(privateKeyBytes)
+			publicKeyBytes := crypto.PublicKeyToBytes(publicKey)
+			applicant.Profile.PublicKey = string(publicKeyBytes)
+			session.Values["PrivateKey"] = privateKeyString
+			err = session.Save(r, w)
+			data.PrivateKey = string(privateKeyBytes)
+			err := u.UpdateSaveProfileKey(string(publicKeyBytes))
+			if err != nil {
+				fmt.Println(err)
+				data.MessageWarning = "Error! Unable to update profile in ledger."
+				renderTemplate(w, r, "registerdetails.html", data)
+			}
+		}
+
+		// Insert row into DB
+		userDetails, err := database.CreateNewUser(username, fullName, emailAddress, fabricID)
 		if err != nil {
+			data.UserDetails.Username = u.Username
+			data.MessageWarning = "Error! Unable to save user details."
+			renderTemplate(w, r, "registerdetails.html", data)
+			return
+		}
+
+		// Register the userDetails gob to be used as a session value
+		gob.Register(userDetails)
+		session.Values["UserDetails"] = userDetails
+		err = session.Save(r, w)
+		if err != nil {
+			fmt.Println(err)
 			data.MessageWarning = "Error! Unable to save session values."
 			renderTemplate(w, r, "index.html", data)
 			return
+		}
+
+		data.UserDetails = userDetails
+		data.MessageSuccess = "Success! Your details have been saved. Welcome, " + userDetails.FullName + "!"
+
+		if applicantErr == nil {
+			data.MessageWarning = "Before using the system, please make a copy of your Private Key."
+			renderTemplate(w, r, "displaykey.html", data)
+		} else {
+			renderTemplate(w, r, "index.html", data)
+		}
+	})
+}
+
+func (c *Controller) UpdateDetailsView() func(http.ResponseWriter, *http.Request) {
+	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
+
+		session := sessions.InitSession(r)
+
+		data := templateModel.Data{
+			CurrentPage: "userdetails",
+		}
+
+		// Retrieve user details
+		if sessions.HasSavedUserDetails(session) {
+			data.UserDetails = sessions.GetUserDetails(session)
+			renderTemplate(w, r, "updatedetails.html", data)
+		} else {
+			data.MessageWarning = "Error! You must register your user details before using the system."
+			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "registerdetails.html", data)
+		}
+	})
+}
+
+func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Request) {
+	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
+
+		session := sessions.InitSession(r)
+
+		data := templateModel.Data{
+			CurrentPage: "index",
+		}
+
+		// Retrieve user details
+		if !sessions.HasSavedUserDetails(session) {
+			data.CurrentPage = "userdetails"
+			data.MessageWarning = "Error! You must register your user details before using the system."
+			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "registerdetails.html", data)
+			return
+		}
+
+		// Form values to insert into DB
+		username := r.FormValue("username")
+		fullName := r.FormValue("fullName")
+		emailAddress := r.FormValue("emailAddress")
+
+		// Logic to update a profile
+		userDetails, err := database.UpdateUser(username, fullName, emailAddress)
+		if err != nil {
+			data.MessageWarning = "Error! Unable to update profile information in database."
+			data.CurrentPage = "userdetails"
+			renderTemplate(w, r, "updatedetails.html", data)
+		} else {
+			// Successfully updated user
+			// Update the session values and save session
+			gob.Register(userDetails)
+			session.Values["UserDetails"] = userDetails
+			data.UserDetails = userDetails
+			data.MessageSuccess = "Success! You details have been updated."
+			renderTemplate(w, r, "index.html", data)
 		}
 
 	})

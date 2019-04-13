@@ -25,6 +25,8 @@ func (t *CVVerificationChaincode) update(stub shim.ChaincodeStubInterface, args 
 		return t.saveCV(stub, args[1:])
 	} else if function == "transitioncv" {
 		return t.transitionCV(stub, args[1:])
+	} else if function == "saveprofilekey" {
+		return t.saveProfileKey(stub, args[1:])
 	} else if function == "saveprofilecv" {
 		return t.saveProfileCV(stub, args[1:])
 	} else if function == "saverating" {
@@ -241,6 +243,64 @@ func (t *CVVerificationChaincode) transitionCV(stub shim.ChaincodeStubInterface,
 
 	return shim.Success(cvAsByte)
 }
+
+// Add CV Chaincode
+// args: CV object
+// CV ID is key, CVObject is the value
+func (t *CVVerificationChaincode) saveProfileKey(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	fmt.Println("Save profile key")
+
+	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("only applicant users are allowed to update their key: %v", err))
+	}
+
+	// Check whether the number of arguments is sufficient
+	if len(args) != 1 {
+		return shim.Error("The number of arguments is invalid.")
+	}
+
+	publicKeyByte := args[0]
+
+	if len(publicKeyByte) == 0 {
+		return shim.Error("The publicKey is empty.")
+	}
+
+	var applicant model.Applicant
+
+	applicantID, err := cid.GetID(stub)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to identify the ID of the request owner: %v", err))
+	}
+
+	err = getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
+
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to retrieve applicant profile from the ledger: %v", err))
+	}
+
+	if applicant.ID != applicantID {
+		return shim.Error("Unable to update profile as applicantID differs from profile ID")
+	}
+
+	applicant.Profile.PublicKey = string(publicKeyByte)
+
+	err = updateInLedger(stub, model.ObjectTypeApplicant, applicantID, applicant)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to create the CV in the ledger: %v", err))
+	}
+
+	applicantAsByte, err := convertObjectToByte(applicant)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable convert the profile to byte: %v", err))
+	}
+
+	fmt.Printf("Resource updated:\n  ID -> %s\n  Description -> %s\n", model.ObjectTypeApplicant, applicantID)
+
+	return shim.Success(applicantAsByte)
+}
+
 
 // Add CV Chaincode
 // args: CV object

@@ -1,0 +1,73 @@
+{{define "title"}}Manage User Keys{{end}}
+{{define "body"}}
+  <script src="../assets/js/displaykey.js"></script>
+  <div class="container-fluid">
+    <div class="col-lg-8 offset-lg-2 col-md-10 offset-md-1">
+      <h3>Manage Private Key</h3>
+      <div class="card border-top">
+        <div class="card-body">
+          <form id="save-key-form" action="/downloadprivatekey" method="post">
+            <div class="form-group">
+              <h4><label for="privateKey">Private Key</label></h4>
+              <textarea class="form-control" id="privateKey" name="privateKey" rows="8"
+                        autofocus=""
+                        readonly>{{if .PrivateKey}}{{.PrivateKey}}{{else}}No Private Key found. Please upload your Private Key, or generate a new one if you have lost your Private Key.{{end}}</textarea>
+            </div>
+            {{if .PrivateKey}}
+              <button class="btn btn-primary" type="submit">Download Private Key</button>{{end}}
+          </form>
+          <hr>
+          <form id="upload-key-form" enctype="multipart/form-data" action="/uploadprivatekey" method="post">
+            <h4>Upload Private Key from file</h4>
+            <div class="row">
+              <div class="col-md-9">
+                <div class="custom-file">
+                  <input type="file" class="custom-file-input" id="uploadFile" name="uploadfile">
+                  <label class="custom-file-label" for="uploadFile">Choose file</label>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Upload Private Key</button>
+            <hr>
+            <h4>Generate new Private Key</h4>
+            <div class="alert alert-warning" role="alert">
+              This option should only be used if you have lost your Private Key. <b>Please note: this cannot
+                be undone and any existing review information will be lost.</b>
+            </div>
+            <button class="btn btn-danger" type="button" data-toggle="modal" data-target="#exampleModal">Generate new
+              Private Key
+            </button>
+            <hr>
+            <button class="btn btn-lg btn-success" type="submit" formaction="/">Continue</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+       aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Generate new Private Key</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          Warning! You are about to generate a new Private Key. This option should only be used if you have lost your
+          Private Key. <b>Please note: this cannot
+            be undone and any existing review information will be lost.</b>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <form>
+          <button type="submit" class="btn btn-danger" formaction="/generateprivatekey">Generate new Private Key</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{{end}}

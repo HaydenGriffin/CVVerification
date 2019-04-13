@@ -1,9 +1,9 @@
 package model
 
 type UserDetails struct {
-	Id int `json:"id"`
-	Username string `json:"username"`
-	FullName string `json:"fullName"`
-	EmailAddress string `json:"emailAddress"`
-	UploadedCV bool `json:"uploadedCV"`
+	Id int
+	Username string
+	FullName string
+	EmailAddress string
+	UploadedCV bool
 }

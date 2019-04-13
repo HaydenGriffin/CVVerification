@@ -24,7 +24,7 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 			data.CurrentPage = "userdetails"
 			data.MessageWarning = "Error! You must register your user details before using the system."
 			data.UserDetails.Username = u.Username
-			renderTemplate(w, r, "userdetails.html", data)
+			renderTemplate(w, r, "registerdetails.html", data)
 			return
 		}
 

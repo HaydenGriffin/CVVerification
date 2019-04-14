@@ -21,6 +21,8 @@ func (c *Controller) RegisterDetailsView() func(http.ResponseWriter, *http.Reque
 			CurrentPage: "userdetails",
 		}
 
+		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 			renderTemplate(w, r, "updatedetails.html", data)
@@ -40,6 +42,8 @@ func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Re
 			CurrentPage: "userdetails",
 		}
 
+		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 			data.MessageWarning = "Error! Unable to register - user already registered."
@@ -68,16 +72,16 @@ func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Re
 			privateKeyBytes := crypto.PrivateKeyToBytes(privateKey)
 			privateKeyString := string(privateKeyBytes)
 			publicKeyBytes := crypto.PublicKeyToBytes(publicKey)
-			applicant.Profile.PublicKey = string(publicKeyBytes)
 			session.Values["PrivateKey"] = privateKeyString
-			err = session.Save(r, w)
 			data.PrivateKey = string(privateKeyBytes)
+
 			err := u.UpdateSaveProfileKey(string(publicKeyBytes))
 			if err != nil {
 				fmt.Println(err)
 				data.MessageWarning = "Error! Unable to update profile in ledger."
 				renderTemplate(w, r, "registerdetails.html", data)
 			}
+			applicant.Profile.PublicKey = string(publicKeyBytes)
 		}
 
 		// Insert row into DB
@@ -122,6 +126,7 @@ func (c *Controller) UpdateDetailsView() func(http.ResponseWriter, *http.Request
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 			renderTemplate(w, r, "updatedetails.html", data)
@@ -143,6 +148,7 @@ func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Requ
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if !sessions.HasSavedUserDetails(session) {
 			data.CurrentPage = "userdetails"
 			data.MessageWarning = "Error! You must register your user details before using the system."

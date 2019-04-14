@@ -59,28 +59,33 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 		userDetails, err := database.GetUserDetailsFromUsername(pair[0])
 		if err == nil {
 			session.Values["SavedUserDetails"] = true
-			applicant, err := u.QueryApplicant()
-			if err == nil {
-				if len(applicant.Profile.CVHistory) > 0 {
-					userDetails.UploadedCV = true
-				}
-				userDetails.AccountType = "applicant"
-			}
-			_, err = u.QueryVerifier()
-			if err == nil {
-				userDetails.AccountType = "verifier"
-			}
-			_, err = u.QueryAdmin()
-			if err == nil {
-				userDetails.AccountType = "admin"
-			}
 		} else {
 			session.Values["SavedUserDetails"] = false
 		}
 
-		session.Values["UserDetails"] = userDetails
+		var accountType string
 
+		applicant, err := u.QueryApplicant()
+		if err == nil {
+			if len(applicant.Profile.CVHistory) > 0 {
+				userDetails.UploadedCV = true
+			}
+			accountType = "applicant"
+		}
+
+		_, err = u.QueryVerifier()
+		if err == nil {
+			accountType = "verifier"
+		}
+
+		_, err = u.QueryAdmin()
+		if err == nil {
+			accountType = "admin"
+		}
+
+		session.Values["AccountType"] = accountType
 		gob.Register(userDetails)
+		session.Values["UserDetails"] = userDetails
 		err = session.Save(r, w)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -102,9 +107,10 @@ func (c *Controller) LogoutHandler() func(http.ResponseWriter, *http.Request) {
 
 		// Remove all session values currently set
 		session.Options.MaxAge = -1
-		session.Values["UserDetails"] = templateModel.UserDetails{}
+
 		err := session.Save(r, w)
 		if err != nil {
+			fmt.Println(err)
 			data.MessageWarning = "Error! Unable to save session values."
 			renderTemplate(w, r, "index.html", data)
 			return

@@ -24,6 +24,7 @@ func (c *Controller) ApplicantKeyView() func(http.ResponseWriter, *http.Request)
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
@@ -44,7 +45,6 @@ func (c *Controller) ApplicantKeyView() func(http.ResponseWriter, *http.Request)
 
 		data.PrivateKey = sessions.GetPrivateKey(session)
 
-
 		renderTemplate(w, r, "displaykey.html", data)
 	})
 }
@@ -59,6 +59,7 @@ func (c *Controller) UploadPrivateKeyHandler() func(http.ResponseWriter, *http.R
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
@@ -136,6 +137,7 @@ func (c *Controller) DownloadPrivateKeyHandler() func(http.ResponseWriter, *http
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
@@ -196,6 +198,7 @@ func (c *Controller) GenerateNewKeysHandler() func(http.ResponseWriter, *http.Re
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {

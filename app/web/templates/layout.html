@@ -34,7 +34,7 @@
         <li class="nav-item {{if eq .CurrentPage "index"}}active{{end}}">
           <a class="nav-link" href="/">Home</a>
         </li>
-        {{if eq .UserDetails.AccountType "applicant"}}
+        {{if eq .AccountType "applicant"}}
           {{if .UserDetails.UploadedCV}}
             <li class="nav-item {{if eq .CurrentPage "updatecv"}}active{{end}}">
               <a class="nav-link" href="/updatecv">Update your CV</a>
@@ -47,7 +47,7 @@
               <a class="nav-link" href="/addcv">Add your CV</a>
             </li>
           {{end}}
-        {{else if eq .UserDetails.AccountType "verifier"}}
+        {{else if eq .AccountType "verifier"}}
           <li class="nav-item {{if eq .CurrentPage "viewallcv"}}active{{end}}">
             <a class="nav-link" href="/viewallcv">Review CV's</a>
           </li>
@@ -65,7 +65,7 @@
             {{else}}
               <a class="dropdown-item" href="/registerdetails">Register Account Details</a>
             {{end}}
-            {{if eq .UserDetails.AccountType "applicant"}}
+            {{if eq .AccountType "applicant"}}
               <a class="dropdown-item" href="/managekeys">Manage Encryption Keys</a>
             {{end}}
             <div class="dropdown-divider"></div>

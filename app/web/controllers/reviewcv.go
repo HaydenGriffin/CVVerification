@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"encoding/gob"
 	"encoding/json"
+	"fmt"
 	"github.com/cvverification/app/database"
 	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/app/sessions"
@@ -24,6 +24,7 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
@@ -74,17 +75,15 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 		}
 
 		data.CVInfo.CV = cv
-		gob.Register(cv)
 		session.Values["ApplicantFabricID"] = applicantFabricID
-		session.Values["CV"] = cv
-
+		session.Values["CVID"] = cvID
 		err = session.Save(r, w)
 		if err != nil {
+			fmt.Println(err)
 			data.MessageWarning = "Error! Unable to save session values."
-			renderTemplate(w, r, "viewallcv.html", data)
+			renderTemplate(w, r, "index.html", data)
 			return
 		}
-
 		renderTemplate(w, r, "reviewcv.html", data)
 	})
 }
@@ -99,6 +98,7 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
@@ -153,11 +153,17 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 			return
 		}
 
-		data.CVInfo.CV = sessions.GetCV(session)
+		cvList, err := u.QueryCVs(model.CVInReview, "")
+		if err != nil {
+			data.MessageWarning = "An error occurred whilst retrieving CVs to review."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
 
+		data.CVInfo.CVList = cvList
 		data.CurrentPage = "viewallcv"
 		data.MessageSuccess = "Success! Your review has been saved."
 
-		renderTemplate(w, r, "index.html", data)
+		renderTemplate(w, r, "viewallcv.html", data)
 	})
 }

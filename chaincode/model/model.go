@@ -2,8 +2,8 @@ package model
 
 // Actor metadata used for an admin and a consumer
 type Actor struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
+	ID       string
+	Username string
 }
 
 // Available actor type
@@ -36,7 +36,7 @@ type Admin struct {
 }
 
 type ApplicantProfile struct {
-	CVHistory []string `json:"CVHistory"`
+	CVHistory []string
 	Reviews   map[string][]CVReview
 	PublicKey string
 }

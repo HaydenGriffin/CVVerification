@@ -214,8 +214,6 @@ func (t *CVVerificationChaincode) cvs(stub shim.ChaincodeStubInterface, args []s
 		// Remove 'cv' from front of string
 		id = id[2:]
 		if returnCV(actorType, filter, cv) {
-			fmt.Println("RETURNED CV:")
-			fmt.Println(cv)
 			cvList[id] = cv
 		}
 	}

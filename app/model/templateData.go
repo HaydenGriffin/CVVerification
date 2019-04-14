@@ -6,6 +6,7 @@ import (
 
 type Data struct {
 	UserDetails UserDetails
+	AccountType string
 	CurrentPage string
 	MessageWarning string
 	MessageSuccess string

@@ -99,3 +99,28 @@ func CreateNewCV(user_id int, cv_id string) error {
 
 	return err
 }
+
+func CleardownTables() error {
+
+	delUserCVs, err := db.Prepare("DELETE FROM user_cvs")
+	if err != nil {
+		return err
+	}
+
+	_, err = delUserCVs.Exec()
+	if err != nil {
+		return err
+	}
+
+	delUsers, err := db.Prepare("DELETE FROM users")
+	if err != nil {
+		return err
+	}
+
+	_, err = delUsers.Exec()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

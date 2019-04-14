@@ -2,10 +2,9 @@ package sessions
 
 import (
 	templateModel "github.com/cvverification/app/model"
-	"github.com/cvverification/chaincode/model"
 	"github.com/gorilla/securecookie"
-	"net/http"
 	"github.com/gorilla/sessions"
+	"net/http"
 )
 
 var authKey = securecookie.GenerateRandomKey(64)
@@ -59,6 +58,16 @@ func GetPrivateKey(s *sessions.Session) string {
 	return privateKey
 }
 
+func GetAccountType(s *sessions.Session) string {
+	val := s.Values["AccountType"]
+
+	accountType, ok := val.(string)
+	if !ok {
+		return ""
+	}
+	return accountType
+}
+
 func GetCVID(s *sessions.Session) string {
 	val := s.Values["CVID"]
 
@@ -79,33 +88,3 @@ func GetApplicantFabricID(s *sessions.Session) string {
 	return ID
 }
 
-
-func GetCV(s *sessions.Session) *model.CVObject {
-	val := s.Values["CV"]
-
-	cv, ok := val.(*model.CVObject)
-	if !ok {
-		return nil
-	}
-	return cv
-}
-
-func GetCVHistory(s *sessions.Session) []templateModel.CVHistoryInfo {
-	val := s.Values["CVHistory"]
-
-	cv, ok := val.([]templateModel.CVHistoryInfo)
-	if !ok {
-		return nil
-	}
-	return cv
-}
-
-func GetReviews(s *sessions.Session) []model.CVReview {
-	val := s.Values["Reviews"]
-
-	reviews, ok := val.([]model.CVReview)
-	if !ok {
-		return []model.CVReview{}
-	}
-	return reviews
-}

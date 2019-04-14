@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/gob"
 	"fmt"
 	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/app/sessions"
@@ -22,6 +21,7 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
@@ -60,15 +60,17 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 		}
 
 		var allCVHistory []templateModel.CVHistoryInfo
+		var cvHistory templateModel.CVHistoryInfo
 
 		for index, cvID := range applicant.Profile.CVHistory {
-			var cvHistory templateModel.CVHistoryInfo
+
 			cv, err := u.QueryCV(cvID)
 			if err != nil {
 				data.MessageWarning = "Error! Unable to find CV info in ledger."
 				renderTemplate(w, r, "index.html", data)
 				return
 			}
+
 			cvHistory.Index = index + 1
 			cvHistory.CVID = cvID
 			cvHistory.CV = cv
@@ -85,22 +87,7 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 			cvIDToDisplay = allCVHistory[len(allCVHistory)-1].CVID
 		}
 
-		// Retrieve reviews for the CV that is to be displayed
-		reviews := applicant.Profile.Reviews[cvIDToDisplay]
-
-		gob.Register(data.CVInfo.CV)
-		gob.Register(reviews)
-		gob.Register(allCVHistory)
-
-
-		session.Values["CVHistory"] = allCVHistory
-		fmt.Println(allCVHistory)
-		session.Values["CV"] = data.CVInfo.CV
-		fmt.Println(data.CVInfo.CV)
 		session.Values["CVID"] = cvIDToDisplay
-		fmt.Println(cvIDToDisplay)
-		session.Values["Reviews"] = reviews
-		fmt.Println(reviews)
 		err = session.Save(r, w)
 		if err != nil {
 			fmt.Println(err)
@@ -109,7 +96,7 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		data.CVInfo.Reviews = reviews
+		data.CVInfo.Reviews = applicant.Profile.Reviews[cvIDToDisplay]
 		data.CVInfo.CVHistory = allCVHistory
 		data.CVInfo.CurrentCVID = cvIDToDisplay
 		data.CurrentPage = "mycv"
@@ -127,6 +114,7 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
@@ -138,49 +126,54 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 		}
 
 		// Check that the user connected is an applicant
-		_, err := u.QueryApplicant()
+		applicant, err := u.QueryApplicant()
 		if err != nil {
 			data.MessageWarning = "Error! You must be an applicant user to view your CV."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-		cv := sessions.GetCV(session)
 		cvIDToUpdate := sessions.GetCVID(session)
-		reviews := sessions.GetReviews(session)
-		allCVHistory := sessions.GetCVHistory(session)
-		if cv == nil || cvIDToUpdate == "" || len(allCVHistory) == 0 {
+		var allCVHistory []templateModel.CVHistoryInfo
+		var cvHistory templateModel.CVHistoryInfo
+
+		for index, cvID := range applicant.Profile.CVHistory {
+
+			cv, err := u.QueryCV(cvID)
+			if err != nil {
+				data.MessageWarning = "Error! Unable to find CV info in ledger."
+				renderTemplate(w, r, "index.html", data)
+				return
+			}
+
+			cvHistory.Index = index + 1
+			cvHistory.CVID = cvID
+			cvHistory.CV = cv
+			allCVHistory = append(allCVHistory, cvHistory)
+		}
+
+		if cvIDToUpdate == "" || len(allCVHistory) == 0 {
 			data.MessageWarning = "Error! Unable to retrieve CV info."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-		err = u.UpdateTransitionCV(cvIDToUpdate, model.CVInReview)
+		updatedCV, err := u.UpdateTransitionCV(cvIDToUpdate, model.CVInReview)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to transition CV status in ledger."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-		cv.Status = model.CVInReview
 		for index, cvHistory := range allCVHistory {
 			if cvHistory.CVID == cvIDToUpdate {
-				allCVHistory[index].CV = cv
+				allCVHistory[index].CV = updatedCV
 			}
 		}
 
-		session.Values["CVHistory"] = allCVHistory
-		session.Values["CV"] = cv
-		err = session.Save(r, w)
-		if err != nil {
-			data.MessageWarning = "Error! Unable to save session values."
-			renderTemplate(w, r, "index.html", data)
-			return
-		}
-
-		data.CVInfo.CV = cv
+		data.CVInfo.CV = updatedCV
 		data.CVInfo.CurrentCVID = cvIDToUpdate
-		data.CVInfo.Reviews = reviews
+		data.CVInfo.Reviews = applicant.Profile.Reviews[cvIDToUpdate]
 		data.CVInfo.CVHistory = allCVHistory
 		data.MessageSuccess = "Success! Your CV can now be reviewed."
 		data.CurrentPage = "mycv"
@@ -198,6 +191,7 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
@@ -209,49 +203,54 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 		}
 
 		// Check that the user connected is an applicant
-		_, err := u.QueryApplicant()
+		applicant, err := u.QueryApplicant()
 		if err != nil {
 			data.MessageWarning = "Error! You must be an applicant user to view your CV."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-		cv := sessions.GetCV(session)
-		cvID := sessions.GetCVID(session)
-		reviews := sessions.GetReviews(session)
-		allCVHistory := sessions.GetCVHistory(session)
-		if cv == nil || cvID == "" || len(allCVHistory) == 0 {
+		cvIDToUpdate := sessions.GetCVID(session)
+		var allCVHistory []templateModel.CVHistoryInfo
+		var cvHistory templateModel.CVHistoryInfo
+
+		for index, cvID := range applicant.Profile.CVHistory {
+
+			cv, err := u.QueryCV(cvID)
+			if err != nil {
+				data.MessageWarning = "Error! Unable to find CV info in ledger."
+				renderTemplate(w, r, "index.html", data)
+				return
+			}
+
+			cvHistory.Index = index + 1
+			cvHistory.CVID = cvID
+			cvHistory.CV = cv
+			allCVHistory = append(allCVHistory, cvHistory)
+		}
+
+		if cvIDToUpdate == "" || len(allCVHistory) == 0 {
 			data.MessageWarning = "Error! Unable to retrieve CV info."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-		err = u.UpdateTransitionCV(cvID, model.CVInDraft)
+		updatedCV, err := u.UpdateTransitionCV(cvIDToUpdate, model.CVInDraft)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to transition CV status in ledger."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
 
-		cv.Status = model.CVInDraft
 		for index, cvHistory := range allCVHistory {
-			if cvHistory.CVID == cvID {
-				allCVHistory[index].CV = cv
+			if cvHistory.CVID == cvIDToUpdate {
+				allCVHistory[index].CV = updatedCV
 			}
 		}
 
-		session.Values["CVHistory"] = allCVHistory
-		session.Values["CV"] = cv
-		err = session.Save(r, w)
-		if err != nil {
-			data.MessageWarning = "Error! Unable to save session values."
-			renderTemplate(w, r, "index.html", data)
-			return
-		}
-
-		data.CVInfo.CV = cv
-		data.CVInfo.CurrentCVID = cvID
-		data.CVInfo.Reviews = reviews
+		data.CVInfo.CV = updatedCV
+		data.CVInfo.CurrentCVID = cvIDToUpdate
+		data.CVInfo.Reviews = applicant.Profile.Reviews[cvIDToUpdate]
 		data.CVInfo.CVHistory = allCVHistory
 		data.MessageSuccess = "Success! Your CV has been withdrawn from review."
 		data.CurrentPage = "mycv"

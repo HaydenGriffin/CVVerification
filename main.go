@@ -55,6 +55,11 @@ func main() {
 	// Close SDK
 	defer fSetup.CloseSDK()
 
+	err = database.InitDB(database.DataSourceName)
+	if err != nil {
+		fmt.Printf("Unable to initialise the DB: %v\n", err)
+	}
+
 	// Install and instantiate the chaincode
 	if installChaincode {
 		_, err = fSetup.InstallAndInstantiateCC()
@@ -65,6 +70,11 @@ func main() {
 	}
 
 	if registerUsers {
+		err := database.CleardownTables()
+		if err != nil {
+			fmt.Printf("failed to clear tables: %v", err)
+			return
+		}
 		_, err = fSetup.LogUser("admin", "adminpw")
 		if err != nil {
 			fmt.Printf("failed to enroll identity 'admin': %v", err)
@@ -109,9 +119,6 @@ func main() {
 		Fabric:  &fSetup,
 		ShortID: sid,
 	}
-	err = database.InitDB(database.DataSourceName)
-	if err != nil {
-		fmt.Printf("Unable to initialise the DB: %v\n", err)
-	}
+
 	web.Serve(app)
 }

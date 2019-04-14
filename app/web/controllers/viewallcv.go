@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/gob"
 	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/blockchain"
@@ -18,6 +17,7 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
@@ -37,7 +37,7 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		industryFilter:= r.FormValue("industry")
+		industryFilter := r.FormValue("industry")
 
 		cvList, err := u.QueryCVs(model.CVInReview, industryFilter)
 		if err != nil {
@@ -54,18 +54,11 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		gob.Register(data.CVInfo.CVList)
-		session.Values["AllCVList"] = data.CVInfo.CVList
-		err = session.Save(r, w)
-		if err != nil {
-			data.MessageWarning = "Error! Unable to save session values."
-			renderTemplate(w, r, "index.html", data)
-			return
-		}
 
 		if industryFilter!= "" {
 			data.MessageSuccess = "Showing results for " +industryFilter
 		}
+
 		data.CurrentPage = "viewallcv"
 		renderTemplate(w, r, "viewallcv.html", data)
 	})

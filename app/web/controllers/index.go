@@ -15,6 +15,9 @@ func (c *Controller) IndexHandler() func(http.ResponseWriter, *http.Request) {
 		}
 
 		session := sessions.GetSession(r)
+
+		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 			renderTemplate(w, r, "index.html", data)

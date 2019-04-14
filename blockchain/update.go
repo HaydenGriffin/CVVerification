@@ -3,6 +3,7 @@ package blockchain
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cvverification/chaincode/model"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/errors/retry"
 )
@@ -39,8 +40,13 @@ func (u *User) UpdateSaveCV(cvByte []byte, cvID string) error {
 }
 
 // UpdateSaveCV allow to add a resource into the blockchain
-func (u *User) UpdateTransitionCV(cvID, newStatus string) error {
-	return u.update([][]byte{[]byte("transitioncv"), []byte(cvID), []byte(newStatus)}, nil)
+func (u *User) UpdateTransitionCV(cvID, newStatus string) (*model.CVObject,error) {
+	var cv *model.CVObject
+	 err := u.update([][]byte{[]byte("transitioncv"), []byte(cvID), []byte(newStatus)}, &cv)
+	 if err != nil {
+	 	return nil, err
+	 }
+	 return cv, nil
 }
 
 // UpdateSaveProfileCV allow to add a resource into the blockchain

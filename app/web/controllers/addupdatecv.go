@@ -23,6 +23,7 @@ func (c *Controller) AddCVView() func(http.ResponseWriter, *http.Request) {
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
@@ -55,6 +56,7 @@ func (c *Controller) UpdateCVView() func(http.ResponseWriter, *http.Request) {
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
@@ -81,24 +83,21 @@ func (c *Controller) UpdateCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		cvToDisplay := sessions.GetCV(session)
+		cvIDToDisplay := sessions.GetCVID(session)
 
 		// User is able to update a selected CV if specified. Otherwise update latest
-		if cvToDisplay == nil {
-			if len(applicant.Profile.CVHistory) != 0 {
-				cvToDisplayCVID := applicant.Profile.CVHistory[len(applicant.Profile.CVHistory)-1]
-				cvToDisplay, err = u.QueryCV(cvToDisplayCVID)
-				if err != nil {
-					data.MessageWarning = "Error! Something went wrong whilst retrieving CV details from ledger."
-					renderTemplate(w, r, "index.html", data)
-					return
-				}
-			} else {
+		if cvIDToDisplay == "" && len(applicant.Profile.CVHistory) == 0 {
 				data.MessageWarning = "Error! Unable to retrieve CV from ledger."
 				renderTemplate(w, r, "index.html", data)
 				return
-			}
-
+		} else if cvIDToDisplay == "" {
+				cvIDToDisplay = applicant.Profile.CVHistory[len(applicant.Profile.CVHistory)-1]
+		}
+		cvToDisplay, err := u.QueryCV(cvIDToDisplay)
+		if err != nil {
+			data.MessageWarning = "Error! Something went wrong whilst retrieving CV details from ledger."
+			renderTemplate(w, r, "index.html", data)
+			return
 		}
 
 		data.CVInfo.CV = cvToDisplay
@@ -117,6 +116,7 @@ func (c *Controller) AddUpdateCVHandler() func(http.ResponseWriter, *http.Reques
 		}
 
 		// Retrieve user details
+		data.AccountType = sessions.GetAccountType(session)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 		} else {
@@ -144,8 +144,6 @@ func (c *Controller) AddUpdateCVHandler() func(http.ResponseWriter, *http.Reques
 			Level: r.FormValue("level"),
 			CV: r.FormValue("mainCVSectionValue"),
 		}
-
-		fmt.Println(cv.Level)
 
 		// Additional sections are stored in a map
 		cv.CVSections = make(map[string]string)
@@ -220,10 +218,12 @@ func (c *Controller) AddUpdateCVHandler() func(http.ResponseWriter, *http.Reques
 			data.MessageWarning = "Error! Unable to save CV details to database."
 			renderTemplate(w, r, "addcv.html", data)
 		} else {
+			data.UserDetails.UploadedCV = true
 			// Set session values
 			session.Values["UserUploadedCV"] = true
 			err = session.Save(r, w)
 			if err != nil {
+				fmt.Println(err)
 				data.MessageWarning = "Error! Unable to save session values."
 				renderTemplate(w, r, "index.html", data)
 				return

@@ -99,6 +99,7 @@ $(document).ready(function () {
         textarea.id = "additionalCVSectionValue" + new_id;
         textarea.setAttribute("rows", "3");
         textarea.setAttribute("name", "additionalCVSectionValue" + new_id);
+        textarea.setAttribute("required", "");
 
         // data_type_form_group contains the selector dropdown
         data_type_form_group.append(select_label);

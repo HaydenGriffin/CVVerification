@@ -14,7 +14,7 @@ func (c *Controller) IndexHandler() func(http.ResponseWriter, *http.Request) {
 			CurrentPage:  "index",
 		}
 
-		session := sessions.InitSession(r)
+		session := sessions.GetSession(r)
 		if sessions.HasSavedUserDetails(session) {
 			data.UserDetails = sessions.GetUserDetails(session)
 			renderTemplate(w, r, "index.html", data)

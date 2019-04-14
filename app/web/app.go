@@ -19,10 +19,10 @@ func Serve(app *controllers.Controller) {
 	r.HandleFunc("/logout", app.LogoutHandler())
 
 	r.HandleFunc("/addcv", app.AddCVView())
-	r.HandleFunc("/addcvprocess", app.AddCVHandler())
+	r.HandleFunc("/addcvprocess", app.AddUpdateCVHandler())
 
 	r.HandleFunc("/updatecv", app.UpdateCVView())
-	r.HandleFunc("/updatecvprocess", app.AddCVHandler())
+	r.HandleFunc("/updatecvprocess", app.AddUpdateCVHandler())
 
 	r.HandleFunc("/mycv", app.MyCVView())
 	r.HandleFunc("/mycv/{requestedCVIndex}", app.MyCVView())
@@ -31,7 +31,7 @@ func Serve(app *controllers.Controller) {
 	r.HandleFunc("/withdrawcvfromreview", app.WithdrawFromReviewHandler())
 
 	r.HandleFunc("/viewallcv", app.ViewAllCVView())
-	r.HandleFunc("/viewallcv/{speciality}", app.ViewAllCVView())
+	r.HandleFunc("/viewallcv/{industry}", app.ViewAllCVView())
 
 	r.HandleFunc("/reviewcv/{cvID}", app.ReviewCVView())
 	r.HandleFunc("/reviewcvprocess", app.ReviewCVHandler())

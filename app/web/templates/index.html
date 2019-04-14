@@ -1,17 +1,110 @@
 {{define "title"}}Home{{end}}
 {{define "body"}}
-    <div class="jumbotron">
-        <div class="container">
-            <h1>Hyperledger CV Verification System</h1>
-            <p> Welcome, {{.UserDetails.Username}}</p>
-            <p><a class="btn btn-primary btn-lg" href="#" role="button">Get Started &raquo;</a></p>
-        </div>
-    </div>
-        <div class="container">
-            <div class="card">
+  <link rel="stylesheet" href="../assets/css/index.css">
+  <div class="container">
+    <h1>Hyperledger CV Verification System</h1>
+    <h5> Welcome, {{if .UserDetails.FirstName}}{{.UserDetails.FirstName}} {{.UserDetails.Surname}}{{else}}please log in to use the system{{end}}</h5>
+    <hr>
+  </div>
+  <div class="container">
+    <div class="row justify-content-center">
+      {{if eq .UserDetails.AccountType "applicant"}}
+        {{if .UserDetails.UploadedCV}}
+          <div class="col-auto mb-3">
+            <div class="card text-center square">
+              <a href="/updatecv" class="navigation-card">
                 <div class="card-body">
-                    <p> Welcome, {{.UserDetails.Username}}</p>
+                        <span class="fa fa-style fa-edit fa-5x"
+                              aria-hidden="true"></span>
+                  <h3>Modify your CV</h3>
                 </div>
+              </a>
             </div>
+          </div>
+          <div class="col-auto mb-3">
+            <div class="card text-center square">
+              <a href="/mycv" class="navigation-card">
+                <div class="card-body">
+                        <span class="fa fa-style fa-eye fa-5x"
+                              aria-hidden="true"></span>
+                  <h3>View your CV</h3>
+                </div>
+              </a>
+            </div>
+          </div>
+        {{else}}
+          <div class="col-auto mb-3">
+            <div class="card text-center square">
+              <a href="/addcv" class="navigation-card">
+                <div class="card-body">
+                        <span class="fa fa-style fa-plus fa-5x"
+                              aria-hidden="true"></span>
+                  <h3>Add your CV</h3>
+                </div>
+              </a>
+            </div>
+          </div>
+        {{end}}
+        <div class="col-auto mb-3">
+          <div class="card text-center square">
+            <a href="/managekeys" class="navigation-card">
+              <div class="card-body">
+                        <span class="fa fa-style fa-wrench fa-5x"
+                              aria-hidden="true"></span>
+                <h3>Manage Encryption Keys</h3>
+              </div>
+            </a>
+          </div>
         </div>
+      {{else if eq .UserDetails.AccountType "verifier"}}
+        <div class="col-auto mb-3">
+          <div class="card text-center square">
+            <a href="/viewallcv" class="navigation-card">
+              <div class="card-body">
+                        <span class="fa fa-style fa-search fa-5x"
+                              aria-hidden="true"></span>
+                <h3>Review CVs</h3>
+              </div>
+            </a>
+          </div>
+        </div>
+        {{end}}
+      {{if .UserDetails.FirstName}}
+        <div class="col-auto mb-3">
+          <div class="card text-center square">
+            <a href="/updatedetails" class="navigation-card">
+              <div class="card-body">
+                        <span class="fa fa-style fa-user-edit fa-5x"
+                              aria-hidden="true"></span>
+                <h3>Update User Details</h3>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class="col-auto mb-3">
+          <div class="card text-center square">
+            <a href="/logout" class="navigation-card">
+              <div class="card-body">
+                        <span class="fa fa-style fa-sign-out-alt fa-5x"
+                              aria-hidden="true"></span>
+                <h3>Logout</h3>
+              </div>
+            </a>
+          </div>
+        </div>
+        {{else}}
+        <div class="col-auto mb-3">
+          <div class="card text-center square">
+            <a href="/" class="navigation-card">
+              <div class="card-body">
+                        <span class="fa fa-style fa-sign-in-alt fa-5x"
+                              aria-hidden="true"></span>
+                <h3>Login</h3>
+              </div>
+            </a>
+          </div>
+        </div>
+          {{end}}
+    </div>
+  </div>
 {{end}}

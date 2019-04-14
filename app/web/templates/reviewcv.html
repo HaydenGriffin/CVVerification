@@ -1,49 +1,69 @@
 {{define "title"}}Review CV{{end}}
 {{define "body"}}
-    <div class="container">
-        {{if .CVInfo.CV}}
-        <div class="card">
-            <div class="card-body">
-            <form>
-                <h3>{{.CVInfo.CV.Name}}</h3>
-                <h4>Speciality</h4>
-                <p>{{.CVInfo.CV.Speciality}}</p>
+  <div class="container">
+    {{if .CVInfo.CV}}
+      <h2>Review CV</h2>
+      <div class="card">
+        <div class="card-body">
+          <form>
+            <div class="row">
+              <div class="col-md-6">
+                <h4>Applicant Name</h4>
+                <p>{{.CVInfo.CV.Name}}</p>
+              </div>
+              <div class="col-md-6">
                 <h4>Date of CV</h4>
-                <p>{{.CVInfo.CV.CVDate}}</p>
-                <h4>CV</h4>
-                <p>{{.CVInfo.CV.CV}}</p>
-                <div class="row">
-                    {{range $subject, $value := .CVInfo.CV.CVSections}}
-                        <div class="col-md-6">
-                            <div class="card mb-2">
-                                <div class="card-body">
-                                    <h4>{{$subject}}</h4>
-                                    <p>{{$value}}</p>
-                                </div>
-                            </div>
-                        </div>
-                    {{end}}
-                </div>
-            </form>
-                <hr>
-                <h3>Review</h3>
-            <form id="review-cv" action="/reviewcvprocess" method="post">
-                <div class="form-group">
-                    <label for="fullName">Reviewers Name</label>
-                    <input type="text" class="form-control" id="name" name="name" value="{{.UserDetails.FullName}}" readonly/>
-                </div>
-                <div class="form-group">
-                    <label for="comment">Comment</label>
-                    <textarea class="form-control" id="comment" name="comment" rows="3" required="" autofocus="">{{if .CVInfo.VerifierReview.Comment}}{{.CVInfo.VerifierReview.Comment}}{{end}}</textarea>
-                </div>
-                <div class="form-group">
-                    <label for="rating">Rating</label>
-                    <input type="number" class="form-control" name="rating" placeholder="Leave your rating here" min="1" max="10" required="" autofocus="" {{if .CVInfo.VerifierReview.Rating}}value="{{.CVInfo.VerifierReview.Rating}}"{{end}}/>
-                </div>
-                <button class="btn btn-lg btn-primary" type="submit">{{if .CVInfo.VerifierReview.VerifierID}}Update Review{{else}}Review CV{{end}}</button>
-            </form>
+                <p>{{.CVInfo.CV.Date}}</p>
+              </div>
+              <div class="col-md-6">
+                <h4>Industry / Sector</h4>
+                <p>{{.CVInfo.CV.Industry}}</p>
+              </div>
+              <div class="col-md-6">
+                <h4>Level</h4>
+                <p>{{.CVInfo.CV.Level}}</p>
+              </div>
             </div>
+
+            <h4>CV</h4>
+            <p>{{.CVInfo.CV.CV}}</p>
+            <div class="row">
+              {{range $subject, $value := .CVInfo.CV.CVSections}}
+                <div class="col-md-6">
+                  <div class="card mb-2">
+                    <div class="card-body">
+                      <h4>{{$subject}}</h4>
+                      <p>{{$value}}</p>
+                    </div>
+                  </div>
+                </div>
+              {{end}}
+            </div>
+          </form>
+          <hr>
+          <h3>Review</h3>
+          <form id="review-cv" action="/reviewcvprocess" method="post">
+            <div class="form-group">
+              <label for="fullName">Reviewers Name</label>
+              <input type="text" class="form-control" id="name" name="name"
+                     value="{{.UserDetails.FirstName}} {{.UserDetails.Surname}}" readonly/>
+            </div>
+            <div class="form-group">
+              <label for="comment">Comment</label>
+              <textarea class="form-control" id="comment" name="comment" rows="3" required=""
+                        autofocus="">{{if .CVInfo.VerifierReview.Comment}}{{.CVInfo.VerifierReview.Comment}}{{end}}</textarea>
+            </div>
+            <div class="form-group">
+              <label for="rating">Rating</label>
+              <input type="number" class="form-control" name="rating" placeholder="Leave your rating here" min="1"
+                     max="10" required="" autofocus=""
+                     {{if .CVInfo.VerifierReview.Rating}}value="{{.CVInfo.VerifierReview.Rating}}"{{end}}/>
+            </div>
+            <button class="btn btn-lg btn-primary"
+                    type="submit">{{if .CVInfo.VerifierReview.VerifierID}}Update Review{{else}}Review CV{{end}}</button>
+          </form>
         </div>
-        {{end}}
-    </div>
+      </div>
+    {{end}}
+  </div>
 {{end}}

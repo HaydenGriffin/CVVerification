@@ -96,8 +96,8 @@ func returnCV(actorType, filter string, cv model.CVObject) bool {
 	// If the user specifies a filter - check this first
 	if filter != "" {
 		filter = strings.ToLower(filter)
-		// Check to see if the speciality contains the filter
-		if !strings.Contains(strings.ToLower(cv.Speciality), filter) {
+		// Check to see if the industry contains the filter
+		if !strings.Contains(strings.ToLower(cv.Industry), filter) {
 			return false
 		}
 	}

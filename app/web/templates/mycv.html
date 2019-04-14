@@ -17,11 +17,11 @@
           {{range $i, $cv := .CVInfo.CVHistory}}
             <tr {{if eq $.CVInfo.CurrentCVID $cv.CVID}}class="table-active"{{end}}>
               <td>{{$cv.Index}}</td>
-              <td>{{$cv.CVObject.CVDate}}</td>
+              <td>{{$cv.CV.Date}}</td>
               <td>
-                {{if eq $cv.CVObject.Status "draft"}}
+                {{if eq $cv.CV.Status "draft"}}
                   In Draft
-                {{else if eq $cv.CVObject.Status "in-review"}}
+                {{else if eq $cv.CV.Status "in-review"}}
                   In Review
                 {{end}}
               </td>
@@ -38,12 +38,16 @@
           <form id="update-cv" action="/updatecv" method="post">
             <div class="row">
               <div class="col-md-6">
-                <h4>Speciality</h4>
-                <p>{{.CVInfo.CV.Speciality}}</p>
+                <h4>Industry / Sector</h4>
+                <p>{{.CVInfo.CV.Industry}}</p>
+              </div>
+              <div class="col-md-6">
+                <h4>Level</h4>
+                <p>{{.CVInfo.CV.Level}}</p>
               </div>
               <div class="col-md-6">
                 <h4>Date of CV</h4>
-                <p>{{.CVInfo.CV.CVDate}}</p>
+                <p>{{.CVInfo.CV.Date}}</p>
               </div>
             </div>
             <div class="card mb-2">
@@ -70,7 +74,7 @@
               <button class="btn btn-link" type="submit" formaction="/withdrawcvfromreview">Withdraw CV from Review
               </button>
             {{else if eq .CVInfo.CV.Status "draft"}}
-              <button class="btn btn-link" type="submit" formaction="/submitcvforreview"> Submit CV for Review</button>
+              <button class="btn btn-link" id="submitAnchor" type="submit" formaction="/submitcvforreview"> Submit CV for Review</button>
             {{end}}
           </form>
         </div>
@@ -81,7 +85,11 @@
       <div class="card">
         <div class="card-body">
           {{if not .CVInfo.Reviews}}
-            You have no reviews yet. Once you are happy with your CV, submit it to review
+            {{if eq .CVInfo.CV.Status "in-review"}}
+              You have no reviews yet. Your CV is currently in review.
+            {{else if eq .CVInfo.CV.Status "draft"}}
+              Please <a href="#submitAnchor">submit your CV</a> to receive reviews.
+            {{end}}
           {{end}}
           {{range $cvID, $CVReview:=  .CVInfo.Reviews}}
             <h4>Reviewer:</h4>

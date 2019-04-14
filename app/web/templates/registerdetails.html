@@ -1,28 +1,50 @@
 {{define "title"}}User Details{{end}}
 {{define "body"}}
   <div class="container-fluid">
-    <div class="col-lg-4 offset-lg-4 col-md-6 offset-md-3 col-sm-6 offset-sm-3 col-xs-12">
-      <h3>Register User Details</h3>
-      <div class="card border-top">
-        <div class="card-body">
-          <form id="login-form" action="/registerdetailsprocess" method="post">
-            <div class="form-group">
-              <label for="username">Username</label>
-              <input type="text" class="form-control" id="username" name="username" required=""
-                     value="{{.UserDetails.Username}}" readonly/>
-            </div>
-            <div class="form-group">
-              <label for="fullName">Full Name</label>
-              <input type="text" class="form-control" id="fullName" name="fullName" required="" autofocus=""
-                     value="{{.UserDetails.FullName}}"/>
-            </div>
-            <div class="form-group">
-              <label for="emailAddress">Email Address</label>
-              <input type="email" class="form-control" id="emailAddress" name="emailAddress" required="" autofocus=""
-                     value="{{.UserDetails.EmailAddress}}"/>
-            </div>
-            <button class="btn btn-lg btn-primary" type="submit">Register User Details</button>
-          </form>
+    <div class="row">
+      <div class="col-lg-8 offset-lg-2 col-md-10 offset-md-1 col-sm-12">
+        <h3>Register User Details</h3>
+        <div class="card">
+          <div class="card-body">
+            <form id="register-form" action="/registerdetailsprocess" method="post">
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="username">Username</label>
+                  <input type="text" class="form-control" id="username" name="username" required=""
+                         value="{{.UserDetails.Username}}" readonly/>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="title">Title</label>
+                  <select class="form-control" id="title" name="title" required="" autofocus="">
+                    <option>Mr</option>
+                    <option>Mrs</option>
+                    <option>Miss</option>
+                    <option>Ms</option>
+                    <option>Sir</option>
+                    <option>Doctor</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="firstName">First Name</label>
+                  <input type="text" class="form-control" id="firstName" name="firstName" required="" autofocus=""/>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="surname">Surname</label>
+                  <input type="text" class="form-control" id="surname" name="surname" required="" autofocus=""/>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="dateOfBirth">Date of Birth</label>
+                  <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" required="" autofocus=""/>
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="emailAddress">Email Address</label>
+                  <input type="email" class="form-control" id="emailAddress" name="emailAddress" required=""
+                         autofocus=""/>
+                </div>
+              </div>
+              <button class="btn btn-lg btn-primary" type="submit">Register User Details</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

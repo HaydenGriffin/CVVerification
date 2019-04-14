@@ -11,7 +11,7 @@ import (
 
 func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
-		session := sessions.InitSession(r)
+		session := sessions.GetSession(r)
 
 		data := templateModel.Data{
 			CurrentPage: "index",
@@ -37,9 +37,9 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		specialityFilter:= r.FormValue("speciality")
+		industryFilter:= r.FormValue("industry")
 
-		cvList, err := u.QueryCVs(model.CVInReview, specialityFilter)
+		cvList, err := u.QueryCVs(model.CVInReview, industryFilter)
 		if err != nil {
 			data.MessageWarning = "An error occurred whilst retrieving CVs to review."
 			renderTemplate(w, r, "index.html", data)
@@ -63,8 +63,8 @@ func (c *Controller) ViewAllCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		if specialityFilter!= "" {
-			data.MessageSuccess = "Showing results for " +specialityFilter
+		if industryFilter!= "" {
+			data.MessageSuccess = "Showing results for " +industryFilter
 		}
 		data.CurrentPage = "viewallcv"
 		renderTemplate(w, r, "viewallcv.html", data)

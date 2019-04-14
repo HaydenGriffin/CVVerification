@@ -1,8 +1,8 @@
 .PHONY: all dev clean build env-up env-down run
 
-all: clean build env-up run init
+all: build run
 
-dev: build run
+rebuild: clean build env-up run init
 
 ##### BUILD
 build:

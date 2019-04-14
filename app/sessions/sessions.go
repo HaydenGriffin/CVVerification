@@ -14,15 +14,17 @@ var encryptionKey = securecookie.GenerateRandomKey(32)
 // store will hold all session data
 var store = sessions.NewCookieStore(authKey, encryptionKey)
 
-func InitSession(r *http.Request) *sessions.Session {
+func GetSession(r *http.Request) *sessions.Session {
 	session, _ := store.Get(r, "userSession")
 	if session.IsNew {
 		session.Options.Domain = "localhost"
 		session.Options.Path = "/"
-		session.Options.MaxAge = 0
+		// Session max age is in seconds. Max Age is set to 15 mins
+		session.Options.MaxAge = 60*30
 		session.Options.HttpOnly = false
 		session.Options.Secure = false
 	}
+
 	return session
 }
 
@@ -44,10 +46,6 @@ func GetUserDetails(s *sessions.Session) templateModel.UserDetails {
 		return templateModel.UserDetails{}
 	}
 
-	userUploadedCV := GetUserUploadedCV(s)
-
-	userDetails.UploadedCV = userUploadedCV
-
 	return userDetails
 }
 
@@ -59,36 +57,6 @@ func GetPrivateKey(s *sessions.Session) string {
 		return ""
 	}
 	return privateKey
-}
-
-func GetUserUploadedCV(s *sessions.Session) bool {
-	val := s.Values["UserUploadedCV"]
-
-	uploadedCV, ok := val.(bool)
-	if !ok {
-		return false
-	}
-	return uploadedCV
-}
-
-func GetCV(s *sessions.Session) *model.CVObject {
-	val := s.Values["CV"]
-
-	cv, ok := val.(*model.CVObject)
-	if !ok {
-		return nil
-	}
-	return cv
-}
-
-func GetCVHistory(s *sessions.Session) []templateModel.CVHistoryInfo {
-	val := s.Values["CVHistory"]
-
-	cv, ok := val.([]templateModel.CVHistoryInfo)
-	if !ok {
-		return nil
-	}
-	return cv
 }
 
 func GetCVID(s *sessions.Session) string {
@@ -109,6 +77,27 @@ func GetApplicantFabricID(s *sessions.Session) string {
 		return ""
 	}
 	return ID
+}
+
+
+func GetCV(s *sessions.Session) *model.CVObject {
+	val := s.Values["CV"]
+
+	cv, ok := val.(*model.CVObject)
+	if !ok {
+		return nil
+	}
+	return cv
+}
+
+func GetCVHistory(s *sessions.Session) []templateModel.CVHistoryInfo {
+	val := s.Values["CVHistory"]
+
+	cv, ok := val.([]templateModel.CVHistoryInfo)
+	if !ok {
+		return nil
+	}
+	return cv
 }
 
 func GetReviews(s *sessions.Session) []model.CVReview {

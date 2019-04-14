@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/cvverification/app/database"
 	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/app/sessions"
@@ -15,7 +16,7 @@ import (
 func (c *Controller) AddCVView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.InitSession(r)
+		session := sessions.GetSession(r)
 
 		data := templateModel.Data{
 			CurrentPage: "addcv",
@@ -47,7 +48,7 @@ func (c *Controller) AddCVView() func(http.ResponseWriter, *http.Request) {
 func (c *Controller) UpdateCVView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.InitSession(r)
+		session := sessions.GetSession(r)
 
 		data := templateModel.Data{
 			CurrentPage: "index",
@@ -106,10 +107,10 @@ func (c *Controller) UpdateCVView() func(http.ResponseWriter, *http.Request) {
 	})
 }
 
-func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
+func (c *Controller) AddUpdateCVHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.InitSession(r)
+		session := sessions.GetSession(r)
 
 		data := templateModel.Data{
 			CurrentPage: "addcv",
@@ -137,12 +138,14 @@ func (c *Controller) AddCVHandler() func(http.ResponseWriter, *http.Request) {
 
 		// Extract form values and create new object
 		cv := model.CVObject{
-			DocType: "cv",
 			Name: r.FormValue("name"),
-			Speciality: r.FormValue("speciality"),
-			CVDate: r.FormValue("cvDate"),
+			Date: r.FormValue("date"),
+			Industry: r.FormValue("industry"),
+			Level: r.FormValue("level"),
 			CV: r.FormValue("mainCVSectionValue"),
 		}
+
+		fmt.Println(cv.Level)
 
 		// Additional sections are stored in a map
 		cv.CVSections = make(map[string]string)

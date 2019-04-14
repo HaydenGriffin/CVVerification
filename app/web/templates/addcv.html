@@ -7,29 +7,33 @@
         <h3>Add your CV</h3>
         <div class="card">
           <div class="card-body">
-            <form id="upload-cv-form" action="/addcvprocess" method="post">
+            <form id="add-cv-form" action="/addcvprocess" method="post">
               <div class="form-row">
                 <div class="form-group col-md-6">
-                  <label for="applicantName">Applicant Name</label>
-                  <input type="text" class="form-control" id="applicantName" name="name"
-                         value="{{.UserDetails.FullName}}"
+                  <label for="name">Applicant Name</label>
+                  <input type="text" class="form-control" id="name" name="name"
+                         value="{{.UserDetails.FirstName}} {{.UserDetails.Surname}}"
                          readonly>
                 </div>
                 <div class="form-group col-md-6">
-                  <label for="cvDate">CV Revision Date</label>
-                  <input type="date" class="form-control" id="cvDate" name="cvDate" autofocus="">
+                  <label for="date">CV Revision Date</label>
+                  <input type="date" class="form-control" id="date" name="date" required="" autofocus="">
                 </div>
-                {{/*<div class="form-group col-md-6">
-                  <label for="applicantSpeciality">Industry</label>
-                  <input type="text" class="form-control" id="applicantSpeciality" name="speciality"
-                         placeholder="Computer Science"
-                         autofocus="">
-                </div>*/}}
                 <div class="form-group col-md-6">
-                  <label for="applicantSpeciality">Level</label>
-                  <input type="text" class="form-control" id="applicantSpeciality" name="speciality"
-                         placeholder="Junior"
-                         autofocus="">
+                  <label for="industry">Industry / Sector</label>
+                  <input type="text" class="form-control" id="industry" name="industry"
+                         required="" autofocus="">
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="level">Level</label>
+                  <select class="form-control" id="level" name="level" required="" autofocus="">
+                    <option>Administrator</option>
+                    <option>Junior</option>
+                    <option>Intermediate</option>
+                    <option>Senior</option>
+                    <option>Manager</option>
+                    <option>Director</option>
+                  </select>
                 </div>
               </div>
               <div class="mainSection">
@@ -38,7 +42,7 @@
                     <div class="form-group">
                       <label for="mainCVSectionValue">Personal Statement</label>
                       <textarea class="form-control" id="mainCVSectionValue" name="mainCVSectionValue" rows="5"
-                                autofocus=""></textarea>
+                                required="" autofocus=""></textarea>
                     </div>
                   </div>
                 </div>

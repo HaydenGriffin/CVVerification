@@ -7,24 +7,35 @@
         <h3>Update your CV</h3>
         <div class="card">
           <div class="card-body">
-            <form id="upload-cv-form" action="/updatecvprocess" method="post">
+            <form id="update-cv-form" action="/updatecvprocess" method="post">
               <div class="form-row">
                 <div class="form-group col-md-6">
-                  <label for="applicantName">Applicant Name</label>
-                  <input type="text" class="form-control" id="applicantName" name="name"
-                         value="{{.UserDetails.FullName}}"
+                  <label for="name">Applicant Name</label>
+                  <input type="text" class="form-control" id="name" name="name"
+                         value="{{.UserDetails.FirstName}} {{.UserDetails.Surname}}"
                          readonly>
                 </div>
                 <div class="form-group col-md-6">
-                  <label for="applicantSpeciality">Field of Work</label>
-                  <input type="text" class="form-control" id="applicantSpeciality" name="speciality"
-                         placeholder="Computer Science"
-                         autofocus="" {{if .CVInfo.CV.Speciality}}value="{{.CVInfo.CV.Speciality}}"{{end}}>
+                  <label for="date">CV Revision Date</label>
+                  <input type="date" class="form-control" id="date" name="date" required="" autofocus=""
+                         {{if .CVInfo.CV.Date}}value="{{.CVInfo.CV.Date}}"{{end}}>
                 </div>
                 <div class="form-group col-md-6">
-                  <label for="cvDate">CV Revision Date</label>
-                  <input type="date" class="form-control" id="cvDate" name="cvDate" autofocus=""
-                         {{if .CVInfo.CV.CVDate}}value="{{.CVInfo.CV.CVDate}}"{{end}}>
+                  <label for="industry">Industry / Sector</label>
+                  <input type="text" class="form-control" id="industry" name="industry"
+                         placeholder="Computer Science"
+                         required="" autofocus="" value="{{.CVInfo.CV.Industry}}">
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="applicantLevel">Level</label>
+                  <select class="form-control" id="applicantLevel" name="level" required="" autofocus="">
+                    <option {{if eq .CVInfo.CV.Level "Administrator"}}selected{{end}}>Administrator</option>
+                    <option {{if eq .CVInfo.CV.Level "Junior"}}selected{{end}}>Junior</option>
+                    <option {{if eq .CVInfo.CV.Level "Intermediate"}}selected{{end}}>Intermediate</option>
+                    <option {{if eq .CVInfo.CV.Level "Senior"}}selected{{end}}>Senior</option>
+                    <option {{if eq .CVInfo.CV.Level "Manager"}}selected{{end}}>Manager</option>
+                    <option {{if eq .CVInfo.CV.Level "Director"}}selected{{end}}>Director</option>
+                  </select>
                 </div>
               </div>
               <div class="mainSection">
@@ -33,7 +44,7 @@
                     <div class="form-group">
                       <label for="mainCVSectionValue">Main CV</label>
                       <textarea class="form-control" id="mainCVSectionValue" name="mainCVSectionValue" rows="5"
-                                autofocus="">{{if .CVInfo.CV.CV}}{{.CVInfo.CV.CV}}{{end}}</textarea>
+                                required="" autofocus="">{{if .CVInfo.CV.CV}}{{.CVInfo.CV.CV}}{{end}}</textarea>
                     </div>
                   </div>
                 </div>
@@ -44,7 +55,8 @@
                     <div class="card-body">
                       <div class="form-group">
                         <label for="additionalCVSectionSubject">Subject</label>
-                        <select class="form-control" id="additionalCVSectionSubject" name="additionalCVSectionSubject">
+                        <select class="form-control" id="additionalCVSectionSubject" name="additionalCVSectionSubject"
+                                required="">
                           <option {{if eq $subject "Education"}}selected{{end}}>Education</option>
                           <option {{if eq $subject "Experience"}}selected{{end}}>Experience</option>
                           <option {{if eq $subject "Skills"}}selected{{end}}>Skills</option>

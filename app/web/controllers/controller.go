@@ -8,16 +8,16 @@ import (
 	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/blockchain"
+	"github.com/teris-io/shortid"
 	"html/template"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	"github.com/teris-io/shortid"
 )
 
 type Controller struct {
-	Fabric *blockchain.FabricSetup
+	Fabric  *blockchain.FabricSetup
 	ShortID *shortid.Shortid
 }
 
@@ -53,17 +53,34 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 			return
 		}
 
-		session := sessions.InitSession(r)
+		session := sessions.GetSession(r)
 
 		// Check that there is corresponding user details stored in DB
 		userDetails, err := database.GetUserDetailsFromUsername(pair[0])
-		gob.Register(userDetails)
-		if err != nil {
-			session.Values["SavedUserDetails"] = false
-		} else {
+		if err == nil {
 			session.Values["SavedUserDetails"] = true
-			session.Values["UserDetails"] = userDetails
+			applicant, err := u.QueryApplicant()
+			if err == nil {
+				if len(applicant.Profile.CVHistory) > 0 {
+					userDetails.UploadedCV = true
+				}
+				userDetails.AccountType = "applicant"
+			}
+			_, err = u.QueryVerifier()
+			if err == nil {
+				userDetails.AccountType = "verifier"
+			}
+			_, err = u.QueryAdmin()
+			if err == nil {
+				userDetails.AccountType = "admin"
+			}
+		} else {
+			session.Values["SavedUserDetails"] = false
 		}
+
+		session.Values["UserDetails"] = userDetails
+
+		gob.Register(userDetails)
 		err = session.Save(r, w)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -75,7 +92,7 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 // Logout
 func (c *Controller) LogoutHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
-		session := sessions.InitSession(r)
+		session := sessions.GetSession(r)
 
 		data := templateModel.Data{
 			CurrentPage: "index",
@@ -83,6 +100,8 @@ func (c *Controller) LogoutHandler() func(http.ResponseWriter, *http.Request) {
 		w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
 		w.WriteHeader(http.StatusUnauthorized)
 
+		// Remove all session values currently set
+		session.Options.MaxAge = -1
 		session.Values["UserDetails"] = templateModel.UserDetails{}
 		err := session.Save(r, w)
 		if err != nil {

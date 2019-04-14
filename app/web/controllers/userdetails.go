@@ -15,7 +15,7 @@ import (
 func (c *Controller) RegisterDetailsView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.InitSession(r)
+		session := sessions.GetSession(r)
 
 		data := templateModel.Data{
 			CurrentPage: "userdetails",
@@ -34,7 +34,7 @@ func (c *Controller) RegisterDetailsView() func(http.ResponseWriter, *http.Reque
 func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.InitSession(r)
+		session := sessions.GetSession(r)
 
 		data := templateModel.Data{
 			CurrentPage: "userdetails",
@@ -49,7 +49,10 @@ func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Re
 
 		// Form values to insert into DB
 		username := r.FormValue("username")
-		fullName := r.FormValue("fullName")
+		title := r.FormValue("title")
+		firstName := r.FormValue("firstName")
+		surname := r.FormValue("surname")
+		dateOfBirth := r.FormValue("dateOfBirth")
 		emailAddress := r.FormValue("emailAddress")
 
 		fabricID, err := u.QueryID()
@@ -57,9 +60,11 @@ func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Re
 			data.MessageWarning = "Error! Unable to retrieve profile ID from ledger."
 		}
 
+		// If the user is an applicant
 		applicant, applicantErr := u.QueryApplicant()
+		// Generate a new public and private key for the user
 		if applicantErr == nil {
-			privateKey, publicKey := crypto.GenerateKeyPair(2048)
+			privateKey, publicKey := crypto.GenerateKeyPair(1024)
 			privateKeyBytes := crypto.PrivateKeyToBytes(privateKey)
 			privateKeyString := string(privateKeyBytes)
 			publicKeyBytes := crypto.PublicKeyToBytes(publicKey)
@@ -76,7 +81,7 @@ func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Re
 		}
 
 		// Insert row into DB
-		userDetails, err := database.CreateNewUser(username, fullName, emailAddress, fabricID)
+		userDetails, err := database.CreateNewUser(username, title, firstName, surname, emailAddress, dateOfBirth, fabricID)
 		if err != nil {
 			data.UserDetails.Username = u.Username
 			data.MessageWarning = "Error! Unable to save user details."
@@ -96,7 +101,7 @@ func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Re
 		}
 
 		data.UserDetails = userDetails
-		data.MessageSuccess = "Success! Your details have been saved. Welcome, " + userDetails.FullName + "!"
+		data.MessageSuccess = "Success! Your details have been saved. Welcome, " + userDetails.FirstName + " " +userDetails.Surname + "."
 
 		if applicantErr == nil {
 			data.MessageWarning = "Before using the system, please make a copy of your Private Key."
@@ -110,7 +115,7 @@ func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Re
 func (c *Controller) UpdateDetailsView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.InitSession(r)
+		session := sessions.GetSession(r)
 
 		data := templateModel.Data{
 			CurrentPage: "userdetails",
@@ -131,7 +136,7 @@ func (c *Controller) UpdateDetailsView() func(http.ResponseWriter, *http.Request
 func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.InitSession(r)
+		session := sessions.GetSession(r)
 
 		data := templateModel.Data{
 			CurrentPage: "index",
@@ -148,11 +153,14 @@ func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Requ
 
 		// Form values to insert into DB
 		username := r.FormValue("username")
-		fullName := r.FormValue("fullName")
+		title := r.FormValue("title")
+		firstName := r.FormValue("firstName")
+		surname := r.FormValue("surname")
+		dateOfBirth := r.FormValue("dateOfBirth")
 		emailAddress := r.FormValue("emailAddress")
 
 		// Logic to update a profile
-		userDetails, err := database.UpdateUser(username, fullName, emailAddress)
+		userDetails, err := database.UpdateUser(username, title, firstName, surname, dateOfBirth, emailAddress)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to update profile information in database."
 			data.CurrentPage = "userdetails"

@@ -27,7 +27,6 @@ type FabricSetup struct {
 	OrdererID        string
 	ChannelID        string
 	ChaincodeID      string
-	initialized      bool
 	ChannelConfig    string
 	ChaincodeGoPath  string
 	ChaincodeVersion string
@@ -55,11 +54,7 @@ type User struct {
 
 // Initialize reads the configuration file and sets up the client, chain and event hub
 func (setup *FabricSetup) Initialize() error {
-
-	// Add parameters for the initialization
-	if setup.initialized {
-		return errors.New("sdk already initialized")
-	}
+	fmt.Println("Initialising SDK")
 
 	// Initialize the SDK with the configuration file
 	sdk, err := fabsdk.New(config.FromFile(setup.ConfigFile))
@@ -75,14 +70,18 @@ func (setup *FabricSetup) Initialize() error {
 
 	setup.caClient = caClient
 
-	fmt.Println("SDK created")
+	fmt.Println("SDK initialised")
+	return nil
+}
+
+func (setup *FabricSetup) InstallAndInstantiateCC() (*channel.Client, error) {
 
 	// The resource management client is responsible for managing channels (create/update channel)
 	resourceManagerClientContext := setup.sdk.Context(fabsdk.WithUser(setup.OrgAdmin), fabsdk.WithOrg(setup.OrgName))
 
 	resMgmtClient, err := resmgmt.New(resourceManagerClientContext)
 	if err != nil {
-		return errors.WithMessage(err, "failed to create channel management client from Admin identity")
+		return nil, errors.WithMessage(err, "failed to create channel management client from Admin identity")
 	}
 	setup.admin = resMgmtClient
 	fmt.Println("Resource management client created")
@@ -90,23 +89,15 @@ func (setup *FabricSetup) Initialize() error {
 	// Create channel
 	err = setup.createChannel(resMgmtClient)
 	if err != nil {
-		return fmt.Errorf("unable to create the channel: %v", err)
+		return nil, fmt.Errorf("unable to create the channel: %v", err)
 	}
-
 
 	// Make admin user join the previously created channel
 	if err = setup.admin.JoinChannel(setup.ChannelID, resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithOrdererEndpoint(setup.OrdererID)); err != nil {
-		return errors.WithMessage(err, "failed to make admin join channel")
+		return nil, errors.WithMessage(err, "failed to make admin join channel")
 	}
 
 	fmt.Println("Channel joined")
-
-	fmt.Println("Initialization Successful")
-	setup.initialized = true
-	return nil
-}
-
-func (setup *FabricSetup) InstallAndInstantiateCC() (*channel.Client, error) {
 
 	fmt.Printf("Install chaincode...\n")
 

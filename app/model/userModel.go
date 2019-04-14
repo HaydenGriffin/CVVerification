@@ -3,7 +3,11 @@ package model
 type UserDetails struct {
 	Id int
 	Username string
-	FullName string
+	Title string
+	FirstName string
+	Surname string
+	DateOfBirth string
 	EmailAddress string
 	UploadedCV bool
+	AccountType string
 }

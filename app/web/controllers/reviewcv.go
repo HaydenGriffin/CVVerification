@@ -17,7 +17,7 @@ import (
 func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.InitSession(r)
+		session := sessions.GetSession(r)
 
 		data := templateModel.Data{
 			CurrentPage: "viewallcv",
@@ -92,7 +92,7 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.InitSession(r)
+		session := sessions.GetSession(r)
 
 		data := templateModel.Data{
 			CurrentPage: "index",

@@ -1,6 +1,6 @@
 /**
   author: Hayden Griffin
- */
+*/
 
 package main
 
@@ -15,6 +15,11 @@ import (
 	"os"
 )
 
+const (
+	installChaincode = false;
+	registerUsers    = false;
+)
+
 func main() {
 	// Definition of the Fabric SDK properties
 	fSetup := blockchain.FabricSetup{
@@ -26,16 +31,16 @@ func main() {
 		ChannelConfig: os.Getenv("GOPATH") + "/src/github.com/cvverification/fabric-network/fixtures/artifacts/cvverification.channel.tx",
 
 		// Chaincode parameters
-		ChaincodeID:     "cvverification",
-		ChaincodeGoPath: os.Getenv("GOPATH"),
-		ChaincodePath:   "github.com/cvverification/chaincode/",
+		ChaincodeID:      "cvverification",
+		ChaincodeGoPath:  os.Getenv("GOPATH"),
+		ChaincodePath:    "github.com/cvverification/chaincode/",
 		ChaincodeVersion: "v1.0.0",
-		OrgAdmin:        "Admin",
-		OrdererOrgID:    "ordererorg",
-		OrgMspID:        "org1.cvverification.com",
-		OrgName:         "org1",
-		ConfigFile:      "config.yaml",
-		CaID: 			 "ca.org1.cvverification.com",
+		OrgAdmin:         "Admin",
+		OrdererOrgID:     "ordererorg",
+		OrgMspID:         "org1.cvverification.com",
+		OrgName:          "org1",
+		ConfigFile:       "config.yaml",
+		CaID:             "ca.org1.cvverification.com",
 
 		// User parameters
 		UserName: "User1",
@@ -51,53 +56,57 @@ func main() {
 	defer fSetup.CloseSDK()
 
 	// Install and instantiate the chaincode
-	_, err = fSetup.InstallAndInstantiateCC()
-	if err != nil {
-		fmt.Printf("Unable to install and instantiate the chaincode: %v\n", err)
-		return
+	if installChaincode {
+		_, err = fSetup.InstallAndInstantiateCC()
+		if err != nil {
+			fmt.Printf("Unable to install and instantiate the chaincode: %v\n", err)
+			return
+		}
 	}
 
-	_, err = fSetup.LogUser("admin", "adminpw")
-	if err != nil {
-		fmt.Printf("failed to enroll identity 'admin': %v", err)
-		return
-	}
+	if registerUsers {
+		_, err = fSetup.LogUser("admin", "adminpw")
+		if err != nil {
+			fmt.Printf("failed to enroll identity 'admin': %v", err)
+			return
+		}
 
-	err = fSetup.RegisterUser("admin1", "password", model.ActorAdmin)
-	if err != nil {
-		fmt.Printf("Unable to register the user 'admin1': %v\n", err)
-		return
-	}
+		err = fSetup.RegisterUser("admin1", "password", model.ActorAdmin)
+		if err != nil {
+			fmt.Printf("Unable to register the user 'admin1': %v\n", err)
+			return
+		}
 
-	err = fSetup.RegisterUser("applicant1", "password", model.ActorApplicant)
-	if err != nil {
-		fmt.Printf("Unable to register the user 'applicant1': %v\n", err)
-		return
-	}
+		err = fSetup.RegisterUser("applicant1", "password", model.ActorApplicant)
+		if err != nil {
+			fmt.Printf("Unable to register the user 'applicant1': %v\n", err)
+			return
+		}
 
-	err = fSetup.RegisterUser("verifier1", "password", model.ActorVerifier)
-	if err != nil {
-		fmt.Printf("Unable to register the user 'verifier1': %v\n", err)
-		return
-	}
+		err = fSetup.RegisterUser("verifier1", "password", model.ActorVerifier)
+		if err != nil {
+			fmt.Printf("Unable to register the user 'verifier1': %v\n", err)
+			return
+		}
 
-	err = fSetup.RegisterUser("verifier2", "password", model.ActorVerifier)
-	if err != nil {
-		fmt.Printf("Unable to register the user 'verifier2': %v\n", err)
-		return
-	}
+		err = fSetup.RegisterUser("verifier2", "password", model.ActorVerifier)
+		if err != nil {
+			fmt.Printf("Unable to register the user 'verifier2': %v\n", err)
+			return
+		}
 
-	err = fSetup.RegisterUser("employer1", "password", model.ActorEmployer)
-	if err != nil {
-		fmt.Printf("Unable to register the user 'employer1': %v\n", err)
-		return
+		err = fSetup.RegisterUser("employer1", "password", model.ActorEmployer)
+		if err != nil {
+			fmt.Printf("Unable to register the user 'employer1': %v\n", err)
+			return
+		}
 	}
 
 	sid, err := shortid.New(1, shortid.DefaultABC, 2342)
 
 	// Launch the web application listening
 	app := &controllers.Controller{
-		Fabric: &fSetup,
+		Fabric:  &fSetup,
 		ShortID: sid,
 	}
 	err = database.InitDB(database.DataSourceName)

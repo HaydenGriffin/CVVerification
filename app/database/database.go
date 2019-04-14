@@ -2,14 +2,12 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 	templateModel "github.com/cvverification/app/model"
 )
 
 var DataSourceName = "root:password@tcp(localhost:3306)/verification?parseTime=true"
 
 type MySQL struct {
-
 }
 
 var db *sql.DB
@@ -28,12 +26,10 @@ func InitDB(dataSourceName string) error {
 }
 
 func GetUserDetailsFromUsername(username string) (templateModel.UserDetails, error) {
-
 	user := templateModel.UserDetails{}
 
-
-	result := db.QueryRow("SELECT u.id, u.username, u.full_name, u.email_address FROM users u WHERE username = ?", username)
-	err := result.Scan(&user.Id, &user.Username, &user.FullName, &user.EmailAddress)
+	result := db.QueryRow("SELECT u.id, u.username, u.title, u.first_name, u.surname, u.email_address, u.date_of_birth FROM users u WHERE username = ?", username)
+	err := result.Scan(&user.Id, &user.Username, &user.Title, &user.FirstName, &user.Surname, &user.EmailAddress, &user.DateOfBirth)
 
 	if err != nil {
 		return user, err
@@ -42,11 +38,9 @@ func GetUserDetailsFromUsername(username string) (templateModel.UserDetails, err
 	}
 }
 
-func CreateNewUser(username, full_name, email_address, fabric_id string) (userDetails templateModel.UserDetails, error error) {
+func CreateNewUser(username, title, first_name, surname, email_address, date_of_birth, fabric_id string) (userDetails templateModel.UserDetails, error error) {
 
-	res, err := db.Exec("INSERT INTO users(username, full_name, email_address, fabric_id) VALUES (?, ?, ?, ?)", username, full_name, email_address, fabric_id)
-	fmt.Println(res)
-
+	_, err := db.Exec("INSERT INTO users(username, title, first_name, surname, email_address, date_of_birth, fabric_id) VALUES (?, ?, ?, ?, ?, ?, ?)", username, title, first_name, surname, email_address, date_of_birth, fabric_id)
 	if err != nil {
 		return userDetails, err
 	}
@@ -54,7 +48,6 @@ func CreateNewUser(username, full_name, email_address, fabric_id string) (userDe
 	var selectedUser templateModel.UserDetails
 
 	selectedUser, err = GetUserDetailsFromUsername(username)
-
 	if err != nil {
 		return userDetails, err
 	}
@@ -64,21 +57,22 @@ func CreateNewUser(username, full_name, email_address, fabric_id string) (userDe
 	return userDetails, err
 }
 
-func UpdateUser(username, full_name, email_address string) (userDetails templateModel.UserDetails, error error) {
+func UpdateUser(username, title, first_name, surname, email_address, date_of_birth string) (userDetails templateModel.UserDetails, error error) {
 
 	user, err := GetUserDetailsFromUsername(username)
-
 	if err != nil {
 		return templateModel.UserDetails{}, err
 	}
 
-	_, err = db.Exec("UPDATE users SET full_name = ?, email_address = ? WHERE id = ?", full_name, email_address, user.Id)
-
+	_, err = db.Exec("UPDATE users SET title = ?, first_name = ?, surname = ?, email_address = ?, date_of_birth = ? WHERE id = ?", title, first_name, surname, email_address, date_of_birth, user.Id)
 	if err != nil {
 		return templateModel.UserDetails{}, err
 	} else {
-		user.FullName = full_name
+		user.Title = title
+		user.FirstName = first_name
+		user.Surname = surname
 		user.EmailAddress = email_address
+		user.DateOfBirth = date_of_birth
 	}
 
 	return userDetails, err

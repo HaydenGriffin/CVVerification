@@ -58,15 +58,6 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		verifierReview, err := u.QueryVerifierCVReview(applicantFabricID, cvID)
-		if err != nil {
-			data.MessageWarning = "Error! Unable to find CV review information in ledger."
-			renderTemplate(w, r, "viewallcv.html", data)
-			return
-		}
-
-		data.CVInfo.VerifierReview = verifierReview
-
 		cv, err := u.QueryCV(cvID)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to find CV from hash."

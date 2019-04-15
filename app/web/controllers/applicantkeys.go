@@ -220,7 +220,7 @@ func (c *Controller) GenerateNewKeysHandler() func(http.ResponseWriter, *http.Re
 		// Initialise private key display, in case something goes wrong during generation
 		data.PrivateKey = sessions.GetPrivateKey(session)
 
-		privateKey, publicKey := crypto.GenerateKeyPair(1024)
+		privateKey, publicKey := crypto.GenerateKeyPair(2048)
 		privateKeyBytes := crypto.PrivateKeyToBytes(privateKey)
 		privateKeyString := string(privateKeyBytes)
 		publicKeyBytes := crypto.PublicKeyToBytes(publicKey)

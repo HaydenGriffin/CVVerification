@@ -99,13 +99,3 @@ func (u *User) QueryCVReviews(ID, cvID string) ([]model.CVReview, error) {
 	}
 	return ratings, nil
 }
-
-// QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
-func (u *User) QueryVerifierCVReview(ID, cvID string) (model.CVReview, error) {
-	var rating model.CVReview
-	err := u.query([][]byte{[]byte("verifiercvreview"), []byte(ID), []byte(cvID)}, &rating)
-	if err != nil {
-		return model.CVReview{}, err
-	}
-	return rating, nil
-}

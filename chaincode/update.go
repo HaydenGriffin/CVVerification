@@ -377,8 +377,7 @@ func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, a
 
 	applicantID := args[0]
 	cvID := args[1]
-	ratingString := args[2]
-	var verifierRating model.CVReview
+	encryptedReviewString := args[2]
 	var applicant model.Applicant
 
 	if applicantID == "" {
@@ -389,16 +388,11 @@ func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, a
 		return shim.Error("The CV ID is empty.")
 	}
 
-	if len(ratingString) == 0 {
+	if len(encryptedReviewString) == 0 {
 		return shim.Error("There is no rating to be saved.")
 	}
 
-	err = convertByteToObject([]byte(ratingString), &verifierRating)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("unable to convert rating byte to object: %v", err))
-	}
-
-	verifierRating.VerifierID, err = cid.GetID(stub)
+	verifierID, err := cid.GetID(stub)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("unable to get invoking chaincode identity: %v", err))
 	}
@@ -408,31 +402,27 @@ func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, a
 		return shim.Error(fmt.Sprintf("unable to retrieve applicant profile in the ledger: %v", err))
 	}
 
-	var reviews = make(map[string][]model.CVReview)
-	existingRatingFound := false
+	fmt.Println("applicant profile")
+	fmt.Println(applicant)
+
+	var reviews = make(map[string]map[string][]byte)
 
 	if applicant.Profile.Reviews != nil {
 		reviews = applicant.Profile.Reviews
-
-		for i, rating := range applicant.Profile.Reviews[cvID] {
-			// If the verifier has already rated the CV
-			if rating.VerifierID == verifierRating.VerifierID {
-				reviews[cvID][i] = verifierRating
-				existingRatingFound = true
-			}
-		}
 	}
 
-	// No existing rating from verifier - append new review
-	if existingRatingFound == false {
-		reviews[cvID] = append(reviews[cvID], verifierRating)
+	// CV currently hasn't been reviewed
+	// Initialise the map
+	if reviews[cvID] == nil {
+		reviews[cvID] = make(map[string][]byte)
 	}
 
-	applicant.Profile.Reviews = make(map[string][]model.CVReview)
+	reviews[cvID][verifierID] = []byte(encryptedReviewString)
 
-	for cvID, cvReview := range reviews {
-		applicant.Profile.Reviews[cvID] = cvReview
-	}
+	applicant.Profile.Reviews = reviews
+
+	fmt.Println("full reviews")
+	fmt.Println(reviews)
 
 	// Put the updated profile back to the ledger
 	err = updateInLedger(stub, model.ObjectTypeApplicant, applicantID, applicant)

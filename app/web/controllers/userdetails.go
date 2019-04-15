@@ -68,7 +68,7 @@ func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Re
 		applicant, applicantErr := u.QueryApplicant()
 		// Generate a new public and private key for the user
 		if applicantErr == nil {
-			privateKey, publicKey := crypto.GenerateKeyPair(1024)
+			privateKey, publicKey := crypto.GenerateKeyPair(2048)
 			privateKeyBytes := crypto.PrivateKeyToBytes(privateKey)
 			privateKeyString := string(privateKeyBytes)
 			publicKeyBytes := crypto.PublicKeyToBytes(publicKey)

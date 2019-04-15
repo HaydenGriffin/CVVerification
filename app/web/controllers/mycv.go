@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/cvverification/app/crypto"
 	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/blockchain"
@@ -96,7 +98,30 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		data.CVInfo.Reviews = applicant.Profile.Reviews[cvIDToDisplay]
+		fmt.Println("reviews")
+		fmt.Println(applicant.Profile.Reviews)
+
+		var reviews []model.CVReview
+
+		if applicant.Profile.Reviews[cvIDToDisplay] != nil {
+			privateKeyString := sessions.GetPrivateKey(session)
+			privateKey := crypto.BytesToPrivateKey([]byte(privateKeyString))
+			encryptedCVReviews := applicant.Profile.Reviews[cvIDToDisplay]
+
+			var review model.CVReview
+
+			for _, encryptedReview := range encryptedCVReviews {
+				decryptedReviewByte := crypto.DecryptWithPrivateKey(encryptedReview, privateKey)
+				err = json.Unmarshal(decryptedReviewByte, &review)
+				if err != nil {
+					fmt.Println(err)
+				}
+				fmt.Println(review)
+				reviews = append(reviews, review)
+			}
+		}
+
+		data.CVInfo.Reviews = reviews
 		data.CVInfo.CVHistory = allCVHistory
 		data.CVInfo.CurrentCVID = cvIDToDisplay
 		data.CurrentPage = "mycv"
@@ -165,15 +190,29 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 			return
 		}
 
-		for index, cvHistory := range allCVHistory {
-			if cvHistory.CVID == cvIDToUpdate {
-				allCVHistory[index].CV = updatedCV
+		var reviews []model.CVReview
+
+		if applicant.Profile.Reviews[cvIDToUpdate] != nil {
+			privateKeyString := sessions.GetPrivateKey(session)
+			privateKey := crypto.BytesToPrivateKey([]byte(privateKeyString))
+			encryptedCVReviews := applicant.Profile.Reviews[cvIDToUpdate]
+
+			var review model.CVReview
+
+			for _, encryptedReview := range encryptedCVReviews {
+				decryptedReviewByte := crypto.DecryptWithPrivateKey(encryptedReview, privateKey)
+				err = json.Unmarshal(decryptedReviewByte, &review)
+				if err != nil {
+					fmt.Println(err)
+				}
+				fmt.Println(review)
+				reviews = append(reviews, review)
 			}
 		}
 
 		data.CVInfo.CV = updatedCV
 		data.CVInfo.CurrentCVID = cvIDToUpdate
-		data.CVInfo.Reviews = applicant.Profile.Reviews[cvIDToUpdate]
+		data.CVInfo.Reviews = reviews
 		data.CVInfo.CVHistory = allCVHistory
 		data.MessageSuccess = "Success! Your CV can now be reviewed."
 		data.CurrentPage = "mycv"
@@ -248,9 +287,30 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 			}
 		}
 
+		var reviews []model.CVReview
+
+		if applicant.Profile.Reviews[cvIDToUpdate] != nil {
+			privateKeyString := sessions.GetPrivateKey(session)
+			privateKey := crypto.BytesToPrivateKey([]byte(privateKeyString))
+			encryptedCVReviews := applicant.Profile.Reviews[cvIDToUpdate]
+
+			var review model.CVReview
+
+			for _, encryptedReview := range encryptedCVReviews {
+				decryptedReviewByte := crypto.DecryptWithPrivateKey(encryptedReview, privateKey)
+				err = json.Unmarshal(decryptedReviewByte, &review)
+				if err != nil {
+					fmt.Println(err)
+				}
+				fmt.Println(review)
+				reviews = append(reviews, review)
+			}
+		}
+
+
 		data.CVInfo.CV = updatedCV
 		data.CVInfo.CurrentCVID = cvIDToUpdate
-		data.CVInfo.Reviews = applicant.Profile.Reviews[cvIDToUpdate]
+		data.CVInfo.Reviews = reviews
 		data.CVInfo.CVHistory = allCVHistory
 		data.MessageSuccess = "Success! Your CV has been withdrawn from review."
 		data.CurrentPage = "mycv"

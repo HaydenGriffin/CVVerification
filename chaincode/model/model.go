@@ -37,7 +37,7 @@ type Admin struct {
 
 type ApplicantProfile struct {
 	CVHistory []string
-	Reviews   map[string][]CVReview
+	Reviews   map[string]map[string][]byte
 	PublicKey string
 }
 

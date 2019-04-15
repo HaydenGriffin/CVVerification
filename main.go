@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	installChaincode = false;
-	registerUsers    = false;
+	installChaincode = true;
+	registerUsers    = true;
 )
 
 func main() {

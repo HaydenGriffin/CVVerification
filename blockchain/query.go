@@ -60,6 +60,16 @@ func (u *User) QueryApplicant() (*model.Applicant, error) {
 	return applicant, nil
 }
 
+// QueryApplicant query the blockchain chaincode to retrieve information about the current applicant user connected
+func (u *User) QueryApplicantKey(applicantID string) (string, error) {
+	var applicantProfile model.ApplicantProfile
+	err := u.query([][]byte{[]byte("applicantkey"), []byte(applicantID)}, &applicantProfile)
+	if err != nil {
+		return "", err
+	}
+	return applicantProfile.PublicKey, nil
+}
+
 // QueryVerifier query the blockchain chaincode to retrieve information about the current applicant user connected
 func (u *User) QueryVerifier() (*model.Verifier, error) {
 	var verifier *model.Verifier
@@ -98,14 +108,4 @@ func (u *User) QueryCVReviews(ID, cvID string) ([]model.CVReview, error) {
 		return nil, err
 	}
 	return ratings, nil
-}
-
-// QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
-func (u *User) QueryVerifierCVReview(ID, cvID string) (model.CVReview, error) {
-	var rating model.CVReview
-	err := u.query([][]byte{[]byte("verifiercvreview"), []byte(ID), []byte(cvID)}, &rating)
-	if err != nil {
-		return model.CVReview{}, err
-	}
-	return rating, nil
 }

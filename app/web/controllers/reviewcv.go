@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cvverification/app/crypto"
 	"github.com/cvverification/app/database"
 	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/app/sessions"
@@ -17,16 +18,18 @@ import (
 func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		if c.UserSession.Session == nil {
+			c.UserSession.Session = c.UserSession.GetSession(r,w,u)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "viewallcv",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = sessions.GetAccountType(c.UserSession.Session)
+		if sessions.HasSavedUserDetails(c.UserSession.Session) {
+			data.UserDetails = sessions.GetUserDetails(c.UserSession.Session)
 		} else {
 			data.CurrentPage = "userdetails"
 			data.MessageWarning = "Error! You must register your user details before using the system."
@@ -58,15 +61,6 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		verifierReview, err := u.QueryVerifierCVReview(applicantFabricID, cvID)
-		if err != nil {
-			data.MessageWarning = "Error! Unable to find CV review information in ledger."
-			renderTemplate(w, r, "viewallcv.html", data)
-			return
-		}
-
-		data.CVInfo.VerifierReview = verifierReview
-
 		cv, err := u.QueryCV(cvID)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to find CV from hash."
@@ -75,9 +69,10 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 		}
 
 		data.CVInfo.CV = cv
-		session.Values["ApplicantFabricID"] = applicantFabricID
-		session.Values["CVID"] = cvID
-		err = session.Save(r, w)
+		fmt.Println(c.UserSession.Session.Values["PrivateKey"])
+		c.UserSession.Session.Values["ApplicantFabricID"] = applicantFabricID
+		c.UserSession.Session.Values["CVID"] = cvID
+		err = c.UserSession.Session.Save(r, w)
 		if err != nil {
 			fmt.Println(err)
 			data.MessageWarning = "Error! Unable to save session values."
@@ -91,16 +86,18 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		if c.UserSession.Session == nil {
+			c.UserSession.Session = c.UserSession.GetSession(r,w,u)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "index",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = sessions.GetAccountType(c.UserSession.Session)
+		if sessions.HasSavedUserDetails(c.UserSession.Session) {
+			data.UserDetails = sessions.GetUserDetails(c.UserSession.Session)
 		} else {
 			data.CurrentPage = "userdetails"
 			data.MessageWarning = "Error! You must register your user details before using the system."
@@ -130,8 +127,8 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 			Rating:  ratingInt,
 		}
 
-		applicantID := sessions.GetApplicantFabricID(session)
-		cvID := sessions.GetCVID(session)
+		applicantID := sessions.GetApplicantFabricID(c.UserSession.Session)
+		cvID := sessions.GetCVID(c.UserSession.Session)
 
 		if applicantID == "" || cvID == "" {
 			data.MessageWarning = "Error! Unable to retrieve CV information"
@@ -146,7 +143,16 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 			return
 		}
 
-		err = u.UpdateSaveRating(applicantID, cvID, reviewByte)
+		applicantPublicKeyString, err := u.QueryApplicantKey(applicantID)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		applicantPublicKey := crypto.BytesToPublicKey([]byte(applicantPublicKeyString))
+
+		encryptedReviewByte := crypto.EncryptWithPublicKey(reviewByte, applicantPublicKey)
+
+		err = u.UpdateSaveRating(applicantID, cvID, encryptedReviewByte)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to save rating in ledger."
 			renderTemplate(w, r, "index.html", data)

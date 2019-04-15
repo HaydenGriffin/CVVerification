@@ -1,31 +1,97 @@
 package sessions
 
 import (
+	"encoding/gob"
+	"fmt"
+	"github.com/cvverification/app/database"
 	templateModel "github.com/cvverification/app/model"
+	"github.com/cvverification/blockchain"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"net/http"
 )
 
-var authKey = securecookie.GenerateRandomKey(64)
-var encryptionKey = securecookie.GenerateRandomKey(32)
 
-// store will hold all session data
-var store = sessions.NewCookieStore(authKey, encryptionKey)
+type SessionSetup struct {
+	Store *sessions.CookieStore
+	Session *sessions.Session
+}
 
-func GetSession(r *http.Request) *sessions.Session {
-	session, _ := store.Get(r, "userSession")
+func (s *SessionSetup) InitSession() {
+
+	var authKey = securecookie.GenerateRandomKey(64)
+	var encryptionKey = securecookie.GenerateRandomKey(32)
+
+	s.Store = sessions.NewCookieStore(authKey, encryptionKey)
+
+	s.Store.Options = &sessions.Options{
+		MaxAge:   60 * 30,
+		HttpOnly: true,
+	}
+}
+
+func (s *SessionSetup) GetSession(r *http.Request, w http.ResponseWriter, u *blockchain.User) *sessions.Session {
+	// Calling store.Get will return an empty session if the session does not already exist
+	session, err := s.Store.Get(r, "userSession")
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	if session.IsNew {
 		session.Options.Domain = "localhost"
 		session.Options.Path = "/"
-		// Session max age is in seconds. Max Age is set to 15 mins
-		session.Options.MaxAge = 60*30
-		session.Options.HttpOnly = false
-		session.Options.Secure = false
+	}
+
+	if session.Values["ActiveSession"] != true {
+		fmt.Println("active session false")
+		// Check that there is corresponding user details stored in DB
+		userDetails, err := database.GetUserDetailsFromUsername(u.Username)
+		if err == nil {
+			session.Values["SavedUserDetails"] = true
+		} else {
+			session.Values["SavedUserDetails"] = false
+		}
+
+		var accountType string
+
+		applicant, err := u.QueryApplicant()
+		if err == nil {
+			if len(applicant.Profile.CVHistory) > 0 {
+				userDetails.UploadedCV = true
+			}
+			accountType = "applicant"
+		}
+
+		_, err = u.QueryVerifier()
+		if err == nil {
+			accountType = "verifier"
+		}
+
+		_, err = u.QueryAdmin()
+		if err == nil {
+			accountType = "admin"
+		}
+
+		session.Values["AccountType"] = accountType
+		gob.Register(userDetails)
+		session.Values["UserDetails"] = userDetails
+		session.Values["ActiveSession"] = true
+	}
+
+	fmt.Println(session.Values)
+
+	session.Options.MaxAge = 60 * 30
+
+	err = session.Save(r, w)
+	if err != nil {
+		fmt.Println("session save error (from controller")
+		fmt.Println(err.Error())
 	}
 
 	return session
 }
+
+
 
 func HasSavedUserDetails(s *sessions.Session) bool {
 	saved := s.Values["SavedUserDetails"]
@@ -65,6 +131,7 @@ func GetAccountType(s *sessions.Session) string {
 	if !ok {
 		return ""
 	}
+
 	return accountType
 }
 
@@ -87,4 +154,3 @@ func GetApplicantFabricID(s *sessions.Session) string {
 	}
 	return ID
 }
-

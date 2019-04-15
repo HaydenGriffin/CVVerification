@@ -17,16 +17,18 @@ import (
 func (c *Controller) ApplicantKeyView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		if c.UserSession.Session == nil {
+			c.UserSession.Session = c.UserSession.GetSession(r,w,u)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "userdetails",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = sessions.GetAccountType(c.UserSession.Session)
+		if sessions.HasSavedUserDetails(c.UserSession.Session) {
+			data.UserDetails = sessions.GetUserDetails(c.UserSession.Session)
 		} else {
 			data.MessageWarning = "Error! You must register your user details before using the system."
 			data.UserDetails.Username = u.Username
@@ -43,7 +45,7 @@ func (c *Controller) ApplicantKeyView() func(http.ResponseWriter, *http.Request)
 			return
 		}
 
-		data.PrivateKey = sessions.GetPrivateKey(session)
+		data.PrivateKey = sessions.GetPrivateKey(c.UserSession.Session)
 
 		renderTemplate(w, r, "displaykey.html", data)
 	})
@@ -52,16 +54,18 @@ func (c *Controller) ApplicantKeyView() func(http.ResponseWriter, *http.Request)
 func (c *Controller) UploadPrivateKeyHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		if c.UserSession.Session == nil {
+			c.UserSession.Session = c.UserSession.GetSession(r,w,u)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "userdetails",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = sessions.GetAccountType(c.UserSession.Session)
+		if sessions.HasSavedUserDetails(c.UserSession.Session) {
+			data.UserDetails = sessions.GetUserDetails(c.UserSession.Session)
 		} else {
 			data.MessageWarning = "Error! You must register your user details before using the system."
 			data.UserDetails.Username = u.Username
@@ -79,7 +83,7 @@ func (c *Controller) UploadPrivateKeyHandler() func(http.ResponseWriter, *http.R
 		}
 
 		// Initialise private key, in case something goes wrong during upload
-		data.PrivateKey = sessions.GetPrivateKey(session)
+		data.PrivateKey = sessions.GetPrivateKey(c.UserSession.Session)
 
 		const MAX_MEMORY = 1 * 1024 * 1024
 		privateKeyBuffer := bytes.NewBuffer(nil)
@@ -109,13 +113,13 @@ func (c *Controller) UploadPrivateKeyHandler() func(http.ResponseWriter, *http.R
 		switch fileType {
 		case "text/plain; charset=utf-8":
 			data.PrivateKey = string(privateKeyBuffer.Bytes())
-			session.Values["PrivateKey"] = string(privateKeyBuffer.Bytes())
+			c.UserSession.Session.Values["PrivateKey"] = string(privateKeyBuffer.Bytes())
 			data.MessageSuccess = "Success! Private key has been updated."
 		default:
 			data.MessageWarning = "Error! Unsupported filetype uploaded."
 		}
 
-		err = session.Save(r, w)
+		err = c.UserSession.Session.Save(r, w)
 		if err != nil {
 			fmt.Println(err)
 			data.MessageWarning = "Error! Unable to save session values."
@@ -130,16 +134,18 @@ func (c *Controller) UploadPrivateKeyHandler() func(http.ResponseWriter, *http.R
 func (c *Controller) DownloadPrivateKeyHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		if c.UserSession.Session == nil {
+			c.UserSession.Session = c.UserSession.GetSession(r,w,u)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "index",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = sessions.GetAccountType(c.UserSession.Session)
+		if sessions.HasSavedUserDetails(c.UserSession.Session) {
+			data.UserDetails = sessions.GetUserDetails(c.UserSession.Session)
 		} else {
 			data.MessageWarning = "Error! You must register your user details before using the system."
 			data.UserDetails.Username = u.Username
@@ -191,16 +197,18 @@ func (c *Controller) DownloadPrivateKeyHandler() func(http.ResponseWriter, *http
 func (c *Controller) GenerateNewKeysHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		if c.UserSession.Session == nil {
+			c.UserSession.Session = c.UserSession.GetSession(r,w,u)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "userdetails",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = sessions.GetAccountType(c.UserSession.Session)
+		if sessions.HasSavedUserDetails(c.UserSession.Session) {
+			data.UserDetails = sessions.GetUserDetails(c.UserSession.Session)
 		} else {
 			data.MessageWarning = "Error! You must register your user details before using the system."
 			data.UserDetails.Username = u.Username
@@ -218,9 +226,9 @@ func (c *Controller) GenerateNewKeysHandler() func(http.ResponseWriter, *http.Re
 		}
 
 		// Initialise private key display, in case something goes wrong during generation
-		data.PrivateKey = sessions.GetPrivateKey(session)
+		data.PrivateKey = sessions.GetPrivateKey(c.UserSession.Session)
 
-		privateKey, publicKey := crypto.GenerateKeyPair(1024)
+		privateKey, publicKey := crypto.GenerateKeyPair(2048)
 		privateKeyBytes := crypto.PrivateKeyToBytes(privateKey)
 		privateKeyString := string(privateKeyBytes)
 		publicKeyBytes := crypto.PublicKeyToBytes(publicKey)
@@ -233,8 +241,8 @@ func (c *Controller) GenerateNewKeysHandler() func(http.ResponseWriter, *http.Re
 			return
 		}
 
-		session.Values["PrivateKey"] = privateKeyString
-		err = session.Save(r, w)
+		c.UserSession.Session.Values["PrivateKey"] = privateKeyString
+		err = c.UserSession.Session.Save(r, w)
 		if err != nil {
 			fmt.Println(err)
 			data.MessageWarning = "Error! Unable to save session values."

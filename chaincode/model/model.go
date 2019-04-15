@@ -37,7 +37,7 @@ type Admin struct {
 
 type ApplicantProfile struct {
 	CVHistory []string
-	Reviews   map[string][]CVReview
+	Reviews   map[string]map[string][]byte
 	PublicKey string
 }
 
@@ -61,7 +61,6 @@ type CVObject struct {
 }
 
 type CVReview struct {
-	VerifierID string
 	Name       string
 	Comment    string
 	Rating     int

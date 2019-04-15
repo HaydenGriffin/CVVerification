@@ -10,16 +10,18 @@ import (
 func (c *Controller) IndexHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
+		if c.UserSession.Session == nil {
+			c.UserSession.Session = c.UserSession.GetSession(r,w,u)
+		}
+
 		data := templateModel.Data{
 			CurrentPage:  "index",
 		}
 
-		session := sessions.GetSession(r)
-
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = sessions.GetAccountType(c.UserSession.Session)
+		if sessions.HasSavedUserDetails(c.UserSession.Session) {
+			data.UserDetails = sessions.GetUserDetails(c.UserSession.Session)
 			renderTemplate(w, r, "index.html", data)
 		} else {
 			data.CurrentPage = "userdetails"

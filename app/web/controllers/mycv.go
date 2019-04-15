@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/cvverification/app/crypto"
 	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/blockchain"
@@ -14,16 +16,18 @@ import (
 func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		if c.UserSession.Session == nil {
+			c.UserSession.Session = c.UserSession.GetSession(r,w,u)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "index",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = sessions.GetAccountType(c.UserSession.Session)
+		if sessions.HasSavedUserDetails(c.UserSession.Session) {
+			data.UserDetails = sessions.GetUserDetails(c.UserSession.Session)
 		} else {
 			data.CurrentPage = "userdetails"
 			data.MessageWarning = "Error! You must register your user details before using the system."
@@ -87,8 +91,8 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 			cvIDToDisplay = allCVHistory[len(allCVHistory)-1].CVID
 		}
 
-		session.Values["CVID"] = cvIDToDisplay
-		err = session.Save(r, w)
+		c.UserSession.Session.Values["CVID"] = cvIDToDisplay
+		err = c.UserSession.Session.Save(r, w)
 		if err != nil {
 			fmt.Println(err)
 			data.MessageWarning = "Error! Unable to save session values."
@@ -96,7 +100,31 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		data.CVInfo.Reviews = applicant.Profile.Reviews[cvIDToDisplay]
+
+		fmt.Println("reviews")
+		fmt.Println(applicant.Profile.Reviews)
+
+		var reviews []model.CVReview
+
+		if applicant.Profile.Reviews[cvIDToDisplay] != nil {
+			privateKeyString := sessions.GetPrivateKey(c.UserSession.Session)
+			privateKey := crypto.BytesToPrivateKey([]byte(privateKeyString))
+			encryptedCVReviews := applicant.Profile.Reviews[cvIDToDisplay]
+
+			var review model.CVReview
+
+			for _, encryptedReview := range encryptedCVReviews {
+				decryptedReviewByte := crypto.DecryptWithPrivateKey(encryptedReview, privateKey)
+				err = json.Unmarshal(decryptedReviewByte, &review)
+				if err != nil {
+					fmt.Println(err)
+				}
+				fmt.Println(review)
+				reviews = append(reviews, review)
+			}
+		}
+
+		data.CVInfo.Reviews = reviews
 		data.CVInfo.CVHistory = allCVHistory
 		data.CVInfo.CurrentCVID = cvIDToDisplay
 		data.CurrentPage = "mycv"
@@ -107,16 +135,18 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		if c.UserSession.Session == nil {
+			c.UserSession.Session = c.UserSession.GetSession(r,w,u)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "index",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = sessions.GetAccountType(c.UserSession.Session)
+		if sessions.HasSavedUserDetails(c.UserSession.Session) {
+			data.UserDetails = sessions.GetUserDetails(c.UserSession.Session)
 		} else {
 			data.CurrentPage = "userdetails"
 			data.MessageWarning = "Error! You must register your user details before using the system."
@@ -133,7 +163,7 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 			return
 		}
 
-		cvIDToUpdate := sessions.GetCVID(session)
+		cvIDToUpdate := sessions.GetCVID(c.UserSession.Session)
 		var allCVHistory []templateModel.CVHistoryInfo
 		var cvHistory templateModel.CVHistoryInfo
 
@@ -171,9 +201,29 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 			}
 		}
 
+		var reviews []model.CVReview
+
+		if applicant.Profile.Reviews[cvIDToUpdate] != nil {
+			privateKeyString := sessions.GetPrivateKey(c.UserSession.Session)
+			privateKey := crypto.BytesToPrivateKey([]byte(privateKeyString))
+			encryptedCVReviews := applicant.Profile.Reviews[cvIDToUpdate]
+
+			var review model.CVReview
+
+			for _, encryptedReview := range encryptedCVReviews {
+				decryptedReviewByte := crypto.DecryptWithPrivateKey(encryptedReview, privateKey)
+				err = json.Unmarshal(decryptedReviewByte, &review)
+				if err != nil {
+					fmt.Println(err)
+				}
+				fmt.Println(review)
+				reviews = append(reviews, review)
+			}
+		}
+
 		data.CVInfo.CV = updatedCV
 		data.CVInfo.CurrentCVID = cvIDToUpdate
-		data.CVInfo.Reviews = applicant.Profile.Reviews[cvIDToUpdate]
+		data.CVInfo.Reviews = reviews
 		data.CVInfo.CVHistory = allCVHistory
 		data.MessageSuccess = "Success! Your CV can now be reviewed."
 		data.CurrentPage = "mycv"
@@ -184,16 +234,18 @@ func (c *Controller) SubmitForReviewHandler() func(http.ResponseWriter, *http.Re
 func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		if c.UserSession.Session == nil {
+			c.UserSession.Session = c.UserSession.GetSession(r,w,u)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "index",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = sessions.GetAccountType(c.UserSession.Session)
+		if sessions.HasSavedUserDetails(c.UserSession.Session) {
+			data.UserDetails = sessions.GetUserDetails(c.UserSession.Session)
 		} else {
 			data.CurrentPage = "userdetails"
 			data.MessageWarning = "Error! You must register your user details before using the system."
@@ -210,7 +262,7 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 			return
 		}
 
-		cvIDToUpdate := sessions.GetCVID(session)
+		cvIDToUpdate := sessions.GetCVID(c.UserSession.Session)
 		var allCVHistory []templateModel.CVHistoryInfo
 		var cvHistory templateModel.CVHistoryInfo
 
@@ -248,9 +300,29 @@ func (c *Controller) WithdrawFromReviewHandler() func(http.ResponseWriter, *http
 			}
 		}
 
+		var reviews []model.CVReview
+
+		if applicant.Profile.Reviews[cvIDToUpdate] != nil {
+			privateKeyString := sessions.GetPrivateKey(c.UserSession.Session)
+			privateKey := crypto.BytesToPrivateKey([]byte(privateKeyString))
+			encryptedCVReviews := applicant.Profile.Reviews[cvIDToUpdate]
+
+			var review model.CVReview
+
+			for _, encryptedReview := range encryptedCVReviews {
+				decryptedReviewByte := crypto.DecryptWithPrivateKey(encryptedReview, privateKey)
+				err = json.Unmarshal(decryptedReviewByte, &review)
+				if err != nil {
+					fmt.Println(err)
+				}
+				fmt.Println(review)
+				reviews = append(reviews, review)
+			}
+		}
+
 		data.CVInfo.CV = updatedCV
 		data.CVInfo.CurrentCVID = cvIDToUpdate
-		data.CVInfo.Reviews = applicant.Profile.Reviews[cvIDToUpdate]
+		data.CVInfo.Reviews = reviews
 		data.CVInfo.CVHistory = allCVHistory
 		data.MessageSuccess = "Success! Your CV has been withdrawn from review."
 		data.CurrentPage = "mycv"

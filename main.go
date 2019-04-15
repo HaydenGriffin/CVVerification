@@ -7,6 +7,7 @@ package main
 import (
 	"fmt"
 	"github.com/cvverification/app/database"
+	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/app/web"
 	"github.com/cvverification/app/web/controllers"
 	"github.com/cvverification/blockchain"
@@ -113,6 +114,8 @@ func main() {
 	}
 
 	sid, err := shortid.New(1, shortid.DefaultABC, 2342)
+
+	sessions.InitSession()
 
 	// Launch the web application listening
 	app := &controllers.Controller{

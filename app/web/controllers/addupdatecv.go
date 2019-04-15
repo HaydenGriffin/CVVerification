@@ -16,17 +16,21 @@ import (
 func (c *Controller) AddCVView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+
+		if c.UserSession.Session == nil {
+			c.UserSession.Session = c.UserSession.GetSession(r,w,u)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "addcv",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = sessions.GetAccountType(c.UserSession.Session)
+		if sessions.HasSavedUserDetails(c.UserSession.Session) {
+			data.UserDetails = sessions.GetUserDetails(c.UserSession.Session)
 		} else {
+			fmt.Println("not saved session")
 			data.CurrentPage = "userdetails"
 			data.MessageWarning = "Error! You must register your user details before using the system."
 			data.UserDetails.Username = u.Username
@@ -49,16 +53,18 @@ func (c *Controller) AddCVView() func(http.ResponseWriter, *http.Request) {
 func (c *Controller) UpdateCVView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		if c.UserSession.Session == nil {
+			c.UserSession.Session = c.UserSession.GetSession(r,w,u)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "index",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = sessions.GetAccountType(c.UserSession.Session)
+		if sessions.HasSavedUserDetails(c.UserSession.Session) {
+			data.UserDetails = sessions.GetUserDetails(c.UserSession.Session)
 		} else {
 			data.CurrentPage = "userdetails"
 			data.MessageWarning = "Error! You must register your user details before using the system."
@@ -83,7 +89,7 @@ func (c *Controller) UpdateCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		cvIDToDisplay := sessions.GetCVID(session)
+		cvIDToDisplay := sessions.GetCVID(c.UserSession.Session)
 
 		// User is able to update a selected CV if specified. Otherwise update latest
 		if cvIDToDisplay == "" && len(applicant.Profile.CVHistory) == 0 {
@@ -109,16 +115,18 @@ func (c *Controller) UpdateCVView() func(http.ResponseWriter, *http.Request) {
 func (c *Controller) AddUpdateCVHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		if c.UserSession.Session == nil {
+			c.UserSession.Session = c.UserSession.GetSession(r,w,u)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "addcv",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = sessions.GetAccountType(c.UserSession.Session)
+		if sessions.HasSavedUserDetails(c.UserSession.Session) {
+			data.UserDetails = sessions.GetUserDetails(c.UserSession.Session)
 		} else {
 			data.CurrentPage = "userdetails"
 			data.MessageWarning = "Error! You must register your user details before using the system."
@@ -220,8 +228,8 @@ func (c *Controller) AddUpdateCVHandler() func(http.ResponseWriter, *http.Reques
 		} else {
 			data.UserDetails.UploadedCV = true
 			// Set session values
-			session.Values["UserUploadedCV"] = true
-			err = session.Save(r, w)
+			c.UserSession.Session.Values["UserUploadedCV"] = true
+			err = c.UserSession.Session.Save(r, w)
 			if err != nil {
 				fmt.Println(err)
 				data.MessageWarning = "Error! Unable to save session values."

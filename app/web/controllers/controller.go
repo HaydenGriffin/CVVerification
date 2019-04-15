@@ -2,9 +2,7 @@ package controllers
 
 import (
 	"encoding/base64"
-	"encoding/gob"
 	"fmt"
-	"github.com/cvverification/app/database"
 	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/blockchain"
@@ -19,6 +17,7 @@ import (
 type Controller struct {
 	Fabric  *blockchain.FabricSetup
 	ShortID *shortid.Shortid
+	UserSession *sessions.SessionSetup
 }
 
 // Middleware that runs every time a request to access a page is received
@@ -53,43 +52,6 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 			return
 		}
 
-		session := sessions.GetSession(r)
-
-		// Check that there is corresponding user details stored in DB
-		userDetails, err := database.GetUserDetailsFromUsername(pair[0])
-		if err == nil {
-			session.Values["SavedUserDetails"] = true
-		} else {
-			session.Values["SavedUserDetails"] = false
-		}
-
-		var accountType string
-
-		applicant, err := u.QueryApplicant()
-		if err == nil {
-			if len(applicant.Profile.CVHistory) > 0 {
-				userDetails.UploadedCV = true
-			}
-			accountType = "applicant"
-		}
-
-		_, err = u.QueryVerifier()
-		if err == nil {
-			accountType = "verifier"
-		}
-
-		_, err = u.QueryAdmin()
-		if err == nil {
-			accountType = "admin"
-		}
-
-		session.Values["AccountType"] = accountType
-		gob.Register(userDetails)
-		session.Values["UserDetails"] = userDetails
-		err = session.Save(r, w)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
 		pass(w, r, u)
 	}
 }
@@ -97,7 +59,6 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 // Logout
 func (c *Controller) LogoutHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
-		session := sessions.GetSession(r)
 
 		data := templateModel.Data{
 			CurrentPage: "index",
@@ -106,15 +67,17 @@ func (c *Controller) LogoutHandler() func(http.ResponseWriter, *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 
 		// Remove all session values currently set
-		session.Options.MaxAge = -1
 
-		err := session.Save(r, w)
+		c.UserSession.Session.Options.MaxAge = -1
+		fmt.Println(c.UserSession.Session.Values)
+		err := c.UserSession.Session.Save(r, w)
 		if err != nil {
 			fmt.Println(err)
 			data.MessageWarning = "Error! Unable to save session values."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
+
 		data.MessageSuccess = "Success! You have been logged out."
 		renderTemplate(w, r, "index.html", data)
 	})

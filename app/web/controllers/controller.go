@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"github.com/cvverification/app/database"
 	templateModel "github.com/cvverification/app/model"
-	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/blockchain"
+	"github.com/gorilla/securecookie"
+	"github.com/gorilla/sessions"
 	"github.com/teris-io/shortid"
 	"html/template"
 	"net/http"
@@ -20,6 +21,9 @@ type Controller struct {
 	Fabric  *blockchain.FabricSetup
 	ShortID *shortid.Shortid
 }
+
+// store will hold all session data
+var store *sessions.FilesystemStore
 
 // Middleware that runs every time a request to access a page is received
 // basicAuth is used to provide log in credentials to authenticate and retrieve blockchain user
@@ -53,43 +57,22 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 			return
 		}
 
-		session := sessions.GetSession(r)
-
-		// Check that there is corresponding user details stored in DB
-		userDetails, err := database.GetUserDetailsFromUsername(pair[0])
-		if err == nil {
-			session.Values["SavedUserDetails"] = true
-		} else {
-			session.Values["SavedUserDetails"] = false
+		session, err := store.Get(r, "userSession")
+		if err != nil {
+			fmt.Println(err)
 		}
 
-		var accountType string
-
-		applicant, err := u.QueryApplicant()
-		if err == nil {
-			if len(applicant.Profile.CVHistory) > 0 {
-				userDetails.UploadedCV = true
-			}
-			accountType = "applicant"
+		if session.IsNew {
+			setSessionValues(session, u)
 		}
+		session.Options.MaxAge = 60 * 30
 
-		_, err = u.QueryVerifier()
-		if err == nil {
-			accountType = "verifier"
-		}
-
-		_, err = u.QueryAdmin()
-		if err == nil {
-			accountType = "admin"
-		}
-
-		session.Values["AccountType"] = accountType
-		gob.Register(userDetails)
-		session.Values["UserDetails"] = userDetails
 		err = session.Save(r, w)
 		if err != nil {
-			fmt.Println(err.Error())
+			fmt.Println(err)
+			return
 		}
+
 		pass(w, r, u)
 	}
 }
@@ -97,7 +80,10 @@ func (c *Controller) basicAuth(pass func(http.ResponseWriter, *http.Request, *bl
 // Logout
 func (c *Controller) LogoutHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
-		session := sessions.GetSession(r)
+		session, err := store.Get(r, "userSession")
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "index",
@@ -108,13 +94,18 @@ func (c *Controller) LogoutHandler() func(http.ResponseWriter, *http.Request) {
 		// Remove all session values currently set
 		session.Options.MaxAge = -1
 
-		err := session.Save(r, w)
+		for key, _ := range session.Values {
+			delete(session.Values, key)
+		}
+
+		err = session.Save(r, w)
 		if err != nil {
 			fmt.Println(err)
 			data.MessageWarning = "Error! Unable to save session values."
 			renderTemplate(w, r, "index.html", data)
 			return
 		}
+
 		data.MessageSuccess = "Success! You have been logged out."
 		renderTemplate(w, r, "index.html", data)
 	})
@@ -152,4 +143,122 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, templateName string,
 		fmt.Println(err.Error())
 		http.Error(w, http.StatusText(500), 500)
 	}
+}
+
+func (c *Controller) InitSession() {
+	var authKey = securecookie.GenerateRandomKey(64)
+	var encryptionKey = securecookie.GenerateRandomKey(32)
+
+	store = sessions.NewFilesystemStore(
+		"",
+		authKey,
+		encryptionKey,
+	)
+
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   60 * 30,
+		HttpOnly: true,
+	}
+}
+
+func setSessionValues(session *sessions.Session, u *blockchain.User) {
+
+	// Check that there is corresponding user details stored in DB
+	userDetails, err := database.GetUserDetailsFromUsername(u.Username)
+	if err == nil {
+		session.Values["SavedUserDetails"] = true
+	} else {
+		session.Values["SavedUserDetails"] = false
+	}
+
+	var accountType string
+
+	applicant, err := u.QueryApplicant()
+	if err == nil {
+		if len(applicant.Profile.CVHistory) > 0 {
+			userDetails.UploadedCV = true
+		}
+		accountType = "applicant"
+	}
+
+	_, err = u.QueryVerifier()
+	if err == nil {
+		accountType = "verifier"
+	}
+
+	_, err = u.QueryAdmin()
+	if err == nil {
+		accountType = "admin"
+	}
+
+	_, err = u.QueryEmployer()
+	if err == nil {
+		accountType = "employer"
+	}
+
+	session.Values["AccountType"] = accountType
+	gob.Register(userDetails)
+	session.Values["UserDetails"] = userDetails
+}
+
+func hasSavedUserDetails(s *sessions.Session) bool {
+	saved := s.Values["SavedUserDetails"]
+
+	if saved != true {
+		return false
+	} else {
+		return true
+	}
+}
+
+func getUserDetails(s *sessions.Session) templateModel.UserDetails {
+	val := s.Values["UserDetails"]
+
+	userDetails, ok := val.(templateModel.UserDetails)
+	if !ok {
+		return templateModel.UserDetails{}
+	}
+
+	return userDetails
+}
+
+func getPrivateKey(s *sessions.Session) string {
+	val := s.Values["PrivateKey"]
+
+	privateKey, ok := val.(string)
+	if !ok {
+		return ""
+	}
+	return privateKey
+}
+
+func getAccountType(s *sessions.Session) string {
+	val := s.Values["AccountType"]
+
+	accountType, ok := val.(string)
+	if !ok {
+		return ""
+	}
+	return accountType
+}
+
+func getCVID(s *sessions.Session) string {
+	val := s.Values["CVID"]
+
+	cvID, ok := val.(string)
+	if !ok {
+		return ""
+	}
+	return cvID
+}
+
+func getApplicantFabricID(s *sessions.Session) string {
+	val := s.Values["ApplicantFabricID"]
+
+	ID, ok := val.(string)
+	if !ok {
+		return ""
+	}
+	return ID
 }

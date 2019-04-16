@@ -99,11 +99,11 @@ func EncryptWithPublicKey(msg []byte, pub *rsa.PublicKey) []byte {
 }
 
 // DecryptWithPrivateKey decrypts data with private key
-func DecryptWithPrivateKey(ciphertext []byte, priv *rsa.PrivateKey) []byte {
+func DecryptWithPrivateKey(ciphertext []byte, priv *rsa.PrivateKey) ([]byte, error) {
 	hash := sha512.New()
 	plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, priv, ciphertext, nil)
 	if err != nil {
-		fmt.Println(err)
+		return []byte(""), err
 	}
-	return plaintext
+	return plaintext, nil
 }

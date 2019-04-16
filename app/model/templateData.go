@@ -18,8 +18,13 @@ type CVDisplayInfo struct {
 	CurrentCVID string
 	CV *model.CVObject
 	CVHistory []CVHistoryInfo
-	Reviews []model.CVReview
+	ReviewInfo CVReviewInfo
 	CVList map[string]model.CVObject
+}
+
+type CVReviewInfo struct{
+	Status string
+	Reviews []model.CVReview
 }
 
 type CVHistoryInfo struct {

@@ -77,12 +77,13 @@ func canCVBeTransitioned(actorType, transitionTo string, cv model.CVObject) erro
 			return nil
 		}
 	case model.CVInReview:
-		if (cv.Status == model.CVInDraft && actorType == model.ActorApplicant) || (cv.Status == model.CVSubmitted) || (cv.Status == model.CVSubmittedRated) {
+		if (cv.Status == model.CVInDraft || cv.Status == model.CVSubmitted) && actorType == model.ActorApplicant {
 			return nil
 		}
-		/*	case model.CVFinalised:
-
-			case model.CVSubmitted, model.CVSubmittedRated:*/
+	case model.CVSubmitted:
+		if (cv.Status == model.CVInDraft || cv.Status == model.CVInReview) && actorType == model.ActorApplicant {
+			return nil
+		}
 	default:
 		return fmt.Errorf("unable to transition CV object from: %v to: %v", cv.Status, transitionTo)
 	}
@@ -106,6 +107,10 @@ func returnCV(actorType, filter string, cv model.CVObject) bool {
 	// Verifier users are able to view all CVs that are in review
 	case model.ActorVerifier:
 		if cv.Status == model.CVInReview {
+			return true
+		}
+	case model.ActorEmployer:
+		if cv.Status == model.CVSubmitted {
 			return true
 		}
 	default:

@@ -29,8 +29,10 @@ func (t *CVVerificationChaincode) update(stub shim.ChaincodeStubInterface, args 
 		return t.saveProfileKey(stub, args[1:])
 	} else if function == "saveprofilecv" {
 		return t.saveProfileCV(stub, args[1:])
-	} else if function == "saverating" {
-		return t.saveRating(stub, args[1:])
+	} else if function == "verifiersavereview" {
+		return t.verifierSaveReview(stub, args[1:])
+	} else if function == "publishreviews" {
+		return t.publishReviews(stub, args[1:])
 	}
 
 	// If the arguments given don’t match any function, we return an error
@@ -286,6 +288,10 @@ func (t *CVVerificationChaincode) saveProfileKey(stub shim.ChaincodeStubInterfac
 
 	applicant.Profile.PublicKey = string(publicKeyByte)
 
+	if len(applicant.Profile.Reviews) > 0 {
+		applicant.Profile.Reviews = *new(map[string]map[string][]byte)
+	}
+
 	err = updateInLedger(stub, model.ObjectTypeApplicant, applicantID, applicant)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("unable to create the CV in the ledger: %v", err))
@@ -320,7 +326,6 @@ func (t *CVVerificationChaincode) saveProfileCV(stub shim.ChaincodeStubInterface
 	}
 
 	cvID := args[0]
-
 	if cvID == "" {
 		return shim.Error("The CV ID is empty.")
 	}
@@ -362,8 +367,8 @@ func (t *CVVerificationChaincode) saveProfileCV(stub shim.ChaincodeStubInterface
 // Add CV Chaincode
 // args: CV object
 // CV ID is key, CVObject is the value
-func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	fmt.Println("Save rating")
+func (t *CVVerificationChaincode) verifierSaveReview(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	fmt.Println("Save review")
 
 	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorVerifier)
 	if err != nil {
@@ -402,9 +407,6 @@ func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, a
 		return shim.Error(fmt.Sprintf("unable to retrieve applicant profile in the ledger: %v", err))
 	}
 
-	fmt.Println("applicant profile")
-	fmt.Println(applicant)
-
 	var reviews = make(map[string]map[string][]byte)
 
 	if applicant.Profile.Reviews != nil {
@@ -418,11 +420,7 @@ func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, a
 	}
 
 	reviews[cvID][verifierID] = []byte(encryptedReviewString)
-
 	applicant.Profile.Reviews = reviews
-
-	fmt.Println("full reviews")
-	fmt.Println(reviews)
 
 	// Put the updated profile back to the ledger
 	err = updateInLedger(stub, model.ObjectTypeApplicant, applicantID, applicant)
@@ -430,5 +428,65 @@ func (t *CVVerificationChaincode) saveRating(stub shim.ChaincodeStubInterface, a
 		return shim.Error(fmt.Sprintf("unable to save the review in the ledger: %v", err))
 	}
 
-	return shim.Success([]byte("Successfully saved the rating"))
+	return shim.Success([]byte("Successfully saved the review"))
+}
+
+// Add CV Chaincode
+// args: CV object
+// CV ID is key, CVObject is the value
+func (t *CVVerificationChaincode) publishReviews(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	fmt.Println("Save rating")
+
+	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("only verifier users are allowed to add a CV: %v", err))
+	}
+
+	// Check whether the number of arguments is sufficient
+	if len(args) != 2 {
+		return shim.Error("The number of arguments is invalid.")
+	}
+
+	cvID := args[0]
+	reviewsByte := args[1]
+	var reviews []model.CVReview
+
+	if cvID == "" {
+		return shim.Error("The CV ID is empty.")
+	}
+
+	err = convertByteToObject([]byte(reviewsByte), &reviews)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to convert reviews byte to object: %v", err))
+	}
+
+	var applicant model.Applicant
+
+	applicantID, err := cid.GetID(stub)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to get invoking chaincode identity: %v", err))
+	}
+
+	err = getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to retrieve applicant profile in the ledger: %v", err))
+	}
+
+	var reviewsMap = make(map[string][]model.CVReview)
+
+	if applicant.Profile.PublicReviews != nil {
+		reviewsMap = applicant.Profile.PublicReviews
+	}
+
+	reviewsMap[cvID] = reviews
+
+	applicant.Profile.PublicReviews = reviewsMap
+
+	// Put the updated profile back to the ledger
+	err = updateInLedger(stub, model.ObjectTypeApplicant, applicantID, applicant)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to save the review in the ledger: %v", err))
+	}
+
+	return shim.Success([]byte("Successfully saved the profile"))
 }

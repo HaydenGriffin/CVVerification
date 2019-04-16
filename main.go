@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	installChaincode = true;
-	registerUsers    = true;
+	installChaincode = false;
+	registerUsers    = false;
 )
 
 func main() {
@@ -93,6 +93,12 @@ func main() {
 			return
 		}
 
+		err = fSetup.RegisterUser("applicant2", "password", model.ActorApplicant)
+		if err != nil {
+			fmt.Printf("Unable to register the user 'applicant1': %v\n", err)
+			return
+		}
+
 		err = fSetup.RegisterUser("verifier1", "password", model.ActorVerifier)
 		if err != nil {
 			fmt.Printf("Unable to register the user 'verifier1': %v\n", err)
@@ -119,6 +125,8 @@ func main() {
 		Fabric:  &fSetup,
 		ShortID: sid,
 	}
+
+	app.InitSession()
 
 	web.Serve(app)
 }

@@ -30,11 +30,18 @@ func Serve(app *controllers.Controller) {
 	r.HandleFunc("/submitcvforreview", app.SubmitForReviewHandler())
 	r.HandleFunc("/withdrawcvfromreview", app.WithdrawFromReviewHandler())
 
-	r.HandleFunc("/viewallcv", app.ViewAllCVView())
-	r.HandleFunc("/viewallcv/{industry}", app.ViewAllCVView())
+	r.HandleFunc("/submitcvtoemployer", app.SubmitToEmployerHandler())
+
+	r.HandleFunc("/cvstoreview", app.CVsToReviewView())
+	r.HandleFunc("/cvstoreview/{industry}", app.CVsToReviewView())
 
 	r.HandleFunc("/reviewcv/{cvID}", app.ReviewCVView())
 	r.HandleFunc("/reviewcvprocess", app.ReviewCVHandler())
+
+	r.HandleFunc("/viewcvapplications", app.ViewCVApplications())
+	r.HandleFunc("/viewcvapplications/{industry}", app.ViewCVApplications())
+
+	r.HandleFunc("/viewcv/{cvID}", app.ViewCVView())
 
 	r.HandleFunc("/registerdetails", app.RegisterDetailsView())
 	r.HandleFunc("/registerdetailsprocess", app.RegisterDetailsHandler())

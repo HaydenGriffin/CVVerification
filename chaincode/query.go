@@ -28,10 +28,14 @@ func (t *CVVerificationChaincode) query(stub shim.ChaincodeStubInterface, args [
 		return t.applicantkey(stub, args[1:])
 	} else if args[0] == "verifier" {
 		return t.verifier(stub, args[1:])
+	} else if args[0] == "employer" {
+		return t.employer(stub, args[1:])
 	} else if args[0] == "cv" {
 		return t.cv(stub, args[1:])
 	} else if args[0] == "cvs" {
 		return t.cvs(stub, args[1:])
+	} else if args[0] == "cvreviews" {
+		return t.cvreviews(stub, args[1:])
 	}
 
 	// If the arguments given don’t match any function, we return an error
@@ -115,6 +119,35 @@ func (t *CVVerificationChaincode) applicant(stub shim.ChaincodeStubInterface, ar
 	return shim.Success(applicantAsByte)
 }
 
+func (t *CVVerificationChaincode) employer(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	fmt.Println("# employer information")
+
+	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorEmployer)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("only employer is allowed for the kind of request: %v", err))
+	}
+
+	employerID, err := cid.GetID(stub)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to identify the ID of the request owner: %v", err))
+	}
+
+	var employer model.Employer
+
+	err = getFromLedger(stub, model.ObjectTypeEmployer, employerID, &employer)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to retrieve employer in the ledger: %v", err))
+	}
+
+	employerAsByte, err := convertObjectToByte(employer)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to convert the employer to byte: %v", err))
+	}
+
+	return shim.Success(employerAsByte)
+}
+
 func (t *CVVerificationChaincode) applicantkey(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	fmt.Println("# applicant public key information")
@@ -129,6 +162,9 @@ func (t *CVVerificationChaincode) applicantkey(stub shim.ChaincodeStubInterface,
 	}
 
 	applicantID := args[0]
+	if applicantID == "" {
+		return shim.Error("The applicantID is empty.")
+	}
 
 	var applicant model.Applicant
 
@@ -254,4 +290,46 @@ func (t *CVVerificationChaincode) cvs(stub shim.ChaincodeStubInterface, args []s
 	}
 
 	return shim.Success(cvListByte)
+}
+
+func (t *CVVerificationChaincode) cvreviews(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	fmt.Println("# cv list detail")
+
+	if len(args) != 2 {
+		return shim.Error("The number of arguments is invalid.")
+	}
+
+	applicantID := args[0]
+	cvID := args[1]
+
+	if applicantID == "" {
+		return shim.Error("The applicantID is empty.")
+	}
+
+	if cvID == "" {
+		return shim.Error("The cvID is empty.")
+	}
+
+	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorEmployer)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("only employer users are allowed for the kind of request: %v", err))
+	}
+
+	var applicant model.Applicant
+
+	err = getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to retrieve applicant in the ledger: %v", err))
+	}
+
+	if len(applicant.Profile.PublicReviews[cvID]) == 0 {
+		return shim.Error("Unable to retrieve reviews for the CVID specified.")
+	}
+
+	reviewListByte, err := convertObjectToByte(applicant.Profile.PublicReviews[cvID])
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to convert review list to byte: %v", err))
+	}
+
+	return shim.Success(reviewListByte)
 }

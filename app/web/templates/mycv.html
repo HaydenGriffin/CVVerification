@@ -23,6 +23,8 @@
                   In Draft
                 {{else if eq $cv.CV.Status "in-review"}}
                   In Review
+                {{else if eq $cv.CV.Status "submitted"}}
+                  Submitted to Employers
                 {{end}}
               </td>
               <td class="text-right"><a href="/mycv/{{$cv.Index}}"
@@ -69,12 +71,21 @@
               {{end}}
             </div>
             <hr>
+            {{if ne .CVInfo.CV.Status "submitted"}}
+              {{if ge (len .CVInfo.ReviewInfo.Reviews) 1}}
+                <button class="btn btn-lg btn-success" type="submit" formaction="/submitcvtoemployer">Submit to
+                  Employers
+                </button>
+              {{end}}
+            {{end}}
             <button class="btn btn-lg btn-primary" type="submit">Update your CV</button>
             {{if eq .CVInfo.CV.Status "in-review"}}
               <button class="btn btn-link" type="submit" formaction="/withdrawcvfromreview">Withdraw CV from Review
               </button>
             {{else if eq .CVInfo.CV.Status "draft"}}
-              <button class="btn btn-link" id="submitAnchor" type="submit" formaction="/submitcvforreview"> Submit CV for Review</button>
+              <button class="btn btn-link" id="submitAnchor" type="submit" formaction="/submitcvforreview"> Submit CV
+                for Review
+              </button>
             {{end}}
           </form>
         </div>
@@ -84,20 +95,28 @@
       <h3>Reviews</h3>
       <div class="card">
         <div class="card-body">
-          {{if not .CVInfo.Reviews}}
-            {{if eq .CVInfo.CV.Status "in-review"}}
+          {{if not .CVInfo.ReviewInfo.Reviews}}
+            {{if eq .CVInfo.ReviewInfo.Status "nokey"}}
+              You have reviews on your CV. Please <a href="/managekeys">upload your Private Key</a> to view the reviews.
+            {{else if eq .CVInfo.ReviewInfo.Status "decrypterr"}}
+              Error! Something went wrong whilst decrypting the reviews. Please make sure you <a href="/managekeys">uploaded
+                the correct Private Key.</a>
+            {{else if eq .CVInfo.CV.Status "in-review"}}
               You have no reviews yet. Your CV is currently in review.
             {{else if eq .CVInfo.CV.Status "draft"}}
               Please <a href="#submitAnchor">submit your CV</a> to receive reviews.
             {{end}}
-          {{end}}
-          {{range $cvID, $CVReview:=  .CVInfo.Reviews}}
-            <h4>Reviewer:</h4>
-            {{$CVReview.Name}}
-            <h4>Comment:</h4>
-            {{$CVReview.Comment}}
-            <h4>Rating:</h4>
-            {{$CVReview.Rating}}
+          {{else}}
+            {{range $cvID, $CVReview:=  .CVInfo.ReviewInfo.Reviews}}
+              <h4>Reviewer:</h4>
+              {{$CVReview.Name}}
+              <h4>Verification Type:</h4>
+              {{$CVReview.Type}}
+              <h4>Comment:</h4>
+              {{$CVReview.Comment}}
+              <h4>Rating:</h4>
+              {{$CVReview.Rating}}
+            {{end}}
           {{end}}
         </div>
       </div>

@@ -60,6 +60,16 @@ func (u *User) QueryApplicant() (*model.Applicant, error) {
 	return applicant, nil
 }
 
+// QueryApplicant query the blockchain chaincode to retrieve information about the current applicant user connected
+func (u *User) QueryApplicantKey(applicantID string) (string, error) {
+	var applicantProfile *model.ApplicantProfile
+	err := u.query([][]byte{[]byte("applicantkey"), []byte(applicantID)}, &applicantProfile)
+	if err != nil {
+		return "", err
+	}
+	return applicantProfile.PublicKey, nil
+}
+
 // QueryVerifier query the blockchain chaincode to retrieve information about the current applicant user connected
 func (u *User) QueryVerifier() (*model.Verifier, error) {
 	var verifier *model.Verifier
@@ -68,6 +78,16 @@ func (u *User) QueryVerifier() (*model.Verifier, error) {
 		return nil, err
 	}
 	return verifier, nil
+}
+
+// QueryVerifier query the blockchain chaincode to retrieve information about the current applicant user connected
+func (u *User) QueryEmployer() (*model.Employer, error) {
+	var employer *model.Employer
+	err := u.query([][]byte{[]byte("employer")}, &employer)
+	if err != nil {
+		return nil, err
+	}
+	return employer, nil
 }
 
 // QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
@@ -91,11 +111,11 @@ func (u *User) QueryCVs(status, filter string) (map[string]model.CVObject, error
 }
 
 // QueryCV query the blockchain chaincode to retrieve information about the current applicant user connected
-func (u *User) QueryCVReviews(ID, cvID string) ([]model.CVReview, error) {
-	var ratings []model.CVReview
-	err := u.query([][]byte{[]byte("cvreviews"), []byte(ID), []byte(cvID)}, &ratings)
+func (u *User) QueryCVReviews(applicantID, cvID string) ([]model.CVReview, error) {
+	var reviews []model.CVReview
+	err := u.query([][]byte{[]byte("cvreviews"), []byte(applicantID), []byte(cvID)}, &reviews)
 	if err != nil {
 		return nil, err
 	}
-	return ratings, nil
+	return reviews, nil
 }

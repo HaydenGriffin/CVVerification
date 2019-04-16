@@ -1,16 +1,16 @@
-{{define "title"}}View All CVs{{end}}
+{{define "title"}}Review CVs{{end}}
 {{define "body"}}
   <div class="container">
     <h3>View All CVs</h3>
     <div class="row">
       <div class="col-md-4">
-        <form id="filter-cv" action="/viewallcv" method="post">
+        <form id="filter-cv" action="/cvstoreview" method="post">
           <label for="industry">Query CV By Industry:</label>
           <div class="input-group">
             <input type="text" class="form-control" id="industry" name="industry"
                    autofocus="">
             <span class="input-group-btn">
-            <button class="btn btn-success" formaction="/viewallcv" type="submit">Search</button>
+            <button class="btn btn-success" formaction="/cvstoreview" type="submit">Search</button>
           </span>
           </div>
         </form>
@@ -22,14 +22,14 @@
             <div class="card-body">
               <form id="review-cv" action="/reviewcv/{{$cvID}}" method="post">
                 <h4>Applicant Name</h4>
-                <p> {{$cv.Name}}</p>
+                <p>{{$cv.Name}}</p>
                 <h4>Industry / Sector</h4>
                 <p>{{$cv.Industry}}</p>
                 <h4>Level</h4>
                 <p>{{$cv.Level}}</p>
                 <h4>Date of CV</h4>
                 <p>{{$cv.Date}}</p>
-                <button class="btn btn-lg btn-primary" type="submit">View full CV</button>
+                <button class="btn btn-lg btn-primary" type="submit">Review CV</button>
               </form>
             </div>
           </div>

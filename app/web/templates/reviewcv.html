@@ -44,9 +44,22 @@
           <h3>Review</h3>
           <form id="review-cv" action="/reviewcvprocess" method="post">
             <div class="form-group">
-              <label for="fullName">Reviewers Name</label>
+              <label for="name">Reviewers Name</label>
               <input type="text" class="form-control" id="name" name="name"
                      value="{{.UserDetails.FirstName}} {{.UserDetails.Surname}}" readonly/>
+            </div>
+            <div class="form-group">
+              <label for="type">Verification Type</label>
+              <select class="form-control" id="type" name="type" required="" autofocus="">
+                <option>Identification</option>
+                <option>Credit Check</option>
+                <option>Previous Employment</option>
+                <option>Academic / Educational</option>
+                <option>Qualifications</option>
+                <option>Criminal Check</option>
+                <option>Motor Vehicle</option>
+                <option>Other</option>
+              </select>
             </div>
             <div class="form-group">
               <label for="comment">Comment</label>
@@ -55,9 +68,8 @@
             </div>
             <div class="form-group">
               <label for="rating">Rating</label>
-              <input type="number" class="form-control" name="rating" placeholder="Leave your rating here" min="1"
-                     max="10" required="" autofocus=""
-              />
+              <input type="number" class="form-control" id="rating" name="rating" placeholder="Leave your rating here" min="1"
+                     max="10" required="" autofocus=""/>
             </div>
             <button class="btn btn-lg btn-primary"
                     type="submit">Review CV</button>

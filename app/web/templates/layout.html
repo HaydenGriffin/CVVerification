@@ -48,8 +48,12 @@
             </li>
           {{end}}
         {{else if eq .AccountType "verifier"}}
-          <li class="nav-item {{if eq .CurrentPage "viewallcv"}}active{{end}}">
-            <a class="nav-link" href="/viewallcv">Review CV's</a>
+          <li class="nav-item {{if eq .CurrentPage "cvstoreview"}}active{{end}}">
+            <a class="nav-link" href="/cvstoreview">Review CV's</a>
+          </li>
+        {{else if eq .AccountType "employer"}}
+          <li class="nav-item {{if eq .CurrentPage "viewcvs"}}active{{end}}">
+            <a class="nav-link" href="/viewcvapplications">View CV Applications</a>
           </li>
         {{end}}
       </ul>

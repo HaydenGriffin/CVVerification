@@ -60,11 +60,23 @@
       {{else if eq .AccountType "verifier"}}
         <div class="col-auto mb-3">
           <div class="card text-center square">
-            <a href="/viewallcv" class="navigation-card">
+            <a href="/cvstoreview" class="navigation-card">
               <div class="card-body">
                         <span class="fa fa-style fa-search fa-3x"
                               aria-hidden="true"></span>
                 <h3>Review CVs</h3>
+              </div>
+            </a>
+          </div>
+        </div>
+      {{else if eq .AccountType "employer"}}
+        <div class="col-auto mb-3">
+          <div class="card text-center square">
+            <a href="/viewcvapplications" class="navigation-card">
+              <div class="card-body">
+                        <span class="fa fa-style fa-search fa-3x"
+                              aria-hidden="true"></span>
+                <h3>View CV Applications</h3>
               </div>
             </a>
           </div>

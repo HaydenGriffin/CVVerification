@@ -6,7 +6,6 @@ import (
 	"github.com/cvverification/app/crypto"
 	"github.com/cvverification/app/database"
 	templateModel "github.com/cvverification/app/model"
-	"github.com/cvverification/app/sessions"
 	"github.com/cvverification/blockchain"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
@@ -15,16 +14,19 @@ import (
 func (c *Controller) RegisterDetailsView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		session, err := store.Get(r, "userSession")
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "userdetails",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = getAccountType(session)
+		if hasSavedUserDetails(session) {
+			data.UserDetails = getUserDetails(session)
 			renderTemplate(w, r, "updatedetails.html", data)
 		} else {
 			data.UserDetails.Username = u.Username
@@ -36,16 +38,19 @@ func (c *Controller) RegisterDetailsView() func(http.ResponseWriter, *http.Reque
 func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		session, err := store.Get(r, "userSession")
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "userdetails",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = getAccountType(session)
+		if hasSavedUserDetails(session) {
+			data.UserDetails = getUserDetails(session)
 			data.MessageWarning = "Error! Unable to register - user already registered."
 			renderTemplate(w, r, "updatedetails.html", data)
 			return
@@ -95,6 +100,7 @@ func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Re
 
 		// Register the userDetails gob to be used as a session value
 		gob.Register(userDetails)
+		session.Values["SavedUserDetails"] = true
 		session.Values["UserDetails"] = userDetails
 		err = session.Save(r, w)
 		if err != nil {
@@ -105,7 +111,7 @@ func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Re
 		}
 
 		data.UserDetails = userDetails
-		data.MessageSuccess = "Success! Your details have been saved. Welcome, " + userDetails.FirstName + " " +userDetails.Surname + "."
+		data.MessageSuccess = "Success! Your details have been saved. Welcome, " + userDetails.FirstName + " " + userDetails.Surname + "."
 
 		if applicantErr == nil {
 			data.MessageWarning = "Before using the system, please make a copy of your Private Key."
@@ -119,16 +125,19 @@ func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Re
 func (c *Controller) UpdateDetailsView() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		session, err := store.Get(r, "userSession")
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "userdetails",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if sessions.HasSavedUserDetails(session) {
-			data.UserDetails = sessions.GetUserDetails(session)
+		data.AccountType = getAccountType(session)
+		if hasSavedUserDetails(session) {
+			data.UserDetails = getUserDetails(session)
 			renderTemplate(w, r, "updatedetails.html", data)
 		} else {
 			data.MessageWarning = "Error! You must register your user details before using the system."
@@ -141,15 +150,18 @@ func (c *Controller) UpdateDetailsView() func(http.ResponseWriter, *http.Request
 func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Request) {
 	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
 
-		session := sessions.GetSession(r)
+		session, err := store.Get(r, "userSession")
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		data := templateModel.Data{
 			CurrentPage: "index",
 		}
 
 		// Retrieve user details
-		data.AccountType = sessions.GetAccountType(session)
-		if !sessions.HasSavedUserDetails(session) {
+		data.AccountType = getAccountType(session)
+		if !hasSavedUserDetails(session) {
 			data.CurrentPage = "userdetails"
 			data.MessageWarning = "Error! You must register your user details before using the system."
 			data.UserDetails.Username = u.Username

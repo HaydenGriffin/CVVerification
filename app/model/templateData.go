@@ -20,6 +20,7 @@ type CVDisplayInfo struct {
 	CVHistory []CVHistoryInfo
 	ReviewInfo CVReviewInfo
 	CVList map[string]model.CVObject
+	ApplicantDetails UserDetails
 }
 
 type CVReviewInfo struct{

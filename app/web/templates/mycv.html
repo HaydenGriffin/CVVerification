@@ -25,6 +25,8 @@
                   In Review
                 {{else if eq $cv.CV.Status "submitted"}}
                   Submitted to Employers
+                {{else if eq $cv.CV.Status "withdrawn"}}
+                  Withdrawn
                 {{end}}
               </td>
               <td class="text-right"><a href="/mycv/{{$cv.Index}}"
@@ -72,19 +74,26 @@
             </div>
             <hr>
             {{if ne .CVInfo.CV.Status "submitted"}}
-              {{if ge (len .CVInfo.ReviewInfo.Reviews) 1}}
-                <button class="btn btn-lg btn-success" type="submit" formaction="/submitcvtoemployer">Submit to
-                  Employers
+              {{if ne .CVInfo.CV.Status "withdrawn"}}
+                {{if ge (len .CVInfo.ReviewInfo.Reviews) 1}}
+                  <button class="btn btn-lg btn-success" type="submit" formaction="/submitcvtoemployer">Submit to
+                    Employers
+                  </button>
+                {{end}}
+              {{end}}
+              <button class="btn btn-lg btn-primary" type="submit">Update your CV</button>
+              {{if eq .CVInfo.CV.Status "in-review"}}
+                <button class="btn btn-link" type="submit" formaction="/withdrawcvfromreview">Withdraw CV from Review
+                </button>
+              {{else if eq .CVInfo.CV.Status "draft"}}
+                <button class="btn btn-link" id="submitAnchor" type="submit" formaction="/submitcvforreview"> Submit CV
+                  for Review
                 </button>
               {{end}}
             {{end}}
-            <button class="btn btn-lg btn-primary" type="submit">Update your CV</button>
-            {{if eq .CVInfo.CV.Status "in-review"}}
-              <button class="btn btn-link" type="submit" formaction="/withdrawcvfromreview">Withdraw CV from Review
-              </button>
-            {{else if eq .CVInfo.CV.Status "draft"}}
-              <button class="btn btn-link" id="submitAnchor" type="submit" formaction="/submitcvforreview"> Submit CV
-                for Review
+            {{if ne .CVInfo.CV.Status "withdrawn"}}
+              <button class="btn btn-danger float-right" id="submitAnchor" type="submit"
+                      formaction="/withdrawcvapplication">Withdraw CV Application
               </button>
             {{end}}
           </form>
@@ -105,6 +114,8 @@
               You have no reviews yet. Your CV is currently in review.
             {{else if eq .CVInfo.CV.Status "draft"}}
               Please <a href="#submitAnchor">submit your CV</a> to receive reviews.
+            {{else if eq .CVInfo.CV.Status "withdrawn"}}
+              Your CV has been withdrawn.
             {{end}}
           {{else}}
             {{range $cvID, $CVReview:=  .CVInfo.ReviewInfo.Reviews}}

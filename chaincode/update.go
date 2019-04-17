@@ -33,6 +33,8 @@ func (t *CVVerificationChaincode) update(stub shim.ChaincodeStubInterface, args 
 		return t.verifierSaveReview(stub, args[1:])
 	} else if function == "publishreviews" {
 		return t.publishReviews(stub, args[1:])
+	} else if function == "employersavecv" {
+		return t.employerSaveCV(stub, args[1:])
 	}
 
 	// If the arguments given don’t match any function, we return an error
@@ -435,7 +437,7 @@ func (t *CVVerificationChaincode) verifierSaveReview(stub shim.ChaincodeStubInte
 // args: CV object
 // CV ID is key, CVObject is the value
 func (t *CVVerificationChaincode) publishReviews(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	fmt.Println("Save rating")
+	fmt.Println("Publish Reviews")
 
 	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
 	if err != nil {
@@ -486,6 +488,56 @@ func (t *CVVerificationChaincode) publishReviews(stub shim.ChaincodeStubInterfac
 	err = updateInLedger(stub, model.ObjectTypeApplicant, applicantID, applicant)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("unable to save the review in the ledger: %v", err))
+	}
+
+	return shim.Success([]byte("Successfully saved the profile"))
+}
+
+// Add CV Chaincode
+// args: CV object
+// CV ID is key, CVObject is the value
+func (t *CVVerificationChaincode) employerSaveCV(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	fmt.Println("Employer save CV")
+
+	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorEmployer)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("only employer users are allowed to save a CV to employer profile: %v", err))
+	}
+
+	// Check whether the number of arguments is sufficient
+	if len(args) != 1 {
+		return shim.Error("The number of arguments is invalid.")
+	}
+
+	cvID := args[0]
+	if cvID == "" {
+		return shim.Error("The CV ID is empty.")
+	}
+
+	employerID, err := cid.GetID(stub)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to identify the ID of the request owner: %v", err))
+	}
+
+	var employer model.Employer
+
+	err = getFromLedger(stub, model.ObjectTypeEmployer, employerID, &employer)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to retrieve employer profile from the ledger: %v", err))
+	}
+
+	for _, existingCVID := range employer.Profile.ProspectiveCVs {
+		if cvID == existingCVID {
+			return shim.Error("The CV ID is already in the list of prospective CVs.")
+		}
+	}
+
+	employer.Profile.ProspectiveCVs = append(employer.Profile.ProspectiveCVs, cvID)
+
+	// Put the updated profile back to the ledger
+	err = updateInLedger(stub, model.ObjectTypeEmployer, employerID, employer)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to save the employer profile in the ledger: %v", err))
 	}
 
 	return shim.Success([]byte("Successfully saved the profile"))

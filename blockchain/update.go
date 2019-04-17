@@ -68,3 +68,8 @@ func (u *User) UpdateVerifierSaveReview(ID, cvID string, reviewByte []byte) erro
 func (u *User) UpdatePublishReviews(cvID string, reviewsByte []byte) error {
 	return u.update([][]byte{[]byte("publishreviews"), []byte(cvID), reviewsByte}, nil)
 }
+
+// UpdateSaveProfileCV allow to add a resource into the blockchain
+func (u *User) UpdateEmployerSaveCV(cvID string) error {
+	return u.update([][]byte{[]byte("employersavecv"), []byte(cvID)}, nil)
+}

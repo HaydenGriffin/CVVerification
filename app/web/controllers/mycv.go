@@ -140,6 +140,10 @@ func (c *Controller) MyCVView() func(http.ResponseWriter, *http.Request) {
 			}
 		}
 
+		if data.CVInfo.CV.Status == model.CVWithdrawn {
+			data.MessageWarning = "This CV has been withdrawn."
+		}
+
 		data.CVInfo.ReviewInfo.Reviews = reviews
 		data.CVInfo.CVHistory = allCVHistory
 		data.CVInfo.CurrentCVID = cvIDToDisplay
@@ -524,6 +528,125 @@ func (c *Controller) SubmitToEmployerHandler() func(http.ResponseWriter, *http.R
 		data.CVInfo.ReviewInfo.Reviews = reviews
 		data.CVInfo.CVHistory = allCVHistory
 		data.MessageSuccess = "Success! Your CV has been submitted to employers."
+		data.CurrentPage = "mycv"
+		renderTemplate(w, r, "mycv.html", data)
+	})
+}
+
+func (c *Controller) WithdrawCVApplication() func(http.ResponseWriter, *http.Request) {
+	return c.basicAuth(func(w http.ResponseWriter, r *http.Request, u *blockchain.User) {
+
+		session, err := store.Get(r, "userSession")
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		data := templateModel.Data{
+			CurrentPage: "index",
+		}
+
+		// Retrieve user details
+		data.AccountType = getAccountType(session)
+		if hasSavedUserDetails(session) {
+			data.UserDetails = getUserDetails(session)
+		} else {
+			data.CurrentPage = "userdetails"
+			data.MessageWarning = "Error! You must register your user details before using the system."
+			data.UserDetails.Username = u.Username
+			renderTemplate(w, r, "registerdetails.html", data)
+			return
+		}
+
+		// Check that the user connected is an applicant
+		applicant, err := u.QueryApplicant()
+		if err != nil {
+			data.MessageWarning = "Error! You must be an applicant user to view your CV."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
+
+		cvIDToUpdate := getCVID(session)
+		var allCVHistory []templateModel.CVHistoryInfo
+		var cvHistory templateModel.CVHistoryInfo
+
+		for index, cvID := range applicant.Profile.CVHistory {
+
+			cv, err := u.QueryCV(cvID)
+			if err != nil {
+				data.MessageWarning = "Error! Unable to find CV info in ledger."
+				renderTemplate(w, r, "index.html", data)
+				return
+			}
+
+			cvHistory.Index = index + 1
+			cvHistory.CVID = cvID
+			cvHistory.CV = cv
+			allCVHistory = append(allCVHistory, cvHistory)
+		}
+
+		if cvIDToUpdate == "" || len(allCVHistory) == 0 {
+			data.MessageWarning = "Error! Unable to retrieve CV info."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
+
+		updatedCV, err := u.UpdateTransitionCV(cvIDToUpdate, model.CVWithdrawn)
+		if err != nil {
+			fmt.Println(err)
+			data.MessageWarning = "Error! Unable to transition CV status in ledger."
+			renderTemplate(w, r, "index.html", data)
+			return
+		}
+
+		for index, cvHistory := range allCVHistory {
+			if cvHistory.CVID == cvIDToUpdate {
+				allCVHistory[index].CV = updatedCV
+			}
+		}
+
+		var reviews []model.CVReview
+
+		if applicant.Profile.Reviews[cvIDToUpdate] != nil {
+			// If there is reviews on the CV that is being displayed
+			var review model.CVReview
+			encryptedCVReviews := applicant.Profile.Reviews[cvIDToUpdate]
+
+			// Get private key from session
+			privateKeyString := getPrivateKey(session)
+			if privateKeyString != "" {
+				// Convert bytes of private key to *rsa.PrivateKey
+				privateKey := crypto.BytesToPrivateKey([]byte(privateKeyString))
+
+				// Loop over each review
+				for _, encryptedReview := range encryptedCVReviews {
+					// Attempt to decrypt the encrypted review with the private key
+					decryptedReviewByte, err := crypto.DecryptWithPrivateKey(encryptedReview, privateKey)
+					if err != nil {
+						fmt.Println(err)
+						data.CVInfo.ReviewInfo.Status = "decrypterr"
+						data.MessageWarning = "Error! It looks like you have uploaded the incorrect Private Key."
+						continue
+					}
+					err = json.Unmarshal(decryptedReviewByte, &review)
+					if err != nil {
+						fmt.Println(err)
+						data.CVInfo.ReviewInfo.Status = "decrypterr"
+						data.MessageWarning = "Error! It looks like you have uploaded the incorrect Private Key."
+						continue
+					}
+					reviews = append(reviews, review)
+				}
+			} else {
+				data.CVInfo.ReviewInfo.Status = "nokey"
+				data.MessageWarning = "You have reviews on this CV. Please upload your Private Key to view the reviews."
+			}
+		}
+
+		data.CVInfo.CV = updatedCV
+		data.CVInfo.CurrentCVID = cvIDToUpdate
+		data.CVInfo.ReviewInfo.Reviews = reviews
+		data.CVInfo.CVHistory = allCVHistory
+		data.MessageSuccess = "Success! Your CV has been withdrawn."
 		data.CurrentPage = "mycv"
 		renderTemplate(w, r, "mycv.html", data)
 	})

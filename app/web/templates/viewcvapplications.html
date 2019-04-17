@@ -5,12 +5,16 @@
     <div class="row">
       <div class="col-md-4">
         <form id="filter-cv" action="/viewcvapplications" method="post">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="registeredcvs" name="registeredcvs">
+            <label class="form-check-label" for="registeredcvs">Registered CVs only</label>
+          </div>
           <label for="industry">Query CV By Industry:</label>
           <div class="input-group">
             <input type="text" class="form-control" id="industry" name="industry"
                    autofocus="">
             <span class="input-group-btn">
-            <button class="btn btn-success" formaction="/cvstoreview" type="submit">Search</button>
+            <button class="btn btn-success" formaction="/viewcvapplications" type="submit">Search</button>
           </span>
           </div>
         </form>

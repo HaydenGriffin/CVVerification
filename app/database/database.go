@@ -38,6 +38,19 @@ func GetUserDetailsFromUsername(username string) (templateModel.UserDetails, err
 	}
 }
 
+func GetUserDetailsFromFabricID(fabric_id string) (templateModel.UserDetails, error) {
+	user := templateModel.UserDetails{}
+
+	result := db.QueryRow("SELECT u.username, u.title, u.first_name, u.surname, u.email_address, u.date_of_birth FROM users u WHERE fabric_id = ?", fabric_id)
+	err := result.Scan(&user.Username, &user.Title, &user.FirstName, &user.Surname, &user.EmailAddress, &user.DateOfBirth)
+
+	if err != nil {
+		return user, err
+	} else {
+		return user, nil
+	}
+}
+
 func CreateNewUser(username, title, first_name, surname, email_address, date_of_birth, fabric_id string) (userDetails templateModel.UserDetails, error error) {
 
 	_, err := db.Exec("INSERT INTO users(username, title, first_name, surname, email_address, date_of_birth, fabric_id) VALUES (?, ?, ?, ?, ?, ?, ?)", username, title, first_name, surname, email_address, date_of_birth, fabric_id)

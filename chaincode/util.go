@@ -84,6 +84,10 @@ func canCVBeTransitioned(actorType, transitionTo string, cv model.CVObject) erro
 		if (cv.Status == model.CVInDraft || cv.Status == model.CVInReview) && actorType == model.ActorApplicant {
 			return nil
 		}
+	case model.CVWithdrawn:
+		if actorType == model.ActorApplicant {
+			return nil
+		}
 	default:
 		return fmt.Errorf("unable to transition CV object from: %v to: %v", cv.Status, transitionTo)
 	}

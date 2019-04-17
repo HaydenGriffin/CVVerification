@@ -29,6 +29,7 @@ func Serve(app *controllers.Controller) {
 
 	r.HandleFunc("/submitcvforreview", app.SubmitForReviewHandler())
 	r.HandleFunc("/withdrawcvfromreview", app.WithdrawFromReviewHandler())
+	r.HandleFunc("/withdrawcvapplication", app.WithdrawCVApplication())
 
 	r.HandleFunc("/submitcvtoemployer", app.SubmitToEmployerHandler())
 
@@ -50,6 +51,8 @@ func Serve(app *controllers.Controller) {
 	r.HandleFunc("/uploadprivatekey", app.UploadPrivateKeyHandler())
 	r.HandleFunc("/downloadprivatekey", app.DownloadPrivateKeyHandler())
 	r.HandleFunc("/generateprivatekey", app.GenerateNewKeysHandler())
+
+	r.HandleFunc("/employerregisterinterest", app.RegisterInterestHandler())
 
 	r.HandleFunc("/updatedetails", app.UpdateDetailsView())
 	r.HandleFunc("/updatedetailsprocess", app.UpdateDetailsHandler())

@@ -36,10 +36,10 @@ type Admin struct {
 }
 
 type ApplicantProfile struct {
-	CVHistory []string
-	Reviews   map[string]map[string][]byte
-	PublicReviews  map[string][]CVReview
-	PublicKey string
+	CVHistory     []string
+	Reviews       map[string]map[string][]byte
+	PublicReviews map[string][]CVReview
+	PublicKey     string
 }
 
 type VerifierProfile struct {
@@ -49,6 +49,7 @@ type AdminProfile struct {
 }
 
 type EmployerProfile struct {
+	ProspectiveCVs []string
 }
 
 type CVObject struct {
@@ -78,8 +79,8 @@ const (
 )
 
 const (
-	CVInDraft        = "draft"
-	CVInReview       = "in-review"
-	CVFinalised      = "finalised"
-	CVSubmitted      = "submitted"
+	CVInDraft   = "draft"
+	CVInReview  = "in-review"
+	CVSubmitted = "submitted"
+	CVWithdrawn = "withdrawn"
 )

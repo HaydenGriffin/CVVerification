@@ -76,12 +76,12 @@
             {{if ne .CVInfo.CV.Status "submitted"}}
               {{if ne .CVInfo.CV.Status "withdrawn"}}
                 {{if ge (len .CVInfo.ReviewInfo.Reviews) 1}}
-                  <button class="btn btn-lg btn-success" type="submit" formaction="/submitcvtoemployer">Submit to
+                  <button class="btn btn-success" type="submit" formaction="/submitcvtoemployer">Submit to
                     Employers
                   </button>
                 {{end}}
               {{end}}
-              <button class="btn btn-lg btn-primary" type="submit">Update your CV</button>
+              <button class="btn btn-primary" type="submit">Update your CV</button>
               {{if eq .CVInfo.CV.Status "in-review"}}
                 <button class="btn btn-link" type="submit" formaction="/withdrawcvfromreview">Withdraw CV from Review
                 </button>
@@ -121,6 +121,8 @@
             {{range $cvID, $CVReview:=  .CVInfo.ReviewInfo.Reviews}}
               <h4>Reviewer:</h4>
               {{$CVReview.Name}}
+              <h4>Reviewer Organisation:</h4>
+              {{$CVReview.Organisation}}
               <h4>Verification Type:</h4>
               {{$CVReview.Type}}
               <h4>Comment:</h4>

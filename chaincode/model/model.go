@@ -43,6 +43,7 @@ type ApplicantProfile struct {
 }
 
 type VerifierProfile struct {
+	Organisation string
 }
 
 type AdminProfile struct {
@@ -63,10 +64,11 @@ type CVObject struct {
 }
 
 type CVReview struct {
-	Name    string
-	Type    string
-	Comment string
-	Rating  int
+	Name         string
+	Organisation string
+	Type         string
+	Comment      string
+	Rating       int
 }
 
 // List of object type stored in the ledger

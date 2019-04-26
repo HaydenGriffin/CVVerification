@@ -98,6 +98,19 @@ func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Re
 			return
 		}
 
+		// If the user is a verifier
+		_, verifierErr := u.QueryVerifier()
+		// Update verifier org
+		if verifierErr == nil {
+			newOrganisation := r.FormValue("organisation")
+			if len(newOrganisation) != 0 {
+				err := u.UpdateVerifierSaveOrganisation(newOrganisation)
+				if err != nil {
+					data.MessageWarning = "Error! Unable to update organisation name."
+				}
+			}
+		}
+
 		// Register the userDetails gob to be used as a session value
 		gob.Register(userDetails)
 		session.Values["SavedUserDetails"] = true

@@ -368,7 +368,7 @@ func (t *CVVerificationChaincode) saveProfileCV(stub shim.ChaincodeStubInterface
 	if t.testing != true {
 		err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
 		if err != nil {
-			return shim.Error(fmt.Sprintf("only applicant users are allowed to add a CV: %v", err))
+			return shim.Error(fmt.Sprintf("only applicant users are allowed to add a CV to profile: %v", err))
 		}
 
 		ID, err := cid.GetID(stub)

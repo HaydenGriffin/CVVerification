@@ -68,7 +68,7 @@ func updateInLedger(stub shim.ChaincodeStubInterface, objectType string, id stri
 func canCVBeTransitioned(actorType, transitionTo string, cv model.CVObject) error {
 	// Can't transition case to status it currently is
 	if transitionTo == cv.Status {
-		return fmt.Errorf("unable to transition to empty status")
+		return fmt.Errorf("unable to transition to current status")
 	}
 
 	switch transitionTo {

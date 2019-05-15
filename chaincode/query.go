@@ -73,6 +73,7 @@ func (t *CVVerificationChaincode) admin(stub shim.ChaincodeStubInterface, args [
 		return shim.Error("TESTING: This function cannot be called within testing.")
 	}
 
+	// Within the MockStub, all operations involving cid always fail and is not supported
 	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorAdmin)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("only admin is allowed for the kind of request: %v", err))
@@ -273,7 +274,9 @@ func (t *CVVerificationChaincode) cvs(stub shim.ChaincodeStubInterface, args []s
 
 	var actorType string
 
+	// Check whether the Chaincode is running in testing mode
 	if t.testing != true {
+		// Not testing mode, use cid package
 		foundActorType, found, err := cid.GetAttributeValue(stub, model.ActorAttribute)
 		if err != nil {
 			return shim.Error(fmt.Sprintf("unable to identify the type of the request owner: %v", err))
@@ -283,11 +286,11 @@ func (t *CVVerificationChaincode) cvs(stub shim.ChaincodeStubInterface, args []s
 		}
 		actorType = foundActorType
 	} else {
+		// In testing mode - actorType must be passed as an argument
 		if args[2] == "" {
 			return shim.Error("TESTING: The specified actor type is empty.")
 		}
 		actorType = args[2]
-
 	}
 
 	status := args[0]

@@ -12,14 +12,17 @@ import (
 
 func QueryValid(test *testing.T, stub *shim.MockStub, args [][]byte, responseObject interface{}) {
 
+	// Create a mock transaction proposal
 	result := stub.MockInvoke("000", append([][]byte{[]byte("invoke"), []byte("query")}, args...))
 	fmt.Println("Calling function: ", string(args[0]), "(", string(bytes.Join(args[1:], []byte(", "))), ")")
 
+	// If the operation is unsuccessful, return an error
 	if result.Status != shim.OK {
 		fmt.Println(fmt.Sprintf("query invoke function: %v failed: %v", string(args[0]), result.Message))
 		test.FailNow()
 	}
 
+	// If the responseObject cannot be converted to the specified Object type, return an error
 	if responseObject != nil {
 		err := json.Unmarshal(result.Payload, responseObject)
 		if err != nil {
@@ -31,9 +34,11 @@ func QueryValid(test *testing.T, stub *shim.MockStub, args [][]byte, responseObj
 
 func QueryInvalid(test *testing.T, stub *shim.MockStub, args [][]byte) {
 
+	// Create a mock transaction proposal
 	result := stub.MockInvoke("000", append([][]byte{[]byte("invoke"), []byte("query")}, args...))
 	fmt.Println("Calling function: ", string(args[0]), "(", string(bytes.Join(args[1:], []byte(", "))), ")")
 
+	// If the operation is successful, return an error
 	if result.Status == shim.OK {
 		fmt.Println(fmt.Sprintf("query invoke function unexpectedly succeeded: %v", string(args[0])))
 		test.FailNow()
@@ -79,6 +84,7 @@ func TestProfileKey(test *testing.T) {
 func TestCV(test *testing.T) {
 	stub := InitChaincode(test)
 
+	// Create a test CV object
 	cvToAdd := model.CVObject{
 		Name:       "Applicant One",
 		Date:       "2019-04-20",
@@ -91,6 +97,7 @@ func TestCV(test *testing.T) {
 	cvToAdd.CVSections["Experience"] = "Test Experience"
 	cvToAdd.CVSections["Education"] = "Test Education"
 
+	// Convert object to byte
 	cvToAddByte := convertObjectToByteValid(test, cvToAdd)
 
 	cvID := "applicant1CV1"
@@ -109,6 +116,7 @@ func TestCV(test *testing.T) {
 	// Query valid CV
 	QueryValid(test, stub, [][]byte{[]byte("cv"), []byte(cvID)}, &cvRetrieved)
 
+	// Ensure the retrieved name is the same
 	if cvRetrieved.Name != cvToAdd.Name {
 		fmt.Println(fmt.Sprintf("retrieved cv name: %v does not match added cv name: %v", cvRetrieved.Name, cvToAdd.Name))
 		test.FailNow()

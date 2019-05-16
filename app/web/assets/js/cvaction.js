@@ -113,7 +113,7 @@ $(document).ready(function () {
         card_body.append(remove_button);
         card.append(card_body);
 
-        // If there is more than 5 sections, prevent any more from being added
+        // If there is more than 7 sections, prevent any more from being added
         if (section_count < 7) {
             $('#additionalSections').append(card);
         }

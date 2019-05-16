@@ -7,9 +7,6 @@ import (
 
 var DataSourceName = "root:password@tcp(localhost:3306)/verification?parseTime=true"
 
-type MySQL struct {
-}
-
 var db *sql.DB
 
 func InitDB(dataSourceName string) error {
@@ -23,32 +20,6 @@ func InitDB(dataSourceName string) error {
 	db.SetMaxIdleConns(100)
 
 	return nil
-}
-
-func GetUserDetailsFromUsername(username string) (templateModel.UserDetails, error) {
-	user := templateModel.UserDetails{}
-
-	result := db.QueryRow("SELECT u.id, u.username, u.title, u.first_name, u.surname, u.email_address, u.date_of_birth FROM users u WHERE username = ?", username)
-	err := result.Scan(&user.Id, &user.Username, &user.Title, &user.FirstName, &user.Surname, &user.EmailAddress, &user.DateOfBirth)
-
-	if err != nil {
-		return user, err
-	} else {
-		return user, nil
-	}
-}
-
-func GetUserDetailsFromFabricID(fabric_id string) (templateModel.UserDetails, error) {
-	user := templateModel.UserDetails{}
-
-	result := db.QueryRow("SELECT u.username, u.title, u.first_name, u.surname, u.email_address, u.date_of_birth FROM users u WHERE fabric_id = ?", fabric_id)
-	err := result.Scan(&user.Username, &user.Title, &user.FirstName, &user.Surname, &user.EmailAddress, &user.DateOfBirth)
-
-	if err != nil {
-		return user, err
-	} else {
-		return user, nil
-	}
 }
 
 func CreateNewUser(username, title, first_name, surname, email_address, date_of_birth, fabric_id string) (userDetails templateModel.UserDetails, error error) {
@@ -68,6 +39,46 @@ func CreateNewUser(username, title, first_name, surname, email_address, date_of_
 	userDetails = selectedUser
 
 	return userDetails, err
+}
+
+func GetUserDetailsFromUsername(username string) (templateModel.UserDetails, error) {
+	user := templateModel.UserDetails{}
+
+	result := db.QueryRow("SELECT u.id, u.username, u.title, u.first_name, u.surname, u.email_address, u.date_of_birth FROM users u WHERE username = ?", username)
+	err := result.Scan(&user.Id, &user.Username, &user.Title, &user.FirstName, &user.Surname, &user.EmailAddress, &user.DateOfBirth)
+
+	if err != nil {
+		return user, err
+	} else {
+		return user, nil
+	}
+}
+
+func EmailAlreadyExists(email_address string) bool {
+
+	var emailFound string
+
+	result := db.QueryRow("SELECT 1 FROM users u WHERE email_address = ?", email_address)
+	err := result.Scan(&emailFound)
+
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
+}
+
+func GetUserDetailsFromFabricID(fabric_id string) (templateModel.UserDetails, error) {
+	user := templateModel.UserDetails{}
+
+	result := db.QueryRow("SELECT u.username, u.title, u.first_name, u.surname, u.email_address, u.date_of_birth FROM users u WHERE fabric_id = ?", fabric_id)
+	err := result.Scan(&user.Username, &user.Title, &user.FirstName, &user.Surname, &user.EmailAddress, &user.DateOfBirth)
+
+	if err != nil {
+		return user, err
+	} else {
+		return user, nil
+	}
 }
 
 func UpdateUser(username, title, first_name, surname, email_address, date_of_birth string) (userDetails templateModel.UserDetails, error error) {

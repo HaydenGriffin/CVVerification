@@ -34,7 +34,7 @@ func (c *Controller) ViewCVApplications() func(http.ResponseWriter, *http.Reques
 			return
 		}
 
-		// Check that the user connected is a verifier
+		// Check that the user connected is an employer
 		employer, err := u.QueryEmployer()
 		if err != nil {
 			fmt.Println(err)

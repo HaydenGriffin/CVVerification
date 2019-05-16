@@ -69,6 +69,12 @@ func (c *Controller) RegisterDetailsHandler() func(http.ResponseWriter, *http.Re
 			data.MessageWarning = "Error! Unable to retrieve profile ID from ledger."
 		}
 
+		if database.EmailAlreadyExists(emailAddress) {
+			data.MessageWarning = "Error! Email address already in use. Please use another email address."
+			renderTemplate(w, r, "registerdetails.html", data)
+			return
+		}
+
 		// If the user is an applicant
 		applicant, applicantErr := u.QueryApplicant()
 		// Generate a new public and private key for the user
@@ -176,6 +182,12 @@ func (c *Controller) UpdateDetailsHandler() func(http.ResponseWriter, *http.Requ
 		surname := r.FormValue("surname")
 		dateOfBirth := r.FormValue("dateOfBirth")
 		emailAddress := r.FormValue("emailAddress")
+
+		if database.EmailAlreadyExists(emailAddress) {
+			data.MessageWarning = "Error! Email address already in use. Please use another email address."
+			renderTemplate(w, r, "registerdetails.html", data)
+			return
+		}
 
 		// Logic to update a profile
 		userDetails, err := database.UpdateUser(username, title, firstName, surname, dateOfBirth, emailAddress)

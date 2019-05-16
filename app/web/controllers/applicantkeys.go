@@ -169,6 +169,7 @@ func (c *Controller) DownloadPrivateKeyHandler() func(http.ResponseWriter, *http
 
 		var filename = u.Username + "-privatekey.pem"
 
+		// Create the downloadable key file on the server
 		err = ioutil.WriteFile(filename, []byte(privateKey), 0755)
 		if err != nil {
 			data.MessageWarning = "Error! Something went wrong whilst downloading the Private Key file."
@@ -176,6 +177,7 @@ func (c *Controller) DownloadPrivateKeyHandler() func(http.ResponseWriter, *http
 			return
 		}
 
+		// Open the key file
 		file, err := ioutil.ReadFile(filename)
 		if err != nil {
 			data.MessageWarning = "Error! Something went wrong whilst downloading the Private Key file."
@@ -183,12 +185,15 @@ func (c *Controller) DownloadPrivateKeyHandler() func(http.ResponseWriter, *http
 			return
 		}
 
+		// Set header values
 		w.Header().Set("Content-Type", "application/octet-stream")
 		w.Header().Set("Content-Disposition", "attachment; filename="+filename)
 		w.Header().Set("Content-Transfer-Encoding", "binary")
 		w.Header().Set("Expires", "0")
+		// Serve the file
 		http.ServeContent(w, r, filename, time.Now(), bytes.NewReader(file))
 
+		// Remove the created key file from server
 		err = os.Remove(filename)
 		if err != nil {
 			fmt.Println(err)

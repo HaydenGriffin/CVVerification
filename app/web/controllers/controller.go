@@ -7,6 +7,7 @@ import (
 	"github.com/cvverification/app/database"
 	templateModel "github.com/cvverification/app/model"
 	"github.com/cvverification/blockchain"
+	"github.com/cvverification/chaincode/model"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"github.com/teris-io/shortid"
@@ -172,32 +173,33 @@ func setSessionValues(session *sessions.Session, u *blockchain.User) {
 		session.Values["SavedUserDetails"] = false
 	}
 
-	var accountType string
+	// accountType specifies the current userType
+	var actorType string
 
 	applicant, err := u.QueryApplicant()
 	if err == nil {
 		if len(applicant.Profile.CVHistory) > 0 {
 			userDetails.UploadedCV = true
 		}
-		accountType = "applicant"
+		actorType = model.ActorApplicant
 	}
 
 	_, err = u.QueryVerifier()
 	if err == nil {
-		accountType = "verifier"
+		actorType = model.ActorVerifier
 	}
 
 	_, err = u.QueryAdmin()
 	if err == nil {
-		accountType = "admin"
+		actorType = model.ActorAdmin
 	}
 
 	_, err = u.QueryEmployer()
 	if err == nil {
-		accountType = "employer"
+		actorType = model.ActorEmployer
 	}
 
-	session.Values["AccountType"] = accountType
+	session.Values["AccountType"] = actorType
 	gob.Register(userDetails)
 	session.Values["UserDetails"] = userDetails
 }
@@ -226,6 +228,7 @@ func getUserDetails(s *sessions.Session) templateModel.UserDetails {
 func getPrivateKey(s *sessions.Session) string {
 	val := s.Values["PrivateKey"]
 
+	// Type assertion - ensure that val is a string value
 	privateKey, ok := val.(string)
 	if !ok {
 		return ""

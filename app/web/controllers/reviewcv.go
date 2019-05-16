@@ -97,7 +97,7 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		// Check that the user connected is an admin
+		// Check that the user connected is a verifier
 		_, err = u.QueryVerifier()
 		if err != nil {
 			data.CurrentPage = "index"
@@ -172,7 +172,7 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 			return
 		}
 
-		// Check that the user connected is an admin
+		// Check that the user connected is a verifier
 		_, err = u.QueryVerifier()
 		if err != nil {
 			data.MessageWarning = "Error! You must be a verifier user to review a CV."
@@ -219,7 +219,7 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 		// Encrypt the reviewByte with the applicants public key
 		encryptedReview := crypto.EncryptWithPublicKey(reviewByte, applicantKey)
 
-		// Save the rating to the applicants profile
+		// Save the review to the applicants profile
 		err = u.UpdateVerifierSaveReview(applicantID, cvID, encryptedReview)
 		if err != nil {
 			data.MessageWarning = "Error! Unable to save rating in ledger."

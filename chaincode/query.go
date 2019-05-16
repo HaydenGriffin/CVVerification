@@ -45,6 +45,10 @@ func (t *CVVerificationChaincode) query(stub shim.ChaincodeStubInterface, args [
 func (t *CVVerificationChaincode) id(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("# id information")
 
+	if t.testing {
+		return shim.Error("TESTING: This function cannot be called within testing.")
+	}
+
 	var actor model.Actor
 
 	actorID, err := cid.GetID(stub)
@@ -65,6 +69,11 @@ func (t *CVVerificationChaincode) id(stub shim.ChaincodeStubInterface, args []st
 func (t *CVVerificationChaincode) admin(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("# admin information")
 
+	if t.testing {
+		return shim.Error("TESTING: This function cannot be called within testing.")
+	}
+
+	// Within the MockStub, all operations involving cid always fail and is not supported
 	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorAdmin)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("only admin is allowed for the kind of request: %v", err))
@@ -91,8 +100,11 @@ func (t *CVVerificationChaincode) admin(stub shim.ChaincodeStubInterface, args [
 }
 
 func (t *CVVerificationChaincode) applicant(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
 	fmt.Println("# applicant information")
+
+	if t.testing {
+		return shim.Error("TESTING: This function cannot be called within testing.")
+	}
 
 	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
 	if err != nil {
@@ -120,8 +132,11 @@ func (t *CVVerificationChaincode) applicant(stub shim.ChaincodeStubInterface, ar
 }
 
 func (t *CVVerificationChaincode) employer(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
 	fmt.Println("# employer information")
+
+	if t.testing {
+		return shim.Error("TESTING: This function cannot be called within testing.")
+	}
 
 	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorEmployer)
 	if err != nil {
@@ -149,16 +164,20 @@ func (t *CVVerificationChaincode) employer(stub shim.ChaincodeStubInterface, arg
 }
 
 func (t *CVVerificationChaincode) applicantkey(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
 	fmt.Println("# applicant public key information")
 
-	if len(args) != 1 {
+	//Expected number of arguments
+	noOfArgs := 1
+
+	if len(args) != noOfArgs {
 		return shim.Error("The number of arguments is invalid.")
 	}
 
-	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorVerifier)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("only applicant is allowed for the kind of request: %v", err))
+	if t.testing != true {
+		err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorVerifier)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("only applicant is allowed for the kind of request: %v", err))
+		}
 	}
 
 	applicantID := args[0]
@@ -168,7 +187,7 @@ func (t *CVVerificationChaincode) applicantkey(stub shim.ChaincodeStubInterface,
 
 	var applicant model.Applicant
 
-	err = getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
+	err := getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("unable to retrieve applicant in the ledger: %v", err))
 	}
@@ -183,6 +202,10 @@ func (t *CVVerificationChaincode) applicantkey(stub shim.ChaincodeStubInterface,
 
 func (t *CVVerificationChaincode) verifier(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("# verifier information")
+
+	if t.testing {
+		return shim.Error("TESTING: This function cannot be called within testing.")
+	}
 
 	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorVerifier)
 	if err != nil {
@@ -211,7 +234,10 @@ func (t *CVVerificationChaincode) verifier(stub shim.ChaincodeStubInterface, arg
 func (t *CVVerificationChaincode) cv(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("# cv detail")
 
-	if len(args) != 1 {
+	//Expected number of arguments
+	noOfArgs := 1
+
+	if len(args) != noOfArgs {
 		return shim.Error("The number of arguments is invalid.")
 	}
 
@@ -238,8 +264,33 @@ func (t *CVVerificationChaincode) cv(stub shim.ChaincodeStubInterface, args []st
 func (t *CVVerificationChaincode) cvs(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("# cv list detail")
 
-	if len(args) != 2 {
+	// Expected number of arguments for normal operation
+	// Test mode may add an additional param specifying the ActorAttribute
+	noOfArgs := 2
+
+	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
 		return shim.Error("The number of arguments is invalid.")
+	}
+
+	var actorType string
+
+	// Check whether the Chaincode is running in testing mode
+	if t.testing != true {
+		// Not testing mode, use cid package
+		foundActorType, found, err := cid.GetAttributeValue(stub, model.ActorAttribute)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("unable to identify the type of the request owner: %v", err))
+		}
+		if !found {
+			return shim.Error("The type of the request owner is not present")
+		}
+		actorType = foundActorType
+	} else {
+		// In testing mode - actorType must be passed as an argument
+		if args[2] == "" {
+			return shim.Error("TESTING: The specified actor type is empty.")
+		}
+		actorType = args[2]
 	}
 
 	status := args[0]
@@ -254,15 +305,7 @@ func (t *CVVerificationChaincode) cvs(stub shim.ChaincodeStubInterface, args []s
 		return shim.Error(fmt.Sprintf("unable to retrieve the list of resource in the ledger: %v", err))
 	}
 
-	actorType, found, err := cid.GetAttributeValue(stub, model.ActorAttribute)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("unable to identify the type of the request owner: %v", err))
-	}
-	if !found {
-		return shim.Error("The type of the request owner is not present")
-	}
-
-	cvList := make(map[string] model.CVObject)
+	cvList := make(map[string]model.CVObject)
 	var cv model.CVObject
 	for iterator.HasNext() {
 		cvKeyValue, err := iterator.Next()
@@ -276,7 +319,7 @@ func (t *CVVerificationChaincode) cvs(stub shim.ChaincodeStubInterface, args []s
 		// The key value contains null characters for some reason, and it has 'cv' appended to the front
 		id := cvKeyValue.Key
 		// Remove null characters
-		id = strings.Replace(id, "\x00","",-1)
+		id = strings.Replace(id, "\x00", "", -1)
 		// Remove 'cv' from front of string
 		id = id[2:]
 		if returnCV(actorType, filter, cv) {
@@ -295,8 +338,18 @@ func (t *CVVerificationChaincode) cvs(stub shim.ChaincodeStubInterface, args []s
 func (t *CVVerificationChaincode) cvreviews(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("# cv list detail")
 
-	if len(args) != 2 {
+	//Expected number of arguments
+	noOfArgs := 2
+
+	if len(args) != noOfArgs {
 		return shim.Error("The number of arguments is invalid.")
+	}
+
+	if t.testing != true {
+		err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorEmployer)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("only employer users are allowed for the kind of request: %v", err))
+		}
 	}
 
 	applicantID := args[0]
@@ -310,20 +363,15 @@ func (t *CVVerificationChaincode) cvreviews(stub shim.ChaincodeStubInterface, ar
 		return shim.Error("The cvID is empty.")
 	}
 
-	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorEmployer)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("only employer users are allowed for the kind of request: %v", err))
-	}
-
 	var applicant model.Applicant
 
-	err = getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
+	err := getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("unable to retrieve applicant in the ledger: %v", err))
 	}
 
 	if len(applicant.Profile.PublicReviews[cvID]) == 0 {
-		return shim.Error("Unable to retrieve reviews for the CVID specified.")
+		return shim.Error("Unable to retrieve reviews for the cvID specified.")
 	}
 
 	reviewListByte, err := convertObjectToByte(applicant.Profile.PublicReviews[cvID])

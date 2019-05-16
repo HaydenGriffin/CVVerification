@@ -13,7 +13,7 @@
               </div>
               <div class="col-md-6">
                 <h4>Email Address:</h4>
-                {{.CVInfo.ApplicantDetails.EmailAddress}} <a href="mailto:{{.CVInfo.ApplicantDetails.EmailAddress}}">Contact
+                {{.CVInfo.ApplicantDetails.EmailAddress}} <br><a href="mailto:{{.CVInfo.ApplicantDetails.EmailAddress}}">Contact
                   Applicant</a>
               </div>
             </div>
@@ -66,6 +66,8 @@
                   <div class="card-body">
                     <h4>Reviewer:</h4>
                     {{$CVReview.Name}}
+                    <h4>Reviewer Organisation:</h4>
+                    {{$CVReview.Organisation}}
                     <h4>Verification Type:</h4>
                     {{$CVReview.Type}}
                     <h4>Comment:</h4>

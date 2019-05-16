@@ -9,4 +9,5 @@ type UserDetails struct {
 	DateOfBirth string
 	EmailAddress string
 	UploadedCV bool
+	Organisation string
 }

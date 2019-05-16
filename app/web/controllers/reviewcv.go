@@ -104,6 +104,8 @@ func (c *Controller) ReviewCVView() func(http.ResponseWriter, *http.Request) {
 			data.MessageWarning = "You must be a verifier user to rate a CV."
 			renderTemplate(w, r, "index.html", data)
 			return
+		} else {
+			data.UserDetails.Organisation = verifier.Profile.Organisation
 		}
 
 		cvID, success := mux.Vars(r)["cvID"]
@@ -189,6 +191,7 @@ func (c *Controller) ReviewCVHandler() func(http.ResponseWriter, *http.Request) 
 
 		review := model.CVReview{
 			Name:    r.FormValue("name"),
+			Organisation: r.FormValue("organisation"),
 			Comment: r.FormValue("comment"),
 			Type:    r.FormValue("type"),
 			Rating:  ratingInt,

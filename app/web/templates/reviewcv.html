@@ -48,6 +48,10 @@
               <input type="text" class="form-control" id="name" name="name"
                      value="{{.UserDetails.FirstName}} {{.UserDetails.Surname}}" readonly/>
             </div>
+              <div class="form-group">
+                <label for="organisation">Organisation</label>
+                <input type="text" class="form-control" id="organisation" name="organisation" value="{{.UserDetails.Organisation}}" readonly/>
+              </div>
             <div class="form-group">
               <label for="type">Verification Type</label>
               <select class="form-control" id="type" name="type" required="" autofocus="">

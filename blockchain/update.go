@@ -29,17 +29,17 @@ func (u *User) update(args [][]byte, responseObject interface{}) error {
 	return nil
 }
 
-// UpdateRegister allow to register a user into the blockchain
+// UpdateRegister allow a user to register into the blockchain
 func (u *User) UpdateRegister() error {
 	return u.update([][]byte{[]byte("register"), []byte(u.Username)}, nil)
 }
 
-// UpdateSaveCV allow to add a resource into the blockchain
+// UpdateSaveCV save a CV to the ledger
 func (u *User) UpdateSaveCV(cvByte []byte, cvID string) error {
 	return u.update([][]byte{[]byte("savecv"), cvByte, []byte(cvID)}, nil)
 }
 
-// UpdateSaveCV allow to add a resource into the blockchain
+// UpdateTransitionCV transition the status of a CV application
 func (u *User) UpdateTransitionCV(cvID, newStatus string) (*model.CVObject,error) {
 	var cv *model.CVObject
 	 err := u.update([][]byte{[]byte("transitioncv"), []byte(cvID), []byte(newStatus)}, &cv)
@@ -49,27 +49,32 @@ func (u *User) UpdateTransitionCV(cvID, newStatus string) (*model.CVObject,error
 	 return cv, nil
 }
 
-// UpdateSaveProfileCV allow to add a resource into the blockchain
+// UpdateSaveProfileKey updates the applicant profile and saves the public key
 func (u *User) UpdateSaveProfileKey(publicKey string) error {
 	return u.update([][]byte{[]byte("saveprofilekey"), []byte(publicKey)}, nil)
 }
 
-// UpdateSaveProfileCV allow to add a resource into the blockchain
+// UpdateSaveProfileCV updates the applicant profile and saves the cvID
 func (u *User) UpdateSaveProfileCV(cvID string) error {
 	return u.update([][]byte{[]byte("saveprofilecv"), []byte(cvID)}, nil)
 }
 
-// UpdateSaveProfileCV allow to add a resource into the blockchain
-func (u *User) UpdateVerifierSaveReview(ID, cvID string, reviewByte []byte) error {
-	return u.update([][]byte{[]byte("verifiersavereview"), []byte(ID), []byte(cvID), reviewByte}, nil)
+// UpdateVerifierSaveReview updates the applicant profile with the encrypted review (using applicants pub key)
+func (u *User) UpdateVerifierSaveReview(applicantID, cvID string, reviewByte []byte) error {
+	return u.update([][]byte{[]byte("verifiersavereview"), []byte(applicantID), []byte(cvID), reviewByte}, nil)
 }
 
-// UpdateSaveProfileCV allow to add a resource into the blockchain
+// UpdateVerifierSaveOrganisation updates the verifier profile with the new organisation name
+func (u *User) UpdateVerifierSaveOrganisation(newOrganisation string) error {
+	return u.update([][]byte{[]byte("verifiersaveorganisation"), []byte(newOrganisation)}, nil)
+}
+
+// UpdatePublishReviews saves the decrypted user reviews to the users profile
 func (u *User) UpdatePublishReviews(cvID string, reviewsByte []byte) error {
 	return u.update([][]byte{[]byte("publishreviews"), []byte(cvID), reviewsByte}, nil)
 }
 
-// UpdateSaveProfileCV allow to add a resource into the blockchain
+// UpdateEmployerSaveCV updates the employers profile with the CV application that they are interested in
 func (u *User) UpdateEmployerSaveCV(cvID string) error {
 	return u.update([][]byte{[]byte("employersavecv"), []byte(cvID)}, nil)
 }

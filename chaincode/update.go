@@ -31,6 +31,8 @@ func (t *CVVerificationChaincode) update(stub shim.ChaincodeStubInterface, args 
 		return t.saveProfileCV(stub, args[1:])
 	} else if function == "verifiersavereview" {
 		return t.verifierSaveReview(stub, args[1:])
+	} else if function == "verifiersaveorganisation" {
+		return t.verifierSaveOrganisation(stub, args[1:])
 	} else if function == "publishreviews" {
 		return t.publishReviews(stub, args[1:])
 	} else if function == "employersavecv" {
@@ -43,6 +45,10 @@ func (t *CVVerificationChaincode) update(stub shim.ChaincodeStubInterface, args 
 
 func (t *CVVerificationChaincode) register(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("Register new user")
+
+	if t.testing {
+		return shim.Error("TESTING: This function cannot be called within testing.")
+	}
 
 	actorType, found, err := cid.GetAttributeValue(stub, model.ActorAttribute)
 	if err != nil {
@@ -65,7 +71,7 @@ func (t *CVVerificationChaincode) register(stub shim.ChaincodeStubInterface, arg
 	case model.ActorAdmin:
 		newAdmin := model.Admin{
 			Actor: model.Actor{
-				ID:   actorID,
+				ID:       actorID,
 				Username: args[0],
 			},
 			Profile: model.AdminProfile{},
@@ -86,7 +92,7 @@ func (t *CVVerificationChaincode) register(stub shim.ChaincodeStubInterface, arg
 	case model.ActorApplicant:
 		newApplicant := model.Applicant{
 			Actor: model.Actor{
-				ID:   actorID,
+				ID:       actorID,
 				Username: args[0],
 			},
 			Profile: model.ApplicantProfile{},
@@ -106,7 +112,7 @@ func (t *CVVerificationChaincode) register(stub shim.ChaincodeStubInterface, arg
 	case model.ActorVerifier:
 		newVerifier := model.Verifier{
 			Actor: model.Actor{
-				ID:   actorID,
+				ID:       actorID,
 				Username: args[0],
 			},
 			Profile: model.VerifierProfile{},
@@ -126,7 +132,7 @@ func (t *CVVerificationChaincode) register(stub shim.ChaincodeStubInterface, arg
 	case model.ActorEmployer:
 		newEmployer := model.Employer{
 			Actor: model.Actor{
-				ID:   actorID,
+				ID:       actorID,
 				Username: args[0],
 			},
 			Profile: model.EmployerProfile{},
@@ -151,13 +157,18 @@ func (t *CVVerificationChaincode) register(stub shim.ChaincodeStubInterface, arg
 func (t *CVVerificationChaincode) saveCV(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("Add new CV")
 
-	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("only applicant users are allowed to add a CV: %v", err))
+	// Expected number of arguments for normal operation
+	noOfArgs := 2
+
+	if len(args) != noOfArgs {
+		return shim.Error("The number of arguments is invalid.")
 	}
 
-	if len(args) != 2 {
-		return shim.Error("The number of arguments is insufficient.")
+	if t.testing != true {
+		err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("only applicant users are allowed to add a CV: %v", err))
+		}
 	}
 
 	var cv model.CVObject
@@ -167,7 +178,7 @@ func (t *CVVerificationChaincode) saveCV(stub shim.ChaincodeStubInterface, args 
 		return shim.Error("There is no CV to be saved.")
 	}
 
-	err = convertByteToObject([]byte(cvByte), &cv)
+	err := convertByteToObject([]byte(cvByte), &cv)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("unable to convert cv byte to object: %v", err))
 	}
@@ -197,12 +208,17 @@ func (t *CVVerificationChaincode) saveCV(stub shim.ChaincodeStubInterface, args 
 func (t *CVVerificationChaincode) transitionCV(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("Transition CV status")
 
-	if len(args) != 2 {
-		return shim.Error("The number of arguments is insufficient.")
+	// Expected number of arguments for normal operation
+	// Test mode requires an additional param specifying the ActorAttribute
+	noOfArgs := 2
+
+	// Check whether the number of arguments is sufficient
+	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
+		return shim.Error("The number of arguments is invalid.")
 	}
 
 	cvIDToUpdate := args[0]
-	if cvIDToUpdate  == "" {
+	if cvIDToUpdate == "" {
 		return shim.Error("The CV ID is empty.")
 	}
 
@@ -211,17 +227,27 @@ func (t *CVVerificationChaincode) transitionCV(stub shim.ChaincodeStubInterface,
 		return shim.Error("The status value is empty.")
 	}
 
-	actorType, found, err := cid.GetAttributeValue(stub, model.ActorAttribute)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("unable to identify the type of the request owner: %v", err))
-	}
-	if !found {
-		return shim.Error("The type of the request owner is not present")
+	var actorType string
+
+	if t.testing != true {
+		foundActorType, found, err := cid.GetAttributeValue(stub, model.ActorAttribute)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("unable to identify the type of the request owner: %v", err))
+		}
+		if !found {
+			return shim.Error("The type of the request owner is not present")
+		}
+		actorType = foundActorType
+	} else {
+		if args[2] == "" {
+			return shim.Error("TESTING: The specified actor type is empty.")
+		}
+		actorType = args[2]
 	}
 
 	var cv model.CVObject
 
-	err = getFromLedger(stub, model.ObjectTypeCV, cvIDToUpdate, &cv)
+	err := getFromLedger(stub, model.ObjectTypeCV, cvIDToUpdate, &cv)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("unable to retrieve CV in the ledger: %v", err))
 	}
@@ -252,17 +278,35 @@ func (t *CVVerificationChaincode) transitionCV(stub shim.ChaincodeStubInterface,
 // args: CV object
 // CV ID is key, CVObject is the value
 func (t *CVVerificationChaincode) saveProfileKey(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
 	fmt.Println("Save profile key")
 
-	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("only applicant users are allowed to update their key: %v", err))
-	}
+	// Expected number of arguments for normal operation
+	// Test mode requires an additional param specifying the applicantID
+	noOfArgs := 1
 
 	// Check whether the number of arguments is sufficient
-	if len(args) != 1 {
+	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
 		return shim.Error("The number of arguments is invalid.")
+	}
+
+	var applicantID string
+
+	if t.testing != true {
+		err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("only applicant users are allowed to update their key: %v", err))
+		}
+
+		ID, err := cid.GetID(stub)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("unable to identify the ID of the request owner: %v", err))
+		}
+		applicantID = ID
+	} else {
+		if args[1] == "" {
+			return shim.Error("TESTING: The specified applicantID is empty.")
+		}
+		applicantID = args[1]
 	}
 
 	publicKeyByte := args[0]
@@ -273,12 +317,7 @@ func (t *CVVerificationChaincode) saveProfileKey(stub shim.ChaincodeStubInterfac
 
 	var applicant model.Applicant
 
-	applicantID, err := cid.GetID(stub)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("unable to identify the ID of the request owner: %v", err))
-	}
-
-	err = getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
+	err := getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
 
 	if err != nil {
 		return shim.Error(fmt.Sprintf("unable to retrieve applicant profile from the ledger: %v", err))
@@ -309,22 +348,39 @@ func (t *CVVerificationChaincode) saveProfileKey(stub shim.ChaincodeStubInterfac
 	return shim.Success(applicantAsByte)
 }
 
-
 // Add CV Chaincode
 // args: CV object
 // CV ID is key, CVObject is the value
 func (t *CVVerificationChaincode) saveProfileCV(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
 	fmt.Println("Save profile CV")
 
-	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("only applicant users are allowed to add a CV: %v", err))
-	}
+	// Expected number of arguments for normal operation
+	// Test mode may add an additional param specifying the applicantID
+	noOfArgs := 1
 
 	// Check whether the number of arguments is sufficient
-	if len(args) != 1 {
+	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
 		return shim.Error("The number of arguments is invalid.")
+	}
+
+	var applicantID string
+
+	if t.testing != true {
+		err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("only applicant users are allowed to add a CV to profile: %v", err))
+		}
+
+		ID, err := cid.GetID(stub)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("unable to identify the ID of the request owner: %v", err))
+		}
+		applicantID = ID
+	} else {
+		if args[1] == "" {
+			return shim.Error("TESTING: The specified applicantID is empty.")
+		}
+		applicantID = args[1]
 	}
 
 	cvID := args[0]
@@ -334,12 +390,7 @@ func (t *CVVerificationChaincode) saveProfileCV(stub shim.ChaincodeStubInterface
 
 	var applicant model.Applicant
 
-	applicantID, err := cid.GetID(stub)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("unable to identify the ID of the request owner: %v", err))
-	}
-
-	err = getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
+	err := getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
 
 	if err != nil {
 		return shim.Error(fmt.Sprintf("unable to retrieve applicant profile from the ledger: %v", err))
@@ -372,14 +423,33 @@ func (t *CVVerificationChaincode) saveProfileCV(stub shim.ChaincodeStubInterface
 func (t *CVVerificationChaincode) verifierSaveReview(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("Save review")
 
-	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorVerifier)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("only verifier users are allowed to add a CV: %v", err))
-	}
+	// Expected number of arguments for normal operation
+	// Test mode requires an additional param specifying the verifierID
+	noOfArgs := 3
 
 	// Check whether the number of arguments is sufficient
-	if len(args) != 3 {
+	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
 		return shim.Error("The number of arguments is invalid.")
+	}
+
+	var verifierID string
+
+	if t.testing != true {
+		err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorVerifier)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("only verifier users are allowed to add a CV: %v", err))
+		}
+
+		ID, err := cid.GetID(stub)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("unable to get invoking chaincode identity: %v", err))
+		}
+		verifierID = ID
+	} else {
+		if args[3] == "" {
+			return shim.Error("TESTING: The specified verifierID is empty.")
+		}
+		verifierID = args[3]
 	}
 
 	applicantID := args[0]
@@ -399,12 +469,7 @@ func (t *CVVerificationChaincode) verifierSaveReview(stub shim.ChaincodeStubInte
 		return shim.Error("There is no rating to be saved.")
 	}
 
-	verifierID, err := cid.GetID(stub)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("unable to get invoking chaincode identity: %v", err))
-	}
-
-	err = getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
+	err := getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("unable to retrieve applicant profile in the ledger: %v", err))
 	}
@@ -436,17 +501,93 @@ func (t *CVVerificationChaincode) verifierSaveReview(stub shim.ChaincodeStubInte
 // Add CV Chaincode
 // args: CV object
 // CV ID is key, CVObject is the value
+func (t *CVVerificationChaincode) verifierSaveOrganisation(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	fmt.Println("Save organisation")
+
+	// Expected number of arguments for normal operation
+	// Test mode requires an additional param specifying the verifierID
+	noOfArgs := 1
+
+	// Check whether the number of arguments is sufficient
+	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
+		return shim.Error("The number of arguments is invalid.")
+	}
+
+	var verifierID string
+
+	if t.testing != true {
+		err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorVerifier)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("only verifier users are allowed to update their organisation: %v", err))
+		}
+		ID, err := cid.GetID(stub)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("unable to get invoking chaincode identity: %v", err))
+		}
+		verifierID = ID
+	} else {
+		if args[1] == "" {
+			return shim.Error("TESTING: The specified verifierID is empty.")
+		}
+		verifierID = args[1]
+	}
+
+	newOrganisation := args[0]
+	var verifier model.Verifier
+
+	if newOrganisation == "" {
+		return shim.Error("There is no organisation to be saved.")
+	}
+
+	err := getFromLedger(stub, model.ObjectTypeVerifier, verifierID, &verifier)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to retrieve applicant profile in the ledger: %v", err))
+	}
+
+	verifier.Profile.Organisation = newOrganisation
+
+	// Put the updated profile back to the ledger
+	err = updateInLedger(stub, model.ObjectTypeVerifier, verifierID, verifier)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("unable to update the profile in the ledger: %v", err))
+	}
+
+	return shim.Success([]byte("Successfully saved the new organisation"))
+}
+
+// Add CV Chaincode
+// args: CV object
+// CV ID is key, CVObject is the value
 func (t *CVVerificationChaincode) publishReviews(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("Publish Reviews")
 
-	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("only verifier users are allowed to add a CV: %v", err))
-	}
+	// Expected number of arguments for normal operation
+	// Test mode requires an additional param specifying the applicantID
+	noOfArgs := 2
 
 	// Check whether the number of arguments is sufficient
-	if len(args) != 2 {
+	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
 		return shim.Error("The number of arguments is invalid.")
+	}
+
+	var applicantID string
+
+	if t.testing != true {
+		err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorApplicant)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("only verifier users are allowed to add a CV: %v", err))
+		}
+
+		ID, err := cid.GetID(stub)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("unable to get invoking chaincode identity: %v", err))
+		}
+		applicantID = ID
+	} else {
+		if args[2] == "" {
+			return shim.Error("TESTING: The specified applicantID is empty.")
+		}
+		applicantID = args[2]
 	}
 
 	cvID := args[0]
@@ -457,17 +598,12 @@ func (t *CVVerificationChaincode) publishReviews(stub shim.ChaincodeStubInterfac
 		return shim.Error("The CV ID is empty.")
 	}
 
-	err = convertByteToObject([]byte(reviewsByte), &reviews)
+	err := convertByteToObject([]byte(reviewsByte), &reviews)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("unable to convert reviews byte to object: %v", err))
 	}
 
 	var applicant model.Applicant
-
-	applicantID, err := cid.GetID(stub)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("unable to get invoking chaincode identity: %v", err))
-	}
 
 	err = getFromLedger(stub, model.ObjectTypeApplicant, applicantID, &applicant)
 	if err != nil {
@@ -499,14 +635,33 @@ func (t *CVVerificationChaincode) publishReviews(stub shim.ChaincodeStubInterfac
 func (t *CVVerificationChaincode) employerSaveCV(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("Employer save CV")
 
-	err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorEmployer)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("only employer users are allowed to save a CV to employer profile: %v", err))
-	}
+	// Expected number of arguments for normal operation
+	// Test mode requires an additional param specifying the employerID
+	noOfArgs := 1
 
 	// Check whether the number of arguments is sufficient
-	if len(args) != 1 {
+	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
 		return shim.Error("The number of arguments is invalid.")
+	}
+
+	var employerID string
+
+	if t.testing != true {
+		err := cid.AssertAttributeValue(stub, model.ActorAttribute, model.ActorEmployer)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("only employer users are allowed to save a CV to employer profile: %v", err))
+		}
+
+		ID, err := cid.GetID(stub)
+		if err != nil {
+			return shim.Error(fmt.Sprintf("unable to identify the ID of the request owner: %v", err))
+		}
+		employerID = ID
+	} else {
+		if args[1] == "" {
+			return shim.Error("TESTING: The specified employerID is empty.")
+		}
+		employerID = args[1]
 	}
 
 	cvID := args[0]
@@ -514,14 +669,9 @@ func (t *CVVerificationChaincode) employerSaveCV(stub shim.ChaincodeStubInterfac
 		return shim.Error("The CV ID is empty.")
 	}
 
-	employerID, err := cid.GetID(stub)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("unable to identify the ID of the request owner: %v", err))
-	}
-
 	var employer model.Employer
 
-	err = getFromLedger(stub, model.ObjectTypeEmployer, employerID, &employer)
+	err := getFromLedger(stub, model.ObjectTypeEmployer, employerID, &employer)
 	if err != nil {
 		return shim.Error(fmt.Sprintf("unable to retrieve employer profile from the ledger: %v", err))
 	}

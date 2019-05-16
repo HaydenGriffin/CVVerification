@@ -41,6 +41,13 @@
                   <input type="email" class="form-control" id="emailAddress" name="emailAddress" required=""
                          autofocus=""/>
                 </div>
+                {{if eq .AccountType "verifier"}}
+                  <div class="form-group col-md-6">
+                    <label for="organisation">Organisation</label>
+                    <input type="text" class="form-control" id="organisation" name="organisation" required=""
+                           autofocus=""/>
+                  </div>
+                {{end}}
               </div>
               <button class="btn btn-lg btn-primary" type="submit">Register User Details</button>
             </form>

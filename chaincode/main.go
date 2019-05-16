@@ -8,6 +8,7 @@ import (
 
 // CVVerificationChaincode implementation of Chaincode
 type CVVerificationChaincode struct {
+	testing bool
 }
 
 // Init of the chaincode
@@ -20,7 +21,7 @@ func (t *CVVerificationChaincode) Init(stub shim.ChaincodeStubInterface) pb.Resp
 
 	// Check if the request is the init function
 	if function != "init" {
-		return shim.Error("Unknown function call")
+		return shim.Error(fmt.Sprintf("Unknown function call: %v", function))
 	}
 
 	// Return a successful message
@@ -37,7 +38,7 @@ func (t *CVVerificationChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Re
 
 	// Check whether it is an invoke request
 	if function != "invoke" {
-		return shim.Error("Unknown function call")
+		return shim.Error(fmt.Sprintf("Unknown function call: %v", function))
 	}
 
 	// Check whether the number of arguments is sufficient
@@ -64,7 +65,9 @@ func (t *CVVerificationChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Re
 
 func main() {
 	// Start the chaincode and make it ready for futures requests
-	err := shim.Start(new(CVVerificationChaincode))
+	cvvc := new(CVVerificationChaincode)
+	cvvc.testing = false
+	err := shim.Start(cvvc)
 	if err != nil {
 		fmt.Printf("Error starting cvverification chaincode: %s", err)
 	}

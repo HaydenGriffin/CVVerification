@@ -44,8 +44,11 @@ SET character_set_client = utf8mb4 ;
 CREATE TABLE `users` (
                        `id` int(11) NOT NULL AUTO_INCREMENT,
                        `username` varchar(45) DEFAULT NULL,
-                       `full_name` varchar(45) DEFAULT NULL,
+                       `title` varchar(45) DEFAULT NULL,
+                       `first_name` varchar(45) DEFAULT NULL,
+                       `surname` varchar(45) DEFAULT NULL,
                        `email_address` varchar(45) DEFAULT NULL,
+                       `date_of_birth` varchar(45) DEFAULT NULL,
                        `fabric_id` char(255) DEFAULT NULL,
                        PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=296 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

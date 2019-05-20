@@ -13,9 +13,9 @@ import (
 func (t *CVVerificationChaincode) query(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("Query functions")
 
-	// Check whether the number of arguments is sufficient
+	// Ensure at least one argument has been provided; otherwise return error
 	if len(args) < 1 {
-		return shim.Error("The number of arguments is invalid.")
+		return shim.Error("No query function specified.")
 	}
 
 	if args[0] == "id" {
@@ -38,8 +38,8 @@ func (t *CVVerificationChaincode) query(stub shim.ChaincodeStubInterface, args [
 		return t.cvreviews(stub, args[1:])
 	}
 
-	// If the arguments given don’t match any function, we return an error
-	return shim.Error("Unknown query action, check the second argument.")
+	// The passed argument does not match any function; return error
+	return shim.Error("Invalid second argument supplied.")
 }
 
 func (t *CVVerificationChaincode) id(stub shim.ChaincodeStubInterface, args []string) pb.Response {
@@ -268,6 +268,7 @@ func (t *CVVerificationChaincode) cvs(stub shim.ChaincodeStubInterface, args []s
 	// Test mode may add an additional param specifying the ActorAttribute
 	noOfArgs := 2
 
+	// Ensure the correct number of arguments are supplied
 	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
 		return shim.Error("The number of arguments is invalid.")
 	}

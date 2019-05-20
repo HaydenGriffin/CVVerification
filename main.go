@@ -60,9 +60,9 @@ func main() {
 		fmt.Printf("Unable to initialise the DB: %v\n", err)
 	}
 
-	// Install and instantiate the chaincode
+	// Installs the chaincode if value is set
 	if installChaincode {
-		_, err = fSetup.InstallAndInstantiateCC()
+		_, err = fSetup.InstallChaincode()
 		if err != nil {
 			fmt.Printf("Unable to install and instantiate the chaincode: %v\n", err)
 			return
@@ -70,11 +70,14 @@ func main() {
 	}
 
 	if registerUsers {
+		// Cleardown table data
 		err := database.CleardownTables()
 		if err != nil {
 			fmt.Printf("failed to clear tables: %v", err)
 			return
 		}
+
+		// Register users in Fabric CA
 		_, err = fSetup.LogUser("admin", "adminpw")
 		if err != nil {
 			fmt.Printf("failed to enroll identity 'admin': %v", err)
@@ -120,7 +123,7 @@ func main() {
 
 	sid, err := shortid.New(1, shortid.DefaultABC, 2342)
 
-	// Launch the web application listening
+	// Launch the web application on port 3000
 	app := &controllers.Controller{
 		Fabric:  &fSetup,
 		ShortID: sid,

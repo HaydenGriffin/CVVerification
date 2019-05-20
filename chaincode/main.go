@@ -28,12 +28,12 @@ func (t *CVVerificationChaincode) Init(stub shim.ChaincodeStubInterface) pb.Resp
 	return shim.Success(nil)
 }
 
-// Invoke chaincode
-// All future requests named invoke will arrive here.
+// Invoke - All requests from Fabric SDK Go are processed through the Invoke function
+// Operations are split into update and query functions
 func (t *CVVerificationChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	fmt.Println("CVVerificationChaincode Invoke")
 
-	// Get the function and arguments from the request
+	// Retrieve the transaction proposal function and parameters
 	function, args := stub.GetFunctionAndParameters()
 
 	// Check whether it is an invoke request
@@ -41,9 +41,9 @@ func (t *CVVerificationChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Re
 		return shim.Error(fmt.Sprintf("Unknown function call: %v", function))
 	}
 
-	// Check whether the number of arguments is sufficient
+	// Ensure at least one argument has been provided; otherwise return error
 	if len(args) < 1 {
-		return shim.Error("The number of arguments is invalid.")
+		return shim.Error("At least one argument parameter should be specified.")
 	}
 
 	// The chaincode request operation is stored within the first argument
@@ -54,13 +54,13 @@ func (t *CVVerificationChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Re
 		return t.query(stub, args[1:])
 	}
 
-	// The update argument will manage all update in the ledger
+	// If the operationType is update, return the update function
 	if operationType == "update" {
 		return t.update(stub, args[1:])
 	}
 
-	// If the arguments given don’t match any function, we return an error
-	return shim.Error("Unknown action, check the first argument")
+	// If the first argument is not query or update, something has gone wrong
+	return shim.Error("Invalid first argument supplied")
 }
 
 func main() {

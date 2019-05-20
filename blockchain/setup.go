@@ -20,7 +20,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// FabricSetup implementation
+// FabricSetup struct; contains all the variables needed to launch the SDK
 type FabricSetup struct {
 	ConfigFile       string
 	OrgID            string
@@ -52,14 +52,14 @@ type User struct {
 	SigningIdentity msp.SigningIdentity
 }
 
-// Initialize reads the configuration file and sets up the client, chain and event hub
+// Initialize and configure the SDK
 func (setup *FabricSetup) Initialize() error {
 	fmt.Println("Initialising SDK")
 
-	// Initialize the SDK with the configuration file
+	// Use the created config file to configure the SDK
 	sdk, err := fabsdk.New(config.FromFile(setup.ConfigFile))
 	if err != nil {
-		return errors.WithMessage(err, "failed to create SDK")
+		return errors.WithMessage(err, "SDK could not be configured")
 	}
 	setup.sdk = sdk
 
@@ -74,7 +74,7 @@ func (setup *FabricSetup) Initialize() error {
 	return nil
 }
 
-func (setup *FabricSetup) InstallAndInstantiateCC() (*channel.Client, error) {
+func (setup *FabricSetup) InstallChaincode() (*channel.Client, error) {
 
 	// The resource management client is responsible for managing channels (create/update channel)
 	resourceManagerClientContext := setup.sdk.Context(fabsdk.WithUser(setup.OrgAdmin), fabsdk.WithOrg(setup.OrgName))

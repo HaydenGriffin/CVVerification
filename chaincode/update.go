@@ -12,7 +12,7 @@ import (
 func (t *CVVerificationChaincode) update(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	fmt.Println("Update functions")
 
-	// Check whether the number of arguments is sufficient
+	// Ensure the correct amount of arguments have been supplied
 	if len(args) < 1 {
 		return shim.Error("The number of arguments is invalid.")
 	}
@@ -212,7 +212,7 @@ func (t *CVVerificationChaincode) transitionCV(stub shim.ChaincodeStubInterface,
 	// Test mode requires an additional param specifying the ActorAttribute
 	noOfArgs := 2
 
-	// Check whether the number of arguments is sufficient
+	// Ensure the correct amount of arguments have been supplied
 	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
 		return shim.Error("The number of arguments is invalid.")
 	}
@@ -284,7 +284,7 @@ func (t *CVVerificationChaincode) saveProfileKey(stub shim.ChaincodeStubInterfac
 	// Test mode requires an additional param specifying the applicantID
 	noOfArgs := 1
 
-	// Check whether the number of arguments is sufficient
+	// Ensure the correct amount of arguments have been supplied
 	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
 		return shim.Error("The number of arguments is invalid.")
 	}
@@ -358,7 +358,7 @@ func (t *CVVerificationChaincode) saveProfileCV(stub shim.ChaincodeStubInterface
 	// Test mode may add an additional param specifying the applicantID
 	noOfArgs := 1
 
-	// Check whether the number of arguments is sufficient
+	// Ensure the correct amount of arguments have been supplied
 	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
 		return shim.Error("The number of arguments is invalid.")
 	}
@@ -427,7 +427,7 @@ func (t *CVVerificationChaincode) verifierSaveReview(stub shim.ChaincodeStubInte
 	// Test mode requires an additional param specifying the verifierID
 	noOfArgs := 3
 
-	// Check whether the number of arguments is sufficient
+	// Ensure the correct amount of arguments have been supplied
 	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
 		return shim.Error("The number of arguments is invalid.")
 	}
@@ -508,7 +508,7 @@ func (t *CVVerificationChaincode) verifierSaveOrganisation(stub shim.ChaincodeSt
 	// Test mode requires an additional param specifying the verifierID
 	noOfArgs := 1
 
-	// Check whether the number of arguments is sufficient
+	// Ensure the correct amount of arguments have been supplied
 	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
 		return shim.Error("The number of arguments is invalid.")
 	}
@@ -565,7 +565,7 @@ func (t *CVVerificationChaincode) publishReviews(stub shim.ChaincodeStubInterfac
 	// Test mode requires an additional param specifying the applicantID
 	noOfArgs := 2
 
-	// Check whether the number of arguments is sufficient
+	// Ensure the correct amount of arguments have been supplied
 	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
 		return shim.Error("The number of arguments is invalid.")
 	}
@@ -639,7 +639,7 @@ func (t *CVVerificationChaincode) employerSaveCV(stub shim.ChaincodeStubInterfac
 	// Test mode requires an additional param specifying the employerID
 	noOfArgs := 1
 
-	// Check whether the number of arguments is sufficient
+	// Ensure the correct amount of arguments have been supplied
 	if (!t.testing && len(args) != noOfArgs) || (t.testing && len(args) != noOfArgs+1) {
 		return shim.Error("The number of arguments is invalid.")
 	}
